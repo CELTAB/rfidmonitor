@@ -2,33 +2,31 @@
 #define LOGGER_H
 
 // Include from boost log
-//#define BOOST_LOG_DYN_LINK
+#define BOOST_LOG_DYN_LINK
 
-//#include <boost/log/utility/setup/common_attributes.hpp>
-//#include <boost/log/sources/global_logger_storage.hpp>
-//#include <boost/date_time/gregorian/gregorian.hpp>
-//#include <boost/log/sources/severity_logger.hpp>
-//#include <boost/log/sources/record_ostream.hpp>
-//#include <boost/log/attributes/function.hpp>
-//#include <boost/log/sources/logger.hpp>
-//#include <boost/log/expressions.hpp>
-//#include <boost/log/sinks.hpp>
-//#include <boost/log/core.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/log/sources/severity_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/attributes/function.hpp>
+#include <boost/log/sources/logger.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks.hpp>
+#include <boost/log/core.hpp>
 
 //----------
 
 #include <QObject>
 #include <QString>
-#include <QFile>
-#include <QTextStream>
 
 //To keep the code simple, the following namespace aliases are defined:
-//namespace logging = boost::log;
-//namespace sinks = boost::log::sinks;
-//namespace src = boost::log::sources;
-//namespace expr = boost::log::expressions;
-//namespace attrs = boost::log::attributes;
-//namespace keywords = boost::log::keywords;
+namespace logging = boost::log;
+namespace sinks = boost::log::sinks;
+namespace src = boost::log::sources;
+namespace expr = boost::log::expressions;
+namespace attrs = boost::log::attributes;
+namespace keywords = boost::log::keywords;
 
 class Logger : public QObject
 {
@@ -60,7 +58,7 @@ public:
     /**
      * @brief sink_t indicates that the sink is synchronous, that is, it allows for several threads to log simultaneously and will block in case of contention.
      */
-//    typedef sinks::synchronous_sink< sinks::text_file_backend > sink_t;
+    typedef sinks::synchronous_sink< sinks::text_file_backend > sink_t;
 
     /**
      * @brief instance return the unique instance of the \c Logger class
@@ -104,7 +102,7 @@ public:
      * @see currentDateTime()
      * @see severity_level
      */
-    void writeRecord(severity_level lvl, QString moduleName, QString functionName,
+    void writeRecord(severity_level lvl, QString moduleName, QString FunctionName,
                      QString message);
 
     /**
@@ -127,7 +125,7 @@ public:
      *
      * @param file stream to the log file
      */
-//    static void writeLastRecord(sinks::text_file_backend::stream_type &file);
+    static void writeLastRecord(sinks::text_file_backend::stream_type &file);
 
     /**
      * @brief startDebugMode it called when system is running in debug mode
@@ -155,11 +153,9 @@ private:
      * @see startDebugMode()
      * @see initLog()
      */
-//    logging::formatter logformat;
+    logging::formatter logformat;
 
     explicit Logger(QObject *parent = 0);
-
-    QFile file;
 
     /**
      * @brief initLog will configure and create a log file
@@ -178,7 +174,7 @@ private:
 
 };
 
-//BOOST_LOG_ATTRIBUTE_KEYWORD(line_id, "LineID", unsigned int)
-//BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", Logger::severity_level)
+BOOST_LOG_ATTRIBUTE_KEYWORD(line_id, "LineID", unsigned int)
+BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", Logger::severity_level)
 
 #endif // LOGGER_H
