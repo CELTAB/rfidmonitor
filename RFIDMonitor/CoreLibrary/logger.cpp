@@ -4,6 +4,11 @@
 
 #include "logger.h"
 
+
+/*
+    This source code is commented because we have som problems no cross-compiling boost for ARM architecture.
+*/
+
 Logger::Logger(QObject *parent):
     QObject(parent)
 {
