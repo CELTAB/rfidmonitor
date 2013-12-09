@@ -11,7 +11,6 @@ QT       -= gui
 TARGET = CoreLibrary
 TEMPLATE = lib
 
-LIBS += -lboost_log
 
 SOURCES += servicemanager.cpp \
     coremodule.cpp \
@@ -32,3 +31,8 @@ unix:{
     target.path = /usr/local/lib
     INSTALLS += target
 }
+
+
+#INCLUDEPATH += /home/luisvaldes/Workspace/boost-lib/include/
+LIBS += -L/home/luisvaldes/Workspace/boost-lib/lib
+LIBS += -lboost_log

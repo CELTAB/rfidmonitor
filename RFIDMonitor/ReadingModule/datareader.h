@@ -37,6 +37,7 @@
 
 class Rfiddata;
 class DeviceThread;
+class QTextStream;
 
 class DataReader : public QObject
 {
@@ -49,6 +50,8 @@ public:
     bool startReading(const QString &device);
 private:
     QString m_module;
+    QTextStream m_outReceived;
+    QTextStream m_outCaptured;
     QSerialPort *m_serial;
 
 public slots:

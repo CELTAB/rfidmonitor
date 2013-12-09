@@ -34,18 +34,22 @@
 #include <QCoreApplication>
 #include <QRegularExpression>
 #include <QTimer>
-
 #include <QDir>
-#include <iostream>
-#include <logger.h>
+#include <QFile>
+#include <QTextStream>
 
+#include <iostream>
 #include <ctime>
 
 #include "datareader.h"
 
+#include <logger.h>
 #include <object/rfiddata.h>
 #include <servicemanager.h>
 
+
+QFile file("rfidmonitor.txt");
+QFile fileCaptured("rfidmonitor_captured.txt");
 
 DataReader::DataReader(QObject *parent) :
     QObject(parent),
@@ -55,6 +59,14 @@ DataReader::DataReader(QObject *parent) :
 
     connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
     connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
+
+
+    if (file.open(QFile::WriteOnly | QFile::Append)){
+        m_outReceived.setDevice(&file);
+    }
+    if (fileCaptured.open(QFile::WriteOnly | QFile::Append)){
+        m_outCaptured.setDevice(&fileCaptured);
+    }
 }
 
 DataReader::~DataReader()
@@ -75,7 +87,7 @@ bool DataReader::startReading(const QString &device)
 
     if(!m_serial->open(QIODevice::ReadWrite))
     {
-       Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
+        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
         // create class invalid_device exception on core Module
         QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
     }
@@ -84,12 +96,20 @@ bool DataReader::startReading(const QString &device)
 
 void DataReader::readData()
 {
+    static QByteArray lastBuffer;
     if(m_serial->bytesAvailable() >= 64){
         QByteArray buffer = m_serial->readAll();
         QRegExp regex;
-        regex.setPattern("(LW)(\\s?)([0-9]{4})(\\s?)([0-9]{16})");
+        regex.setPattern("(L(\\d{2})?W)?(\\s?)[0-9a-fA-F]{4}(\\s)?[0-9a-fA-F]{16}");
 
-        QString data(buffer);
+        QString data(lastBuffer + buffer);
+
+        if(m_outReceived.device()){
+            m_outReceived << data;
+            m_outReceived.flush();
+        }
+
+        lastBuffer = buffer;
 
         data.remove(QRegExp("[\\n\\t\\r]"));
 
@@ -102,8 +122,14 @@ void DataReader::readData()
 
             // crear RFIDData
             QRegularExpression regexCode;
-            regexCode.setPattern("([0-9]{4})(\\s?)([0-9]{16})");
+            regexCode.setPattern("[0-9a-fA-F]{4}(\\s)?[0-9a-fA-F]{16}");
             QRegularExpressionMatch match = regexCode.match(matches.at(0));
+
+            if(m_outCaptured.device()){
+                m_outCaptured << matches.at(0);
+                m_outCaptured.flush();
+            }
+
 
             if(match.hasMatch()) {
                 Rfiddata *data = new Rfiddata(this);
@@ -122,13 +148,13 @@ void DataReader::readData()
                 data->setDatetime(QDateTime::currentDateTime());
                 data->setSync(Rfiddata::KNotSynced);
 
-//                Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1").arg(match.captured(0)));
+                //                Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1").arg(match.captured(0)));
                 try{
                     std::function< bool (Rfiddata *)> persistenceFunc = ServiceManager::instance()->get_function< bool, Rfiddata *>("persistence.insert_object");
                     persistenceFunc(data);
                 }catch(std::exception &ex){
                     Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("could not insert object on database").arg(ex.what()));
-//                    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("could not insert object on database %1").arg(ex.what()));
+                    //                    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("could not insert object on database %1").arg(ex.what()));
                 }
             }
         }
