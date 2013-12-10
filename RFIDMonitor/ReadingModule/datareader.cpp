@@ -140,8 +140,8 @@ void DataReader::readData()
                 int idAntena = 1;
                 data->setIdantena(idAntena);
 
-                qlonglong applicationcode = match.captured(1).toLongLong();
-                qlonglong identificationcode = match.captured(3).toLongLong();
+                qlonglong applicationcode = match.captured(0).split(" ").at(0).toLongLong();
+                qlonglong identificationcode = match.captured(0).split(" ").at(1).toLongLong();
 
                 data->setApplicationcode(applicationcode);
                 data->setIdentificationcode(identificationcode);
