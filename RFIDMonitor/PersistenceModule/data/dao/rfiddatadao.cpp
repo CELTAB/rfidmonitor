@@ -296,6 +296,7 @@ QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant 
         query.bindValue(":value", value);
         query.exec();
         while(query.next()){
+
             /* If the parent is not set to the rfiddata object, it will be destroyed when this "getById" is done, causing
              *a segmentation fault when try to use the returned pointer.
              * Is necessary to give the rfiddata object to another class, so it must survive long as his parent.
