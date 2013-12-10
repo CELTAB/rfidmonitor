@@ -22,7 +22,7 @@ Logger::Logger(QObject *parent):
 //            << expr::smessage;
 
     file.setFileName("RFID_log.log");
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
             return;
         }
 }
