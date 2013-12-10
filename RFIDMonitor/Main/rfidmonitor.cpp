@@ -91,8 +91,12 @@ const QList<CoreModule *> &RFIDMonitor::moduleList() const
 void RFIDMonitor::loadModules()
 {
     QDir pluginsDir(qApp->applicationDirPath());
-    //    pluginsDir.cd("modules");
-    pluginsDir.cd("../RFIDMonitor/modules");
+
+    // To be used in production on Pi with "/home/pi/FishMonitoring " folder.
+    pluginsDir.cd("modules");
+
+    //To be used in development on Desktop with "/home/<user>/projectBuildPath" folder, that make possible direct run app by QtCreator.
+    //pluginsDir.cd("../RFIDMonitor/modules");
 
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
         QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
