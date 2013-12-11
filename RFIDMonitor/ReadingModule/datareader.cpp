@@ -89,9 +89,10 @@ bool DataReader::startReading(const QString &device)
     {
         Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
         // create class invalid_device exception on core Module
-        QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
+//        QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
+        return false;
     }
-    return false;
+    return true;
 }
 
 void DataReader::readData()

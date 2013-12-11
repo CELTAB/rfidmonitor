@@ -54,8 +54,8 @@ void RFIDMonitor::start(const QCoreApplication &app)
 
         QString device = app.arguments().at(app.arguments().indexOf("-d") + 1);
 
+        Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, "Start Modules Loading");
         loadModules();
-        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, "Hello Debug");
 
         try {
             /*!
@@ -92,11 +92,16 @@ void RFIDMonitor::loadModules()
 {
     QDir pluginsDir(qApp->applicationDirPath());
 
-    // To be used in production on Pi with "/home/pi/FishMonitoring " folder.
-    pluginsDir.cd("modules");
+//    // To be used in production on Pi with "/home/pi/FishMonitoring " folder.
+//    pluginsDir.cd("modules");
 
-    //To be used in development on Desktop with "/home/<user>/projectBuildPath" folder, that make possible direct run app by QtCreator.
-    //pluginsDir.cd("../RFIDMonitor/modules");
+//    if(!pluginsDir.exists()){
+//        //To be used in development on Desktop with "/home/<user>/projectBuildPath" folder, that make possible direct run app by QtCreator.
+//        pluginsDir.cd("../RFIDMonitor/modules");
+//    }
+
+    pluginsDir.cd("modules");
+//    pluginsDir.cd("../RFIDMonitor/modules");
 
     foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
         QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
@@ -117,5 +122,5 @@ void RFIDMonitor::loadModules()
             }
         }
     }
-    Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, "All Modules Loaded");
+    Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, "Finish Modules Loading");
 }

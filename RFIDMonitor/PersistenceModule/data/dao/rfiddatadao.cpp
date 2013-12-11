@@ -158,6 +158,7 @@ bool RfiddataDAO::updateObjectList(const QList<Rfiddata *> &list)
 
         // Commit and terminate the transaction with the update of all objects inside.
         db->commit();
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Update %1 records to synced status").arg(list.length()));
         return true;
 
     }catch(SqlException &ex){
@@ -197,6 +198,7 @@ bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
 
         // Commit and terminate the transaction.
         db->commit();
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Delete object with id: %1").arg(rfiddata->id().toInt()));
         return true;
 
     }catch(SqlException &ex){
@@ -231,6 +233,7 @@ Rfiddata * RfiddataDAO::getById(qlonglong id, QObject *parent)
              * Is necessary to give the rfiddata object to another class, so it must survive long as his parent.
              */
             rfiddata = new Rfiddata(query.record(), PARENT(parent));
+            Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Found object with id: ").arg(id));
         }
         return rfiddata;
     }catch(SqlException &ex){
@@ -263,6 +266,7 @@ QList<Rfiddata *> RfiddataDAO::getAll(QObject *parent)
              */
             list.append(new Rfiddata(query.record(), parent));
         }
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Found %1 records on data base").arg(list.length()));
         return list;
 
     }catch(SqlException &ex){
@@ -303,6 +307,7 @@ QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant 
              */
             list.append(new Rfiddata(query.record(), parent));
         }
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Found %1 records on data base").arg(list.length()));
         return list;
 
     }catch(SqlException &ex){

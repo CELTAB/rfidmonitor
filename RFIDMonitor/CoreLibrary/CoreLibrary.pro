@@ -11,7 +11,6 @@ QT       -= gui
 TARGET = CoreLibrary
 TEMPLATE = lib
 
-
 SOURCES += servicemanager.cpp \
     coremodule.cpp \
     object/rfiddata.cpp \

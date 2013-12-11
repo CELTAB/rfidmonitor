@@ -37,7 +37,9 @@ void start_reading(const QString &device)
     if(!reader){
         reader = new DataReader();
     }
-    reader->startReading(device);
+    if(!reader->startReading(device)){
+        throw std::exception();
+    }
 }
 
 ReadingModule::ReadingModule(QObject *parent) :

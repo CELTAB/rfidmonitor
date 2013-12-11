@@ -25,6 +25,8 @@ Logger::Logger(QObject *parent):
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
             return;
         }
+    QTextStream out(&file);
+    out << "\n";
 }
 
 // The operator puts a human-friendly representation of the severity level to the stream
@@ -66,6 +68,7 @@ void Logger::startDebugMode()
 
 //                sinkDebug->set_formatter(logformat);
 //                logging::core::get()->add_sink(sinkDebug);
+    writeRecord(Logger::debug, "CoreLibrary", Q_FUNC_INFO, "Start Debug Mode");
 }
 
 //void Logger::writeLastRecord(sinks::text_file_backend::stream_type& file)

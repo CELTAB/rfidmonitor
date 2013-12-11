@@ -65,9 +65,21 @@ bool ExportLocalData::exportToDevice(QString device)
         Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(ex.what()));
         return false;
     }catch(std::exception &e){
-       Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
+        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
         return false;
     }
+
+    // turns off leds red and green
+    m_blickLed->blinkGreenLed(0);
+    m_blickLed->blinkRedLed(0);
+
+    // turn on red led
+    m_blickLed->blinkRedLed(1);
+
+    QTimer timer;
+    timer.start(5000);
+
+    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Search not synced data"));
 
     /*!
      * \brief list of data with non-synced status
@@ -89,25 +101,17 @@ bool ExportLocalData::exportToDevice(QString device)
     raii = QSharedPointer< std::function< void() > >( new std::function< void() >( [&list] () -> void { qDeleteAll(list); } ),
                                                       std::function< void ( std::function<void()> * ) > ([] ( std::function<void()> *ptr) { (*ptr)(); delete ptr; }));
 
-    // turns off leds red and green
-    m_blickLed->blinkGreenLed(0);
-    m_blickLed->blinkRedLed(0);
-
-    QTimer timer;
-    timer.start(5000);
-    // turn on red led
-    m_blickLed->blinkRedLed(1);
-
     bool returnValue = true;
     try{
         // export data
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Exporting to CSV File"));
         exportCSVData(device, list);
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Exporting to CSV Legacy File"));
         exportLegacyCSVData(device, list);
-        // update database
-        updateObject(list);
+
     }catch(std::exception &e){
         Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
-//        qDebug() << e.what();
+        //        qDebug() << e.what();
         returnValue = false;
     }
     // wait five(5) seconds before turn off the red led
@@ -117,6 +121,15 @@ bool ExportLocalData::exportToDevice(QString device)
     m_blickLed->blinkRedLed(0);
     // turns on the green led
     m_blickLed->blinkGreenLed(1);
+
+    try{
+        // update database
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Update data base to synced status"));
+        updateObject(list);
+    }catch(std::exception &e){
+        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
+        returnValue = false;
+    }
 
     // return true only if the data was successfully exported
     return returnValue;
@@ -192,6 +205,7 @@ void ExportLocalData::exportCSVData(const QString &device, const QList<Rfiddata 
             stream.flush();
             var->setSync(Rfiddata::KSynced); // change status to synced
         }
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1 records exported").arg(list.length()));
         exportFile.close(); // close file
     }else{
         throw std::exception();
@@ -216,6 +230,7 @@ void ExportLocalData::exportLegacyCSVData(const QString &device, const QList<Rfi
             stream.flush();
             var->setSync(Rfiddata::KSynced);
         }
+        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1 records exported").arg(list.length()));
         exportFile.close();
     }else{
         throw std::exception();

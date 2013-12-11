@@ -43,22 +43,23 @@ MainService::MainService(QObject *parent) :
 void MainService::callMainServices(const QMap<QString, QString> &services)
 {
     try {
-        // reading.start_reading
-        std::function< void(const QString &)> readingService = ServiceManager::instance()->get_function< void, const QString &>("reading.start_reading");
-        m_device = services.value(MainService::KDeviceParam);
-        readingService(m_device);
-    }catch(...) {
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, "start reading service not found");
-        QTimer::singleShot(6000, this, SLOT(retryStartReading()));
-    }
-
-    try {
         // export.start_daemon
         std::function< void()> exportDaemonService = ServiceManager::instance()->get_function< void >("export.start_daemon");
         exportDaemonService();
     }catch(...) {
         Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, "export service not found");
     }
+
+    try {
+        // reading.start_reading
+        std::function< void(const QString &)> readingService = ServiceManager::instance()->get_function< void, const QString &>("reading.start_reading");
+        m_device = services.value(MainService::KDeviceParam);
+        readingService(m_device);
+    }catch(...) {
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, "ERROR in start reading function");
+        QTimer::singleShot(6000, this, SLOT(retryStartReading()));
+    }
+
 }
 
 void MainService::retryStartReading()
@@ -68,7 +69,7 @@ void MainService::retryStartReading()
         std::function< void(const QString &)> readingService = ServiceManager::instance()->get_function< void, const QString &>("reading.start_reading");
         readingService(m_device);
     }catch(...){
-        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, "start reading service not found");
+        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, "trying to start reading");
         QTimer::singleShot(6000, this, SLOT(retryStartReading()));
     }
 }
