@@ -42,6 +42,7 @@ RfiddataDAO * RfiddataDAO::instance()
  */
 bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
 {
+    QMutexLocker locker(&m_mutex);
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -88,6 +89,7 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
  */
 bool RfiddataDAO::updateObject(Rfiddata *rfiddata)
 {
+    QMutexLocker locker(&m_mutex);
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -134,6 +136,7 @@ bool RfiddataDAO::updateObject(Rfiddata *rfiddata)
  */
 bool RfiddataDAO::updateObjectList(const QList<Rfiddata *> &list)
 {
+    QMutexLocker locker(&m_mutex);
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -177,6 +180,7 @@ bool RfiddataDAO::updateObjectList(const QList<Rfiddata *> &list)
  */
 bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
 {
+    QMutexLocker locker(&m_mutex);
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -218,6 +222,7 @@ bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
  */
 Rfiddata * RfiddataDAO::getById(qlonglong id, QObject *parent)
 {
+    QMutexLocker locker(&m_mutex);
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -250,6 +255,7 @@ Rfiddata * RfiddataDAO::getById(qlonglong id, QObject *parent)
  */
 QList<Rfiddata *> RfiddataDAO::getAll(QObject *parent)
 {
+    QMutexLocker locker(&m_mutex);
     QList<Rfiddata *> list;
 
     // Get the connection with the database.
@@ -285,6 +291,7 @@ QList<Rfiddata *> RfiddataDAO::getAll(QObject *parent)
  */
 QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant value, QObject *parent)
 {
+    QMutexLocker locker(&m_mutex);
     QList<Rfiddata *> list;
 
     // Get the connection with the database.

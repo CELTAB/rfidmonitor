@@ -7,6 +7,7 @@
 #define RFIDDATADAO_H
 
 #include <QList>
+#include <QMutex>
 
 #include "../../core/genericdao.h"
 
@@ -38,6 +39,7 @@ public:
 
 private:
     QString m_module;
+    QMutex m_mutex;
 
 };
 
