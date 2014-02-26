@@ -16,16 +16,27 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     terminal/terminalwindow.cpp \
     terminal/terminalcommunicator.cpp \
-    rasp/configraspwindow.cpp
+    rasp/configraspwindow.cpp \
+    rasp/raspconfigurationjson.cpp \
+    rasp/tabraspberryconfiguration.cpp \
+    rasp/tabraspberryconnection.cpp \
+    rasp/tabraspberrysenddata.cpp
 
 HEADERS  += mainwindow.h \
     terminal/terminalcommunicator.h \
     terminal/terminalwindow.h \
-    rasp/configraspwindow.h
+    rasp/configraspwindow.h \
+    rasp/raspconfigurationjson.h \
+    rasp/tabraspberryconfiguration.h \
+    rasp/tabraspberryconnection.h \
+    rasp/tabraspberrysenddata.h
 
 FORMS    += mainwindow.ui \
     rasp/configraspwindow.ui \
-    terminal/terminalwindow.ui
+    terminal/terminalwindow.ui \
+    rasp/tabraspberryconfiguration.ui \
+    rasp/tabraspberryconnection.ui \
+    rasp/tabraspberrysenddata.ui
 
 TRANSLATIONS = rfidmonitordesktop_pt-br.ts
 
