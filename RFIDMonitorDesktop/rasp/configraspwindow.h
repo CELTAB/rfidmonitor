@@ -4,6 +4,9 @@
 #include <QWidget>
 
 #include "raspconfigurationjson.h"
+#include "tabraspberryconfiguration.h"
+#include "tabraspberryconnection.h"
+#include "tabraspberrysenddata.h"
 
 namespace Ui {
 class ConfigRaspWindow;
@@ -16,23 +19,13 @@ class ConfigRaspWindow : public QWidget
 public:
     explicit ConfigRaspWindow(QWidget *parent = 0);
     ~ConfigRaspWindow();
-    enum FormState {KEmpty=0, KWithObject, KEditing, KNew};
-    ConfigRaspWindow::FormState getConfigRaspState() const;
-    void setStateRaspConfig(const ConfigRaspWindow::FormState &value);
-    void clearFields();
 
 private:
     Ui::ConfigRaspWindow *ui;
-    ConfigRaspWindow::FormState configRaspState;
-    RaspConfigurationJson *raspConfigurationJson;
+    TabRaspberryConfiguration *tabRaspberryConfigurarion;
+    TabRaspberryConnection *tabRaspberryConnection;
+    TabRaspberrySendData *tabRaspberrySendData;
 
-public slots:
-    void btCreateNewFileClicked();
-    void btDiscardClicked();
-    void btSaveClicked();
-    void btEditClicked();
-    void btOpenExistingFileClicked();
-    void btCloneFileClicked();
 };
 
 #endif // CONFIGRASPWINDOW_H
