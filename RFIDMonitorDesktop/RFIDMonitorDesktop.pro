@@ -14,14 +14,20 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    terminalwindow.cpp \
-    terminalcommunicator.cpp
+    terminal/terminalwindow.cpp \
+    terminal/terminalcommunicator.cpp \
+    rasp/configraspwindow.cpp
 
 HEADERS  += mainwindow.h \
-    terminalwindow.h \
-    terminalcommunicator.h
+    terminal/terminalcommunicator.h \
+    terminal/terminalwindow.h \
+    rasp/configraspwindow.h
 
 FORMS    += mainwindow.ui \
-    terminalwindow.ui
+    rasp/configraspwindow.ui \
+    terminal/terminalwindow.ui
 
 TRANSLATIONS = rfidmonitordesktop_pt-br.ts
+
+OTHER_FILES += \
+    translations/rfidmonitordesktop_pt-br.ts

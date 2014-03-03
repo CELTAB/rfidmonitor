@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QTranslator appTranslator;
-    appTranslator.load("rfidmonitordesktop_" + QLocale::system().name());
+    appTranslator.load("translations/rfidmonitordesktop_" + QLocale::system().name());
 //    appTranslator.load("rfidmonitordesktop_pt-br");
 
     a.installTranslator(&appTranslator);

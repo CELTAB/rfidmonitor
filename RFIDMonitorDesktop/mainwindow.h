@@ -3,7 +3,8 @@
 
 #include <QMainWindow>
 
-#include "terminalwindow.h"
+#include "terminal/terminalwindow.h"
+#include "rasp/configraspwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -20,9 +21,12 @@ public:
 private:
     Ui::MainWindow *ui;
     TerminalWindow *terminalWindow;
+    ConfigRaspWindow *configRaspWindow;
+
 
 public slots:
-    void btConfigReaderClicked(bool checked);
+    void actionOpenTerminalClicked(bool);
+    void actionConfigureRaspClicked(bool);
 };
 
 #endif // MAINWINDOW_H
