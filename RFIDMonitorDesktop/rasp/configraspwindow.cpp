@@ -24,8 +24,5 @@ ConfigRaspWindow::ConfigRaspWindow(QWidget *parent) :
 
 ConfigRaspWindow::~ConfigRaspWindow()
 {
-    tabRaspberryConfigurarion->deleteLater();
-    tabRaspberryConnection->deleteLater();
-    tabRaspberrySendData->deleteLater();
     delete ui;
 }

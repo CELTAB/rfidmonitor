@@ -9,7 +9,8 @@
 
 TabRaspberryConfiguration::TabRaspberryConfiguration(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::TabRaspberryConfiguration)
+    ui(new Ui::TabRaspberryConfiguration),
+    raspConfigurationJson(0)
 {
     ui->setupUi(this);
 

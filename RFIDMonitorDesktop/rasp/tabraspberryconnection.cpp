@@ -31,7 +31,6 @@ TabRaspberryConnection::TabRaspberryConnection(QWidget *parent) :
 
 TabRaspberryConnection::~TabRaspberryConnection()
 {
-    m_udpSocket->deleteLater();
     delete ui;
 }
 

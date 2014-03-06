@@ -34,12 +34,10 @@ TerminalCommunicator::~TerminalCommunicator()
     if(m_serialPort->isOpen()){
         m_serialPort->close();
     }
-    m_serialPort->deleteLater();
 
     if(m_logFile->isOpen()){
         m_logFile->close();
     }
-    m_logFile->deleteLater();
 }
 qint32 TerminalCommunicator::baudRate() const
 {
