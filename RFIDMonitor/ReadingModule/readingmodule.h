@@ -43,6 +43,10 @@ public:
     ~ReadingModule();
 
     void init();
+
+    QString name();
+
+    quint32 version();
 };
 
 #endif // READINGMODULE_H

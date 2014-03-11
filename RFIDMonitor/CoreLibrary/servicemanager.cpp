@@ -26,7 +26,46 @@
 ****************************************************************************/
 
 #include <QSharedPointer>
+
 #include "servicemanager.h"
+#include "core/service.h"
+
+struct ServiceManagerPrivate
+{
+    QMap<QString, Service *> readingServices;
+    QMap<QString, Service *> persistenceServices;
+    QMap<QString, Service *> exportServices;
+    QMap<QString, Service *> synchronizeServices;
+
+    QMap<QString, Service *> services(ServiceType type)
+    {
+        switch (type) {
+        case ServiceType::KReadingService:
+            return readingServices;
+            break;
+        case ServiceType::KPersistenceService:
+            return persistenceServices;
+            break;
+        case ServiceType::KExportService:
+            return exportServices;
+            break;
+        case ServiceType::KSynchronizeService:
+            return synchronizeServices;
+            break;
+        default:
+            return QMap<QString, Service *>();
+            break;
+        }
+    }
+};
+
+ServiceManager::ServiceManager(QObject *parent) :
+    QObject(parent),
+    d_ptr(new ServiceManagerPrivate)
+{
+
+}
+
 
 ServiceManager *ServiceManager::instance()
 {
@@ -37,7 +76,32 @@ ServiceManager *ServiceManager::instance()
     return singleton.data();
 }
 
-ServiceManager::ServiceManager(QObject *parent) :
-    QObject(parent)
+ServiceManager::~ServiceManager()
 {
+    delete d_ptr;
+}
+
+void ServiceManager::registerService(QString serviceName, Service *serviceInstance)
+{
+    switch (serviceInstance->type()) {
+    case ServiceType::KReadingService:
+        d_ptr->readingServices.insert(serviceName, serviceInstance);
+        break;
+    case ServiceType::KPersistenceService:
+        d_ptr->persistenceServices.insert(serviceName, serviceInstance);
+        break;
+    case ServiceType::KExportService:
+        d_ptr->exportServices.insert(serviceName, serviceInstance);
+        break;
+    case ServiceType::KSynchronizeService:
+        d_ptr->synchronizeServices.insert(serviceName, serviceInstance);
+        break;
+    default:
+        break;
+    }
+}
+
+QMap<QString, Service *> ServiceManager::services(ServiceType type)
+{
+    return d_ptr->services(type);
 }

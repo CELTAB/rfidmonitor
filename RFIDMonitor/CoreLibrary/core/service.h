@@ -7,6 +7,7 @@
 #include <functional>
 #include <boost/any.hpp>
 
+
 enum class ServiceType {
     KReadingService = 0x1,
     KPersistenceService,
@@ -16,6 +17,13 @@ enum class ServiceType {
     KPackagerService
 };
 
+//namespace ServiceType{
+//    const QString KReadingService = "ReadingService";
+//    const QString KPersistenceService = "PersistenceService";
+//    const QString KExportService = "ReadingService";
+//    const QString KSynchronizeService = "ReadingService";
+//}
+
 class Service : public QObject
 {
     Q_OBJECT
@@ -24,6 +32,9 @@ public:
 
     virtual QString serviceName() const = 0;
     virtual void init() = 0;
+
+    virtual ServiceType type() = 0;
+
 
 
     /*!
@@ -55,8 +66,7 @@ public:
     }
 
 private:
-    QMap< QString, boost::any > m_serviceMap;
-    QMap<ServiceType, QMap<QString, boost::any >> m_serviceToOffer;
+    QMap < QString, boost::any > m_serviceMap;
 };
 
 #endif // SERVICE_H

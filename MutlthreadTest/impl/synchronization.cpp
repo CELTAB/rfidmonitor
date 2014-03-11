@@ -12,8 +12,8 @@ Synchronization::Synchronization(QObject *parent) :
 
 void Synchronization::onDataReceived(QString data)
 {
-    qDebug() << Q_FUNC_INFO << QThread::currentThreadId();
-    qDebug() << data;
+//    qDebug() << Q_FUNC_INFO << QThread::currentThreadId();
+    qDebug() << data.arg(reinterpret_cast<qulonglong>(QThread::currentThreadId()), 0 , 16);
 
     PackagerInterface *packager = qobject_cast<PackagerInterface *>(MTApplication::instance()->service(Constants::Packaging));
 

@@ -57,6 +57,16 @@ void ReadingModule::init()
     ServiceManager::instance()->register_function("reading.start_reading", std::function< void(const QString &) >(start_reading));
 }
 
+QString ReadingModule::name()
+{
+    return "reading.valdes";
+}
+
+quint32 ReadingModule::version()
+{
+    return 1;
+}
+
 #if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
 #endif // QT_VERSION < 0x050000

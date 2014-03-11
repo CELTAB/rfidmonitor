@@ -34,12 +34,13 @@
 #include <QSerialPort>
 
 #include <algorithm>
+#include <core/interfaces.h>
 
 class Rfiddata;
 class DeviceThread;
 class QTextStream;
 
-class DataReader : public QObject
+class DataReader : public ReadingInterface
 {
     Q_OBJECT
     
@@ -57,6 +58,10 @@ private:
 public slots:
     void readData();
     void handleError(QSerialPort::SerialPortError error);
+
+    void start();
+
+    void stop();
 
 signals:
     void rfidReaded(Rfiddata *data);

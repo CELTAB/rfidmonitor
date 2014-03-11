@@ -33,6 +33,11 @@
 #include <functional>
 #include <boost/any.hpp>
 
+class Service;
+enum class ServiceType;
+
+struct ServiceManagerPrivate;
+
 /*!
  * \brief The ServiceManager class is responsible to provide the methods to register functions from modules and then make them available as services.
  *
@@ -47,6 +52,8 @@ public:
      * \return the unique instance of the class
      */
     static ServiceManager *instance();
+
+    ~ServiceManager();
 
     /*!
      * \brief register_function is in charge of receiving a function address and a name, and save the function in a map by using the name as the key.
@@ -76,9 +83,15 @@ public:
       return function;
     }
 
+    void registerService(QString serviceName, Service *serviceInstance);
+    QMap<QString, Service *> services(ServiceType type);
+
 private:
     explicit ServiceManager(QObject *parent = 0);
+
+    ServiceManagerPrivate *d_ptr;
     QMap < QString, boost::any > m_serviceMap;
+
 };
 
 #endif // SERVICEMANAGER_H

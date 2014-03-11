@@ -1,6 +1,8 @@
 #include <QCoreApplication>
 #include <QThread>
 
+#include <functional>
+
 #include "mtapplication.h"
 
 #include "readinginterface.h"
@@ -36,7 +38,9 @@ void MTApplication::init()
     synchronizing->moveToThread(m_synchronizeThread);
     packaging->moveToThread(m_synchronizeThread);
 
-    connect(reading, SIGNAL(dataRaceived(QString)), synchronizing, SLOT(onDataReceived(QString)));
+
+    std::function<void(QString)> dataReceived = std::bind(&SynchronizationInterface::onDataReceived, synchronizing, std::placeholders::_1);
+    reading->registerFunction("sync.datareceived", dataReceived);
 
     m_exportThread->start();
     m_synchronizeThread->start();

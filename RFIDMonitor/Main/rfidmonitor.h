@@ -53,6 +53,9 @@ public:
     QString m_module;
     QString m_thread;
 
+public slots:
+    void newMessage(QByteArray message);
+
 private:
     QList<CoreModule *> m_moduleList;
     void loadModules();

@@ -34,3 +34,6 @@ HEADERS += \
     impl/reading.h \
     impl/synchronization.h \
     impl/packager.h
+
+
+QMAKE_CXXFLAGS += -std=c++11

@@ -15,7 +15,11 @@ TEMPLATE = lib
 SOURCES += servicemanager.cpp \
     coremodule.cpp \
     object/rfiddata.cpp \
-    logger.cpp
+    logger.cpp \
+    core/interfaces.cpp \
+    core/service.cpp \
+    applicationsettings.cpp \
+    rfidmonitor.cpp
 
 QMAKE_CXXFLAGS += -std=c++11 -Wmissing-field-initializers
 
@@ -23,7 +27,11 @@ HEADERS += \
     servicemanager.h \
     coremodule.h \
     object/rfiddata.h \
-    logger.h
+    logger.h \
+    core/interfaces.h \
+    core/service.h \
+    applicationsettings.h \
+    rfidmonitor.h
 
 unix:{
     homePath = $$system(echo $HOME)

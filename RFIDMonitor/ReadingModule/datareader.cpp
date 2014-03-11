@@ -52,10 +52,11 @@ QFile file("rfidmonitor.txt");
 QFile fileCaptured("rfidmonitor_captured.txt");
 
 DataReader::DataReader(QObject *parent) :
-    QObject(parent),
-    m_serial(new QSerialPort(this))
+    ReadingInterface(parent),
+    m_serial(0)
 {
     m_module = "ReadingModule";
+    m_serial = new QSerialPort(this);
 
     connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
     connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
@@ -78,18 +79,19 @@ DataReader::~DataReader()
 
 bool DataReader::startReading(const QString &device)
 {
-    QSerialPortInfo info(device);
-    m_serial->setPort(info);
-    m_serial->setBaudRate(QSerialPort::Baud9600);
-    m_serial->setDataBits(QSerialPort::Data8);
-    m_serial->setStopBits(QSerialPort::OneStop);
-    m_serial->setParity(QSerialPort::NoParity);
-
     if(!m_serial->open(QIODevice::ReadWrite))
     {
+
         Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
         // create class invalid_device exception on core Module
         QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
+    }else{
+        QSerialPortInfo info(device);
+        m_serial->setPort(info);
+        m_serial->setBaudRate(QSerialPort::Baud9600);
+        m_serial->setDataBits(QSerialPort::Data8);
+        m_serial->setStopBits(QSerialPort::OneStop);
+        m_serial->setParity(QSerialPort::NoParity);
     }
     return false;
 }
@@ -150,8 +152,7 @@ void DataReader::readData()
 
                 //                Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1").arg(match.captured(0)));
                 try{
-                    std::function< bool (Rfiddata *)> persistenceFunc = ServiceManager::instance()->get_function< bool, Rfiddata *>("persistence.insert_object");
-                    persistenceFunc(data);
+
                 }catch(std::exception &ex){
                     Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("could not insert object on database").arg(ex.what()));
                     //                    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("could not insert object on database %1").arg(ex.what()));

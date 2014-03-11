@@ -25,61 +25,57 @@
 **
 ****************************************************************************/
 
-#ifndef PLUGININTERFACE_H
-#define PLUGININTERFACE_H
+#ifndef RFIDMONITOR_H
+#define RFIDMONITOR_H
 
 #include <QObject>
 #include <QMap>
+#include <QMutex>
 
+class QCoreApplication;
+class QThread;
+
+class CoreModule;
+enum class ServiceType;
 class Service;
+struct RFIDMonitorPrivate;
 
 /*!
- * \brief The CoreModule class is the interface that every module of the system has to implement to make it available to the QPlubinLoader.
+ * \brief The RFIDMonitor class is the one in charge of loading all the modules and calling the main service module.
  */
-class CoreModule : public QObject
+class RFIDMonitor : public QObject
 {
     Q_OBJECT
 public:
-    explicit CoreModule(QObject *parent = 0);
+    explicit RFIDMonitor(QObject *parent = 0);
+    ~RFIDMonitor();
+    
+    /*!
+     * \brief start loads the modules of the system, initialize them and then calls the main service.
+     * \param app is used to get the parameters of the application
+     */
+    void start(const QCoreApplication &app);
+
+    const QList<CoreModule *> & moduleList() const;
+    QList<Service *> services(ServiceType type);
+    Service * defaultService(ServiceType type);
 
     /*!
-     * \brief init is responsible fo any initialization of the module, eg. create data and register services.
+     * \brief setDefaultService
+     * \param type
      */
-    virtual void init() = 0;
+    void setDefaultService(ServiceType type, QString name);
 
-    /*!
-     * \brief name
-     * \return
-     */
-    virtual QString name() = 0;
+    bool isRunning();
 
-    /*!
-     * \brief version
-     * \return
-     */
-    virtual quint32 version() = 0;
+    QString device();
 
-    /*!
-     * \brief services
-     * \return
-     */
-    QList<Service *> services();
-
-    /*!
-     * \brief service
-     * \param name
-     * \return
-     */
-    Service * service(QString name);
-
-    /*!
-     * \brief addService
-     * \param serv
-     */
-    void addService(QString name, Service *serv);
+public slots:
+    void stop();
+    void newMessage(QByteArray message);
 
 private:
-    QMap<QString, Service *> m_services;
+    RFIDMonitorPrivate *d_ptr;
 };
 
-#endif // PLUGININTERFACE_H
+#endif // RFIDMONITOR_H
