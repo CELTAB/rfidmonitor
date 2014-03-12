@@ -25,20 +25,10 @@
 **
 ****************************************************************************/
 
-#include <servicemanager.h>
+#include <rfidmonitor.h>
 
 #include "readingmodule.h"
 #include "datareader.h"
-
-static DataReader *reader = 0;
-
-void start_reading(const QString &device)
-{
-    if(!reader){
-        reader = new DataReader();
-    }
-    reader->startReading(device);
-}
 
 ReadingModule::ReadingModule(QObject *parent) :
     CoreModule(parent)
@@ -47,14 +37,14 @@ ReadingModule::ReadingModule(QObject *parent) :
 
 ReadingModule::~ReadingModule()
 {
-    if(reader){
-        reader->deleteLater();
-    }
+
 }
 
 void ReadingModule::init()
 {
-    ServiceManager::instance()->register_function("reading.start_reading", std::function< void(const QString &) >(start_reading));
+    DataReader *reader = new DataReader(this);
+    addService(reader->serviceName(), reader);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
 }
 
 QString ReadingModule::name()

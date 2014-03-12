@@ -84,6 +84,7 @@ class SynchronizationInterface : public Service
 public:
     explicit SynchronizationInterface(QObject *parent = 0);
 
+    virtual void readyRead() = 0;
 signals:
     void sendMessage(QByteArray);
 public slots:

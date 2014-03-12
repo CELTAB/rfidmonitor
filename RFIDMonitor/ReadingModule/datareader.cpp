@@ -40,12 +40,15 @@
 
 #include <iostream>
 #include <ctime>
+#include <future>
+#include <functional>
 
 #include "datareader.h"
 
 #include <logger.h>
 #include <object/rfiddata.h>
 #include <servicemanager.h>
+#include <rfidmonitor.h>
 
 
 QFile file("rfidmonitor.txt");
@@ -57,10 +60,6 @@ DataReader::DataReader(QObject *parent) :
 {
     m_module = "ReadingModule";
     m_serial = new QSerialPort(this);
-
-    connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
-    connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
-
 
     if (file.open(QFile::WriteOnly | QFile::Append)){
         m_outReceived.setDevice(&file);
@@ -77,8 +76,25 @@ DataReader::~DataReader()
     }
 }
 
+QString DataReader::serviceName() const
+{
+    return "reading.service";
+}
+
+void DataReader::init()
+{
+
+}
+
+ServiceType DataReader::type()
+{
+    return ServiceType::KReadingService;
+}
+
 bool DataReader::startReading(const QString &device)
 {
+    QSerialPortInfo info(device);
+    m_serial->setPort(info);
     if(!m_serial->open(QIODevice::ReadWrite))
     {
 
@@ -86,8 +102,6 @@ bool DataReader::startReading(const QString &device)
         // create class invalid_device exception on core Module
         QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
     }else{
-        QSerialPortInfo info(device);
-        m_serial->setPort(info);
         m_serial->setBaudRate(QSerialPort::Baud9600);
         m_serial->setDataBits(QSerialPort::Data8);
         m_serial->setStopBits(QSerialPort::OneStop);
@@ -98,20 +112,17 @@ bool DataReader::startReading(const QString &device)
 
 void DataReader::readData()
 {
-    static QByteArray lastBuffer;
-    if(m_serial->bytesAvailable() >= 64){
+    if(m_serial->canReadLine()){
         QByteArray buffer = m_serial->readAll();
         QRegExp regex;
         regex.setPattern("(L(\\d{2})?W)?(\\s?)[0-9a-fA-F]{4}(\\s)?[0-9a-fA-F]{16}");
 
-        QString data(lastBuffer + buffer);
+        QString data(buffer);
 
         if(m_outReceived.device()){
             m_outReceived << data;
             m_outReceived.flush();
         }
-
-        lastBuffer = buffer;
 
         data.remove(QRegExp("[\\n\\t\\r]"));
 
@@ -132,7 +143,6 @@ void DataReader::readData()
                 m_outCaptured.flush();
             }
 
-
             if(match.hasMatch()) {
                 Rfiddata *data = new Rfiddata(this);
 
@@ -150,13 +160,10 @@ void DataReader::readData()
                 data->setDatetime(QDateTime::currentDateTime());
                 data->setSync(Rfiddata::KNotSynced);
 
-                //                Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1").arg(match.captured(0)));
-                try{
-
-                }catch(std::exception &ex){
-                    Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("could not insert object on database").arg(ex.what()));
-                    //                    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("could not insert object on database %1").arg(ex.what()));
-                }
+                std::function<void(Rfiddata *)> persistence = std::bind(&PersistenceInterface::insert, qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService)), std::placeholders::_1);
+                std::async(std::launch::async, persistence, data);
+                std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizeService)));
+                std::async(std::launch::async, synchronize);
             }
         }
     }
@@ -164,8 +171,33 @@ void DataReader::readData()
 
 void DataReader::handleError(QSerialPort::SerialPortError error)
 {
-    if (error != QSerialPort::NoError)
-    {
+    if (error != QSerialPort::NoError) {
         Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
     }
+}
+
+void DataReader::start()
+{
+    QString device = RFIDMonitor::instance()->device();
+    QSerialPortInfo info(device);
+    m_serial->setPort(info);
+    if(!m_serial->open(QIODevice::ReadWrite)) {
+
+        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
+        // create class invalid_device exception on core Module
+        QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
+    }else{
+        m_serial->setBaudRate(QSerialPort::Baud9600);
+        m_serial->setDataBits(QSerialPort::Data8);
+        m_serial->setStopBits(QSerialPort::OneStop);
+        m_serial->setParity(QSerialPort::NoParity);
+        connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
+        connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
+    }
+}
+
+void DataReader::stop()
+{
+    disconnect(m_serial, SIGNAL(readyRead()),this, SLOT(readData()));
+    disconnect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));
 }

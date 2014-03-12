@@ -52,7 +52,7 @@ struct RFIDMonitorPrivate
         defaultExport(0),
         defaultPackager(0),
         defaultSynchronization(0),
-        m_stop(false)
+        stop(false)
     {
 
     }
@@ -76,7 +76,7 @@ struct RFIDMonitorPrivate
     QThread *persistenceThread;
     QThread *syncronizationThread;
 
-    bool m_stop;
+    bool stop;
     QMutex mutex;
 
     QString moduleName;
@@ -233,6 +233,15 @@ struct RFIDMonitorPrivate
     }
 };
 
+RFIDMonitor *RFIDMonitor::instance()
+{
+    static RFIDMonitor *singleton = 0;
+    if(!singleton){
+        singleton = new RFIDMonitor(qApp);
+    }
+    return singleton;
+}
+
 RFIDMonitor::RFIDMonitor(QObject *parent) :
     QObject(parent),
     d_ptr(new RFIDMonitorPrivate)
@@ -243,6 +252,7 @@ RFIDMonitor::RFIDMonitor(QObject *parent) :
     d_ptr->syncronizationThread = new QThread(this);
 }
 
+
 RFIDMonitor::~RFIDMonitor()
 {
     delete d_ptr;
@@ -251,6 +261,12 @@ RFIDMonitor::~RFIDMonitor()
 
 void RFIDMonitor::start(const QCoreApplication &app)
 {
+    // TEMP
+    if(app.arguments().contains("-d") && app.arguments().size() > (app.arguments().indexOf("-d") + 1)){
+        d_ptr->device = app.arguments().at(app.arguments().indexOf("-d") + 1);
+    }
+
+
     d_ptr->loadModules();
     foreach (CoreModule *mod, d_ptr->moduleList) {
         mod->init();
@@ -342,7 +358,7 @@ void RFIDMonitor::setDefaultService(ServiceType type, QString name)
 bool RFIDMonitor::isRunning()
 {
     QMutexLocker locker(&d_ptr->mutex);
-    return d_ptr->m_stop;
+    return d_ptr->stop;
 
 }
 
@@ -353,11 +369,17 @@ QString RFIDMonitor::device()
 
 void RFIDMonitor::stop()
 {
-    d_ptr->m_stop = true;
+    d_ptr->stop = true;
 }
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
     qDebug() << QString(message);
+
+    if(message == "ExitSystem"){
+        qApp->exit(0);
+    }else if(message == "RestartSystem"){
+        qApp->exit(1);
+    }
 }
 

@@ -6,6 +6,6 @@ SUBDIRS += \
 #    PersistenceModule \
 #    ExportModule \
 #    MainServiceModule \
-#    Main
+    Main
 
 CONFIG += ordered

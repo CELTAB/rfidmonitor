@@ -35,10 +35,10 @@
 class QCoreApplication;
 class QThread;
 
+struct RFIDMonitorPrivate;
 class CoreModule;
 enum class ServiceType;
 class Service;
-struct RFIDMonitorPrivate;
 
 /*!
  * \brief The RFIDMonitor class is the one in charge of loading all the modules and calling the main service module.
@@ -47,7 +47,8 @@ class RFIDMonitor : public QObject
 {
     Q_OBJECT
 public:
-    explicit RFIDMonitor(QObject *parent = 0);
+
+    static RFIDMonitor * instance();
     ~RFIDMonitor();
     
     /*!
@@ -61,7 +62,7 @@ public:
     Service * defaultService(ServiceType type);
 
     /*!
-     * \brief setDefaultService
+     * \brief setDefaultService TEMP
      * \param type
      */
     void setDefaultService(ServiceType type, QString name);
@@ -75,6 +76,7 @@ public slots:
     void newMessage(QByteArray message);
 
 private:
+    explicit RFIDMonitor(QObject *parent = 0);
     RFIDMonitorPrivate *d_ptr;
 };
 

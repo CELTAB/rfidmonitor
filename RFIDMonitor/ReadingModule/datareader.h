@@ -48,6 +48,10 @@ public:
     explicit DataReader(QObject *parent = 0);
     ~DataReader();
 
+    QString serviceName() const;
+    void init();
+    ServiceType type();
+
     bool startReading(const QString &device);
 private:
     QString m_module;

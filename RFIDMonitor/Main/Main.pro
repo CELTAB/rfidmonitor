@@ -22,8 +22,7 @@ coreLibPath = $$replace(buildPath, $$TARGET, "")
 LIBS += -L$$coreLibPath/CoreLibrary
 LIBS += -lCoreLibrary
 
-SOURCES += main.cpp \
-    rfidmonitor.cpp
+SOURCES += main.cpp
 
 QMAKE_CXXFLAGS += -std=c++11
 
@@ -35,5 +34,4 @@ unix: {
     INSTALLS += target
 }
 
-HEADERS += \
-    rfidmonitor.h
+HEADERS +=
