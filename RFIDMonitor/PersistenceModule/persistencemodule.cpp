@@ -25,74 +25,35 @@
 **
 ****************************************************************************/
 
-#include <QVariant>
+#include <rfidmonitor.h>
 
 #include "persistencemodule.h"
-#include "data/dao/rfiddatadao.h"
-#include "servicemanager.h"
-#include "object/rfiddata.h"
+#include "persistenceservice.h"
 
-#include "core/connectionpool.h"
-
-/*!
- * \brief insert_object Offers the way to persist one Rfiddata object.
- *
- * This Function must be registered on the CoreLibrary module, to be accessible by another modules.
- *
- * \param data is the object to be inserted.
- * \return true if successfully inserted, false otherwise.
- */
-bool insert_object(Rfiddata *data)
-{
-    return RfiddataDAO::instance()->insertObject(data);
-}
-
-/*!
- * \brief update_object_list Offers the way to update the whole list of Rfiddata objects.
- *
- *This Function must be registered on the CoreLibrary module, to be accessible by another modules.
- *
- * \param list receives a list of Rfiddata
- * \return true if successfully updated, false otherwise.
- */
-bool update_object_list(const QList<Rfiddata *> &list)
-{
-    return RfiddataDAO::instance()->updateObjectList(list);
-}
-
-/*!
- * \brief select_data Offers the way to select a list of Rfiddata objects that matches the parameter.
- *
- * This Function must be registered on the CoreLibrary module, to be accessible by another modules.
- *
- * \param ColumnObject Representes the attributes of Rfiddata object at database, that will be restricted.
- * \param value The restrictive value of the \a ColumnObject.
- * \return QList<Rfiddata *> as the list of objects found in database.
- */
-QList<Rfiddata *> select_data(const QString &ColumnObject, QVariant value)
-{
-    return RfiddataDAO::instance()->getByMatch(ColumnObject, value, 0);
-}
 
 PersistenceModule::PersistenceModule(QObject *parent) :
     CoreModule(parent)
 {
-    /*
-     * The functions RfiddataDAO::instance() and ConnectionPool::instance() create
-     * the unique instance these classes here, to preserve the life cycle of the object together
-     * with the PersistenceModule.
-     */
-    RfiddataDAO::instance();
-    ConnectionPool::instance();
+
 }
 
 void PersistenceModule::init()
 {
     setObjectName("PersistenceModule");
-    // Register these functions in CoreLibrary.
-    ServiceManager::instance()->register_function("persistence.insert_object", std::function< bool(Rfiddata *data) >(insert_object));
-    ServiceManager::instance()->register_function("persistence.update_object_list", std::function< bool(const QList<Rfiddata * > &) >(update_object_list));
-    ServiceManager::instance()->register_function("persistence.select_data", std::function< QList<Rfiddata *> (const QString &, QVariant ) >(select_data));
+
+    PersistenceService *persistenceService = new PersistenceService(this);
+    addService(persistenceService->serviceName(), persistenceService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KPersistenceService, persistenceService->serviceName());
+}
+
+QString PersistenceModule::name()
+{
+    return "persistence.gustavo";
+}
+
+quint32 PersistenceModule::version()
+{
+    return 1;
 }
 
 #if QT_VERSION < 0x050000

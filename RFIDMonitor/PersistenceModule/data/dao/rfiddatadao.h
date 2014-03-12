@@ -7,6 +7,7 @@
 #define RFIDDATADAO_H
 
 #include <QList>
+#include <QString>
 
 #include "../../core/genericdao.h"
 
@@ -23,12 +24,16 @@ class  RfiddataDAO : public GenericDAO<Rfiddata>
 public:
     RfiddataDAO(QObject *parent = 0);
 
+    QString serviceNameInsertObject() const;
+
 	static RfiddataDAO * instance();
 
     bool insertObject(Rfiddata *obj);
+    bool insertObjectList(const QList<Rfiddata *> &list);
     bool updateObject(Rfiddata *obj);
     bool updateObjectList(const QList<Rfiddata *> &list);
     bool deleteObject(Rfiddata *rfiddata);
+    bool deleteObjectList(const QList<Rfiddata *> &list);
 
     Rfiddata * getById(qlonglong id, QObject *parent=0);
 

@@ -49,6 +49,10 @@ public:
     explicit PersistenceModule(QObject *parent=0);
 
     void init();
+
+    QString name();
+
+    quint32 version();
 };
 
 #endif // PERSISTENCEMODULE_H

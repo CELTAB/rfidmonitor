@@ -22,6 +22,11 @@ RfiddataDAO::RfiddataDAO(QObject *parent) :
     m_module = "PersistenceModule";
 }
 
+QString RfiddataDAO::serviceNameInsertObject() const
+{
+    return "persistence.insert_object";
+}
+
 /*!
  * \brief RfiddataDAO::instance Singleton of RfiddataDAO
  * \return return the unique instance of RfiddataDAO.
@@ -67,6 +72,49 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
 
         // Execute the query.
         query.exec();
+
+        // Commit and terminate the transaction.
+        db->commit();
+        return true;
+
+    }catch(SqlException &ex){
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
+        //		qDebug() << ex;
+        //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
+        db->rollback();
+        return false;
+    }
+}
+
+bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
+{
+    // Get the connection with the database.
+    QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
+
+    // Start new transaction.
+    db->transaction();
+
+    try{
+        foreach (Rfiddata *rfiddata, list) {
+            // Get the new available sequence from database to the new object.
+            qlonglong id = Functions::getSequence("seq_rfiddata", db);
+            rfiddata->setId(id);
+
+            //Create the query.
+            SqlQuery query(db);
+            query.prepare("insert into rfiddata (id, idantena, idpontocoleta, applicationcode, identificationcode, datetime, sync) "
+                          " values(:id, :idantena, :idpontocoleta, :applicationcode, :identificationcode, :datetime, :sync) ");
+            query.bindValue(":id", rfiddata->id());
+            query.bindValue(":idantena", rfiddata->idantena());
+            query.bindValue(":idpontocoleta", rfiddata->idpontocoleta());
+            query.bindValue(":applicationcode", rfiddata->applicationcode());
+            query.bindValue(":identificationcode", rfiddata->identificationcode());
+            query.bindValue(":datetime", rfiddata->datetime());
+            query.bindValue(":sync", rfiddata->sync());
+
+            // Execute the query.
+            query.exec();
+        }
 
         // Commit and terminate the transaction.
         db->commit();
@@ -179,13 +227,6 @@ bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
-    // Check if the Rfiddata object have the id. If haven't there is no way to remove it. LUIS
-    if(rfiddata->id().isNull()){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Object Without ID"));
-        //        qDebug() << "RfiddataDAO::deleteObject - object without id.";
-        return false;
-    }
-
     // Start new transaction.
     db->transaction();
 
@@ -194,6 +235,40 @@ bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
         query.prepare("delete from rfiddata where id = :id");
         query.bindValue(":id", rfiddata->id());
         query.exec();
+
+        // Commit and terminate the transaction.
+        db->commit();
+        return true;
+
+    }catch(SqlException &ex){
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
+        //        qDebug() << ex;
+        //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
+        db->rollback();
+        return false;
+    }
+}
+
+/*!
+ * \brief RfiddataDAO::deleteObjectList Offers the way to delete the whole list of Rfiddata objects.
+ * \param list is the list of Rfiddata objects to be deleted.
+ * \return true if successfully deleted the whole list, false otherwise.
+ */
+bool RfiddataDAO::deleteObjectList(const QList<Rfiddata *> &list)
+{
+    // Get the connection with the database.
+    QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
+
+    // Start new transaction.
+    db->transaction();
+
+    try{
+        foreach (Rfiddata * rfiddata, list) {
+            SqlQuery query(db);
+            query.prepare("delete from rfiddata where id = :id");
+            query.bindValue(":id", rfiddata->id());
+            query.exec();            
+        }
 
         // Commit and terminate the transaction.
         db->commit();

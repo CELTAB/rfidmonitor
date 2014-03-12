@@ -160,8 +160,10 @@ void DataReader::readData()
                 data->setDatetime(QDateTime::currentDateTime());
                 data->setSync(Rfiddata::KNotSynced);
 
-                std::function<void(Rfiddata *)> persistence = std::bind(&PersistenceInterface::insert, qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService)), std::placeholders::_1);
-                std::async(std::launch::async, persistence, data);
+                QList<Rfiddata*> list;
+                list.append(data);
+                std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService)), std::placeholders::_1);
+                std::async(std::launch::async, persistence, list);
                 std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizeService)));
                 std::async(std::launch::async, synchronize);
             }

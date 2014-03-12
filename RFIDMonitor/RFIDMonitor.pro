@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
     CoreLibrary \
     ReadingModule \
-#    PersistenceModule \
+    PersistenceModule \
 #    ExportModule \
 #    MainServiceModule \
     Main
