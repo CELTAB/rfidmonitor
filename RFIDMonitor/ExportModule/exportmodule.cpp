@@ -25,44 +25,33 @@
 **
 ****************************************************************************/
 
-#include <servicemanager.h>
-
+#include <rfidmonitor.h>
+#include "exportservice.h"
 #include "exportmodule.h"
-#include "export/exportlocaldata.h"
-
-static DeviceThread *g_thread = 0;
-
-/*!
- * \brief start_daemon start Thread to detect new devices to export data
- */
-void start_daemon(){
-    // only start a new thread if this is not already started
-    if(!g_thread){
-        g_thread = new DeviceThread;
-        g_thread->start();
-    }
-}
+#include "logger.h"
 
 ExportModule::ExportModule(QObject *parent) :
     CoreModule(parent)
 {
-    /* create a unique instance for the class ExportLocalData, that will be called from DeviceThread class.
-    * If not do this, will get an error when the DeviceThread class try use an instance of ExportLocalData, because
-    * is trying to create an object from ExportLocalData class into a thread that is child of the thread that is owner of the ExportLocalData class, so this is not possible
-    */
-    ExportLocalData::instance();
-}
 
-ExportModule::~ExportModule()
-{
-    g_thread->exit(0); // stop and exit the thread
-    g_thread->deleteLater(); // delete the thread from memory
 }
 
 void ExportModule::init()
 {
-    // register the service to start a thread to detect devices
-    ServiceManager::instance()->register_function("export.start_daemon", std::function< void()>(start_daemon));
+    // register the service to exportation
+    ExportService *exportService = new ExportService(this);
+    addService(exportService->serviceName(), exportService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KExportService, exportService->serviceName());
+}
+
+QString ExportModule::name()
+{
+    return "exportUSB.thiago";
+}
+
+quint32 ExportModule::version()
+{
+    return 1;
 }
 
 #if QT_VERSION < 0x050000

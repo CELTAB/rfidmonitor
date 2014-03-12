@@ -42,5 +42,5 @@ unix:{
 
 
 #INCLUDEPATH += /home/luisvaldes/Workspace/boost-lib/include/
-LIBS += -L/home/luisvaldes/Workspace/boost-lib/lib
-LIBS += -lboost_log
+#LIBS += -L/home/luisvaldes/Workspace/boost-lib/lib
+#LIBS += -lboost_log

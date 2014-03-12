@@ -59,12 +59,10 @@ class PersistenceInterface : public Service
 public:
     explicit PersistenceInterface(QObject *parent=0);
 
-    virtual QList<Rfiddata *> get() = 0;
-
-public slots:
-    virtual void insert(Rfiddata *data) = 0;
-    virtual void updateRecord(Rfiddata *data) = 0;
-    virtual void deleteRecord(Rfiddata *data) = 0;
+    virtual QList<Rfiddata *> getObjectList(const QString &ColumnObject, QVariant value, QObject *parent) = 0;
+    virtual void insertObjectList(const QList<Rfiddata *> &data) = 0;
+    virtual void updateObjectList(const QList<Rfiddata *> &data) = 0;
+    virtual void deleteObjectList(const QList<Rfiddata *> &data) = 0;
 
 };
 
@@ -79,6 +77,8 @@ public slots:
      * \brief when the system detects an USB storage device is inserted, it should start the exportation of the data.
      */
     virtual void startUSBExport() = 0;
+
+    virtual void stopUSBExport() = 0;
 
 };
 

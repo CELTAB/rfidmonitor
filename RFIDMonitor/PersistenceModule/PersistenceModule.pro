@@ -22,7 +22,8 @@ SOURCES += \
     core/functions.cpp \
     core/connectionpool.cpp \
     data/dao/rfiddatadao.cpp \
-    persistencemodule.cpp
+    persistencemodule.cpp \
+    persistenceservice.cpp
 
 HEADERS += \
     core/sql/exception/sqlunknownexception.h \
@@ -35,7 +36,8 @@ HEADERS += \
     core/functions.h \
     core/connectionpool.h \
     data/dao/rfiddatadao.h \
-    persistencemodule.h
+    persistencemodule.h \
+    persistenceservice.h
 
 OTHER_FILES += PersistenceModule.json
 

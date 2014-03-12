@@ -16,12 +16,14 @@ HEADERS += exportmodule.h \
     export/exportlocaldata.h \
     devicethread.h \
     export/blinkled.h \
-    export/gpiointerface.h
+    export/gpiointerface.h \
+    exportservice.h
 SOURCES += exportmodule.cpp \
     export/exportlocaldata.cpp \
     devicethread.cpp \
     export/blinkled.cpp \
-    export/gpiointerface.c
+    export/gpiointerface.c \
+    exportservice.cpp
 
 OTHER_FILES += ExportModule.json
 
