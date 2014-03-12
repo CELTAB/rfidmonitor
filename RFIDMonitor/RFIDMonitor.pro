@@ -4,7 +4,7 @@ SUBDIRS += \
     CoreLibrary \
     ReadingModule \
     PersistenceModule \
-#    ExportModule \
+    ExportModule \
 #    MainServiceModule \
     Main
 
