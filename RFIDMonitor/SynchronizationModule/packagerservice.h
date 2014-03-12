@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,38 +23,23 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#ifndef PACKAGERSERVICE_H
+#define PACKAGERSERVICE_H
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include <core/interfaces.h>
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+class PackagerService : public PackagerInterface
 {
-}
+    Q_OBJECT
+public:
+    explicit PackagerService(QObject *parent = 0);
 
-ReadingModule::~ReadingModule()
-{
+    QString serviceName() const;
+    void init();
+    ServiceType type();
 
-}
+    QMap<QString, QByteArray> getAll();
 
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
+};
 
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
-
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000
+#endif // PACKAGERSERVICE_H

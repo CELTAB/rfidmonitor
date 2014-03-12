@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,38 +23,28 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#ifndef COMMUNICATIONMODULE_H
+#define COMMUNICATIONMODULE_H
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include <coremodule.h>
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+
+class CommunicationModule : public CoreModule
 {
-}
+    Q_OBJECT
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.celtab.CoreModule" FILE "CommunicationModule.json")
+#endif // QT_VERSION >= 0x050000
+    
+public:
+    explicit CommunicationModule(QObject *parent = 0);
+    ~CommunicationModule();
 
-ReadingModule::~ReadingModule()
-{
+    void init();
 
-}
+    QString name();
 
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
+    quint32 version();
+};
 
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
-
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000
+#endif // COMMUNICATIONMODULE_H

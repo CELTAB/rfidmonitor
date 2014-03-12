@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,38 +23,32 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#ifndef COMMUNICATIONSERVICE_H
+#define COMMUNICATIONSERVICE_H
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include <core/interfaces.h>
+#include <QLocalSocket>
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+class CommunicationService : public CommunicationInterface
 {
-}
+    Q_OBJECT
+public:
+    explicit CommunicationService(QObject *parent = 0);
 
-ReadingModule::~ReadingModule()
-{
+    QString serviceName() const;
+    void init();
+    ServiceType type();
 
-}
+    void sendMessage(QByteArray value);
 
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
+public slots:
+    void ipcConnected();
+    void ipcDisconnected();
+    void ipcReadyRead();
+    void ipcHandleError(QLocalSocket::LocalSocketError);
 
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
+private:
+    QLocalSocket *m_localSocket;
+};
 
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000
+#endif // COMMUNICATIONSERVICE_H

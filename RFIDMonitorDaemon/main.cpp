@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,38 +23,16 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#include <QCoreApplication>
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include "rfidmonitordaemon.h"
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+int main(int argc, char *argv[])
 {
+    QCoreApplication a(argc, argv);
+
+    RFIDMonitorDaemon daemon;
+    daemon.start();
+
+    return a.exec();
 }
-
-ReadingModule::~ReadingModule()
-{
-
-}
-
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
-
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
-
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000

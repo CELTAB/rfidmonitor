@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,38 +23,38 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#ifndef RFIDMONITORDAEMON_H
+#define RFIDMONITORDAEMON_H
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include <QObject>
+#include <QAbstractSocket>
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+class QLocalServer;
+class QTcpSocket;
+class QLocalSocket;
+
+class RFIDMonitorDaemon : public QObject
 {
-}
+    Q_OBJECT
+public:
+    explicit RFIDMonitorDaemon(QObject *parent = 0);
 
-ReadingModule::~ReadingModule()
-{
+    void start();
 
-}
+public slots:
+    void ipcNewConnection();
+    void ipcReadyRead();
 
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
+    void tcpConnect();
+    void tcpConnected();
+    void tcpDisconnected();
+    void tcpReadyRead();
+    void tcpHandleError(QAbstractSocket::SocketError);
 
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
+private:
+    QLocalServer *m_localServer;
+    QTcpSocket *m_tcpSocket;
+    QString m_serverName;
+};
 
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000
+#endif // RFIDMONITORDAEMON_H

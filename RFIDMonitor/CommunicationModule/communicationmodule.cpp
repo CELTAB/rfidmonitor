@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -27,36 +25,36 @@
 
 #include <rfidmonitor.h>
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include "communicationmodule.h"
+#include "communicationservice.h"
 
-ReadingModule::ReadingModule(QObject *parent) :
+CommunicationModule::CommunicationModule(QObject *parent) :
     CoreModule(parent)
 {
 }
 
-ReadingModule::~ReadingModule()
+CommunicationModule::~CommunicationModule()
 {
 
 }
 
-void ReadingModule::init()
+void CommunicationModule::init()
 {
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
+    CommunicationService *commService = new CommunicationService(this);
+    addService(commService->serviceName(), commService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KCommunicationService, commService->serviceName());
 }
 
-QString ReadingModule::name()
+QString CommunicationModule::name()
 {
-    return "reading.module";
+    return "communication.module";
 }
 
-quint32 ReadingModule::version()
+quint32 CommunicationModule::version()
 {
     return 1;
 }
 
 #if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
+Q_EXPORT_PLUGIN2(CommunicationModule, CoreModule)
 #endif // QT_VERSION < 0x050000

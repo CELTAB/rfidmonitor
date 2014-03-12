@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -27,36 +25,40 @@
 
 #include <rfidmonitor.h>
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include "synchronizationmodule.h"
+#include "synchronizationservice.h"
+#include "packagerservice.h"
 
-ReadingModule::ReadingModule(QObject *parent) :
+SynchronizationModule::SynchronizationModule(QObject *parent) :
     CoreModule(parent)
 {
 }
 
-ReadingModule::~ReadingModule()
+SynchronizationModule::~SynchronizationModule()
 {
 
 }
 
-void ReadingModule::init()
+void SynchronizationModule::init()
 {
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
+    PackagerService *packager = new PackagerService(this);
+    SynchronizationService *syncService = new SynchronizationService(this);
+    addService(packager->serviceName(), packager);
+    addService(syncService->serviceName(), syncService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KPackagerService, packager->serviceName());
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KCommunicationService, syncService->serviceName());
 }
 
-QString ReadingModule::name()
+QString SynchronizationModule::name()
 {
-    return "reading.module";
+    return "synchronization.module";
 }
 
-quint32 ReadingModule::version()
+quint32 SynchronizationModule::version()
 {
     return 1;
 }
 
 #if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
+Q_EXPORT_PLUGIN2(SynchronizationModule, CoreModule)
 #endif // QT_VERSION < 0x050000
