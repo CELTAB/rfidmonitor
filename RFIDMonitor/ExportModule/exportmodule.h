@@ -36,8 +36,6 @@
 
 #include <coremodule.h>
 
-#include "devicethread.h"
-
 class ExportModule : public CoreModule
 {
     Q_OBJECT
@@ -47,9 +45,11 @@ class ExportModule : public CoreModule
     
 public:
     explicit ExportModule(QObject *parent = 0);
-    ~ExportModule();
 
+    // CoreModule interface
     void init();
+    QString name();
+    quint32 version();
 };
 
 #endif // EXPORTMODULE_H

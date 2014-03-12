@@ -30,23 +30,35 @@
 
 #include <QThread>
 
-class DeviceThread : public QThread
+#include "export/exportlocaldata.h"
+
+class ExportLocalData;
+
+class DeviceThread : public QObject
 {
     Q_OBJECT
-protected:
 
 public:
     explicit DeviceThread(QObject *parent = 0);
-
-    /*!
-     * \brief the run function starts this thread that will listen device connections
-     */
-    void run();
-
-private:
-    QString m_module;
     static DeviceThread * instance();
 
+signals:
+    /*!
+     * \brief exportToDevice is a signal to export data into the external device just connected. Passes the path by parameter or an empty string otherwise
+     * \param device
+     */
+    void exportToDevice(QString device);
+
+    /*!
+     * \brief redLedOff emit a signal to turn off the green led
+     */
+    void turnLedOff();
+
+public slots:
+    /*!
+     * \brief startListening is the function that starts this thread and starts the loop to listening new devices connection
+     */
+    void startListening();
 };
 
 #endif // DEVICETHREAD_H

@@ -55,6 +55,8 @@ public slots:
      */
     virtual void startUSBExport() = 0;
 
+    virtual void stopUSBExport() = 0;
+
 };
 
 class PackagerInterface : public Service
