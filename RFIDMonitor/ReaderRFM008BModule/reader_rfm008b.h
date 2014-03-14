@@ -25,37 +25,50 @@
 **
 ****************************************************************************/
 
-#ifndef MAINSERVICE_H
-#define MAINSERVICE_H
+#ifndef READER_RFM008B_H
+#define READER_RFM008B_H
 
 #include <QObject>
+#include <QFile>
+#include <QTextStream>
+#include <QSerialPort>
 
-/*!
- * \brief The MainService class goal is to register a callable function that invokes the "reading service" and "export daemon"
- */
-class MainService : public QObject
+#include <algorithm>
+#include <core/interfaces.h>
+
+class Rfiddata;
+class DeviceThread;
+class QTextStream;
+
+class Reader_RFM008B : public ReadingInterface
 {
     Q_OBJECT
+    
 public:
-    static const QString KDeviceParam;
+    explicit Reader_RFM008B(QObject *parent = 0);
+    ~Reader_RFM008B();
 
-    explicit MainService(QObject *parent = 0);
-
-    /*!
-     * \brief callMainServices is the method that invokes the services, the argument of the method is a map that contains te parameters of the device for future specific implementations.
-     * \param services
-     */
-    void callMainServices(const QMap< QString, QString> &services);
-
-private slots:
-    /*!
-     * \brief retryStartReading if the system could not open the serial port, it tries to open it again after 6 seconds.
-     */
-    void retryStartReading();
+    QString serviceName() const;
+    void init();
+    ServiceType type();
 
 private:
     QString m_module;
-    QString m_device;
+    QTextStream m_outReceived;
+    QTextStream m_outCaptured;
+    QSerialPort *m_serial;
+
+public slots:
+    void readData();
+    void handleError(QSerialPort::SerialPortError error);
+
+    void start();
+
+    void stop();
+
+signals:
+    void rfidReaded(Rfiddata *data);
+
 };
 
-#endif // MAINSERVICE_H
+#endif // READER_RFM008B_H

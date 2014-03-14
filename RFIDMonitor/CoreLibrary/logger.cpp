@@ -128,6 +128,7 @@ void Logger::writeRecord(severity_level lvl, QString moduleName,
                          QString functionName,
                          QString message)
 {
+    (void)lvl;
     // 00001 % 05-25-2013_16:05:45 % severity % Module Name % Thread Name % Void functionName() % Any message
     QTextStream out(&file);
     QString record("99999 % ");

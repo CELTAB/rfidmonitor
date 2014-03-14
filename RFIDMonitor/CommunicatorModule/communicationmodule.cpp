@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -25,50 +23,38 @@
 **
 ****************************************************************************/
 
-#ifndef DATAREADER_H
-#define DATAREADER_H
+#include <rfidmonitor.h>
 
-#include <QObject>
-#include <QFile>
-#include <QTextStream>
-#include <QSerialPort>
+#include "communicationmodule.h"
+#include "communicationservice.h"
 
-#include <algorithm>
-#include <core/interfaces.h>
-
-class Rfiddata;
-class DeviceThread;
-class QTextStream;
-
-class DataReader : public ReadingInterface
+CommunicationModule::CommunicationModule(QObject *parent) :
+    CoreModule(parent)
 {
-    Q_OBJECT
-    
-public:
-    explicit DataReader(QObject *parent = 0);
-    ~DataReader();
+}
 
-    QString serviceName() const;
-    void init();
-    ServiceType type();
+CommunicationModule::~CommunicationModule()
+{
 
-private:
-    QString m_module;
-    QTextStream m_outReceived;
-    QTextStream m_outCaptured;
-    QSerialPort *m_serial;
+}
 
-public slots:
-    void readData();
-    void handleError(QSerialPort::SerialPortError error);
+void CommunicationModule::init()
+{
+    CommunicationService *commService = new CommunicationService(this);
+    addService(commService->serviceName(), commService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KCommunicator, commService->serviceName());
+}
 
-    void start();
+QString CommunicationModule::name()
+{
+    return "communication.module";
+}
 
-    void stop();
+quint32 CommunicationModule::version()
+{
+    return 1;
+}
 
-signals:
-    void rfidReaded(Rfiddata *data);
-
-};
-
-#endif // DATAREADER_H
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(CommunicationModule, CoreModule)
+#endif // QT_VERSION < 0x050000

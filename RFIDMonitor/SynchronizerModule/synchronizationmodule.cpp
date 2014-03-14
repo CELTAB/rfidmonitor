@@ -3,9 +3,7 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
-**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
-**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -27,35 +25,40 @@
 
 #include <rfidmonitor.h>
 
-#include "persistencemodule.h"
-#include "persistenceservice.h"
+#include "synchronizationmodule.h"
+#include "synchronizationservice.h"
+#include "packagerservice.h"
 
-
-PersistenceModule::PersistenceModule(QObject *parent) :
+SynchronizationModule::SynchronizationModule(QObject *parent) :
     CoreModule(parent)
 {
-
 }
 
-void PersistenceModule::init()
+SynchronizationModule::~SynchronizationModule()
 {
-    setObjectName("PersistenceModule");
 
-    PersistenceService *persistenceService = new PersistenceService(this);
-    addService(persistenceService->serviceName(), persistenceService);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KPersistenceService, persistenceService->serviceName());
 }
 
-QString PersistenceModule::name()
+void SynchronizationModule::init()
 {
-    return "persistence.gustavo";
+    PackagerService *packager = new PackagerService(this);
+    SynchronizationService *syncService = new SynchronizationService(this);
+    addService(packager->serviceName(), packager);
+    addService(syncService->serviceName(), syncService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KPackager, packager->serviceName());
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KSynchronizer, syncService->serviceName());
 }
 
-quint32 PersistenceModule::version()
+QString SynchronizationModule::name()
+{
+    return "synchronization.module";
+}
+
+quint32 SynchronizationModule::version()
 {
     return 1;
 }
 
 #if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(PersistenceModule, CoreModule)
+Q_EXPORT_PLUGIN2(SynchronizationModule, CoreModule)
 #endif // QT_VERSION < 0x050000

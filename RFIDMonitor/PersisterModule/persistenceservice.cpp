@@ -27,7 +27,7 @@ void PersistenceService::init()
 
 ServiceType PersistenceService::type()
 {
-    return ServiceType::KPersistenceService;
+    return ServiceType::KPersister;
 }
 
 QList<Rfiddata *> PersistenceService::getObjectList(const QString &ColumnObject, QVariant value, QObject *parent)

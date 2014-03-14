@@ -25,38 +25,34 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
+#ifndef EXPORTSERVICE_H
+#define EXPORTSERVICE_H
 
-#include "readingmodule.h"
-#include "datareader.h"
+#include "devicethread.h"
+#include <core/interfaces.h>
 
-ReadingModule::ReadingModule(QObject *parent) :
-    CoreModule(parent)
+class ExportService : public ExportInterface
 {
-}
+    Q_OBJECT
 
-ReadingModule::~ReadingModule()
-{
+    // ExportInterface interface
+public:
+    ExportService(QObject *parent = 0);
+    ~ExportService();
 
-}
+    // Service interface
+    void startUSBExport();
+    void stopUSBExport();
+    QString serviceName() const;
+    void init();
+    ServiceType type();
 
-void ReadingModule::init()
-{
-    DataReader *reader = new DataReader(this);
-    addService(reader->serviceName(), reader);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KReadingService, reader->serviceName());
-}
+private:
+    QThread *m_daemonThread;
+    QThread *m_exportThread;
+    ExportLocalData *m_exporter;
+    DeviceThread *m_device;
 
-QString ReadingModule::name()
-{
-    return "reading.module";
-}
+};
 
-quint32 ReadingModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
-#endif // QT_VERSION < 0x050000
+#endif // EXPORTSERVICE_H

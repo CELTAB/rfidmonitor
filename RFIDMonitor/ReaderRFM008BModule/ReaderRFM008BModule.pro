@@ -6,20 +6,20 @@
 
 QT       += core sql serialport
 
-TARGET = ReadingModule
+TARGET = ReaderRFM008B
 TEMPLATE = lib
 CONFIG += plugin
 
 INCLUDEPATH += ../CoreLibrary
 
 HEADERS += \
-    readingmodule.h \
-    datareader.h
+    reader_rfm008b.h \
+    reader_rfm008bmodule.h
 SOURCES += \
-    readingmodule.cpp \
-    datareader.cpp
+    reader_rfm008b.cpp \
+    reader_rfm008bmodule.cpp
 
-OTHER_FILES += ReadingModule.json
+OTHER_FILES += ReaderRFM08BModule.json
 
 # A finalidade eh mandar os modulos para a pasta onde esta o executavel para poder fazer debug do projeto
 buildPath = $$OUT_PWD

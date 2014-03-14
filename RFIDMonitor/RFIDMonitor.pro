@@ -2,12 +2,12 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     CoreLibrary \
-    ReadingModule \
-    PersistenceModule \
-    ExportModule \
+    ReaderRFM008BModule \
+    PersisterModule \
+    ExporterModule \
 #    MainServiceModule \
     Main \
-    CommunicationModule \
-    SynchronizationModule
+    CommunicatorModule \
+    SynchronizerModule
 
 CONFIG += ordered

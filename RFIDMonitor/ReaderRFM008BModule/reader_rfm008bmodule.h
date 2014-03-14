@@ -25,35 +25,28 @@
 **
 ****************************************************************************/
 
-#include <rfidmonitor.h>
-#include "exportservice.h"
-#include "exportmodule.h"
-#include "logger.h"
+#ifndef READER_RFM008BMODULE_H
+#define READER_RFM008BMODULE_H
 
-ExportModule::ExportModule(QObject *parent) :
-    CoreModule(parent)
+#include <coremodule.h>
+
+
+class Reader_RFM008BModule : public CoreModule
 {
+    Q_OBJECT
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.celtab.CoreModule" FILE "ReaderRFM08BModule.json")
+#endif // QT_VERSION >= 0x050000
+    
+public:
+    explicit Reader_RFM008BModule(QObject *parent = 0);
+    ~Reader_RFM008BModule();
 
-}
+    void init();
 
-void ExportModule::init()
-{
-    // register the service to exportation
-    ExportService *exportService = new ExportService(this);
-    addService(exportService->serviceName(), exportService);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KExportService, exportService->serviceName());
-}
+    QString name();
 
-QString ExportModule::name()
-{
-    return "exportUSB.thiago";
-}
+    quint32 version();
+};
 
-quint32 ExportModule::version()
-{
-    return 1;
-}
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ExportModule, ExportModule)
-#endif // QT_VERSION < 0x050000
+#endif // READER_RFM008BMODULE_H

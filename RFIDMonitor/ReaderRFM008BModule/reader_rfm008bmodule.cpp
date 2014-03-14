@@ -25,28 +25,38 @@
 **
 ****************************************************************************/
 
-#ifndef READINGMODULE_H
-#define READINGMODULE_H
+#include <rfidmonitor.h>
 
-#include <coremodule.h>
+#include "reader_rfm008bmodule.h"
+#include "reader_rfm008b.h"
 
-
-class ReadingModule : public CoreModule
+Reader_RFM008BModule::Reader_RFM008BModule(QObject *parent) :
+    CoreModule(parent)
 {
-    Q_OBJECT
-#if QT_VERSION >= 0x050000
-    Q_PLUGIN_METADATA(IID "org.celtab.CoreModule" FILE "ReadingModule.json")
-#endif // QT_VERSION >= 0x050000
-    
-public:
-    explicit ReadingModule(QObject *parent = 0);
-    ~ReadingModule();
+}
 
-    void init();
+Reader_RFM008BModule::~Reader_RFM008BModule()
+{
 
-    QString name();
+}
 
-    quint32 version();
-};
+void Reader_RFM008BModule::init()
+{
+    Reader_RFM008B *reader = new Reader_RFM008B(this);
+    addService(reader->serviceName(), reader);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KReader, reader->serviceName());
+}
 
-#endif // READINGMODULE_H
+QString Reader_RFM008BModule::name()
+{
+    return "reader_rfm008b.module";
+}
+
+quint32 Reader_RFM008BModule::version()
+{
+    return 1;
+}
+
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(Reader_RFM008BModule, CoreModule)
+#endif // QT_VERSION < 0x050000

@@ -44,18 +44,17 @@
 #include <future>
 #include <functional>
 
-#include "datareader.h"
+#include "reader_rfm008b.h"
 
 #include <logger.h>
 #include <object/rfiddata.h>
-#include <servicemanager.h>
 #include <rfidmonitor.h>
 
 
 QFile file("rfidmonitor.txt");
 QFile fileCaptured("rfidmonitor_captured.txt");
 
-DataReader::DataReader(QObject *parent) :
+Reader_RFM008B::Reader_RFM008B(QObject *parent) :
     ReadingInterface(parent),
     m_serial(0)
 {
@@ -70,29 +69,29 @@ DataReader::DataReader(QObject *parent) :
     }
 }
 
-DataReader::~DataReader()
+Reader_RFM008B::~Reader_RFM008B()
 {
     if (m_serial->isOpen()) {
         m_serial->close();
     }
 }
 
-QString DataReader::serviceName() const
+QString Reader_RFM008B::serviceName() const
 {
     return "reading.service";
 }
 
-void DataReader::init()
+void Reader_RFM008B::init()
 {
 
 }
 
-ServiceType DataReader::type()
+ServiceType Reader_RFM008B::type()
 {
-    return ServiceType::KReadingService;
+    return ServiceType::KReader;
 }
 
-void DataReader::readData()
+void Reader_RFM008B::readData()
 {
     if(m_serial->canReadLine()){
         QByteArray buffer = m_serial->readAll();
@@ -145,7 +144,7 @@ void DataReader::readData()
                 QList<Rfiddata*> list;
                 list.append(data);
                 try {
-                    PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService));
+                    PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
                     Q_ASSERT(persister);
                     /*C++11 std::async Version*/
                     std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
@@ -154,7 +153,7 @@ void DataReader::readData()
                     /*Qt Concurrent Version*/
 //                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
 
-                    SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizeService));
+                    SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
                     Q_ASSERT(synchronizer);
                     /*C++11 std::async Version*/
                     std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
@@ -170,14 +169,14 @@ void DataReader::readData()
     }
 }
 
-void DataReader::handleError(QSerialPort::SerialPortError error)
+void Reader_RFM008B::handleError(QSerialPort::SerialPortError error)
 {
     if (error != QSerialPort::NoError) {
         Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
     }
 }
 
-void DataReader::start()
+void Reader_RFM008B::start()
 {
     QString device = RFIDMonitor::instance()->device();
     QSerialPortInfo info(device);
@@ -197,7 +196,7 @@ void DataReader::start()
     }
 }
 
-void DataReader::stop()
+void Reader_RFM008B::stop()
 {
     disconnect(m_serial, SIGNAL(readyRead()),this, SLOT(readData()));
     disconnect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));

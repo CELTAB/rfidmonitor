@@ -12,7 +12,7 @@ TARGET = CoreLibrary
 TEMPLATE = lib
 
 
-SOURCES += servicemanager.cpp \
+SOURCES += \
     coremodule.cpp \
     object/rfiddata.cpp \
     logger.cpp \
@@ -24,7 +24,6 @@ SOURCES += servicemanager.cpp \
 QMAKE_CXXFLAGS += -std=c++11 -Wmissing-field-initializers
 
 HEADERS += \
-    servicemanager.h \
     coremodule.h \
     object/rfiddata.h \
     logger.h \

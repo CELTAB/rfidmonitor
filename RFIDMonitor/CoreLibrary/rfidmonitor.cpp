@@ -36,7 +36,6 @@
 #include <coremodule.h>
 #include <logger.h>
 
-#include "servicemanager.h"
 #include "core/service.h"
 #include "core/interfaces.h"
 #include "applicationsettings.h"
@@ -114,22 +113,22 @@ struct RFIDMonitorPrivate
         QMap<ServiceType, QString>::iterator i;
         for (i = defaultServiceNames.begin(); i != defaultServiceNames.end(); ++i){
             switch (i.key()) {
-            case ServiceType::KReadingService:
+            case ServiceType::KReader:
                 defaultReading = readingServiceList.value(i.value());
                 break;
-            case ServiceType::KPersistenceService:
+            case ServiceType::KPersister:
                 defaultPersistence = persistenceServiceList.value(i.value());
                 break;
-            case ServiceType::KCommunicationService:
+            case ServiceType::KCommunicator:
                 defaultCommunication = communicationServiceList.value(i.value());
                 break;
-            case ServiceType::KExportService:
+            case ServiceType::KExporter:
                 defaultExport = exportServiceList.value(i.value());
                 break;
-            case ServiceType::KPackagerService:
+            case ServiceType::KPackager:
                 defaultPackager = packagerServiceList.value(i.value());
                 break;
-            case ServiceType::KSynchronizeService:
+            case ServiceType::KSynchronizer:
                 defaultSynchronization = synchronizationServiceList.value(i.value());
                 break;
             default:
@@ -141,22 +140,22 @@ struct RFIDMonitorPrivate
     void addService(Service *serv)
     {
         switch (serv->type()) {
-        case ServiceType::KReadingService:
+        case ServiceType::KReader:
             readingServiceList.insert(serv->serviceName(), qobject_cast<ReadingInterface *>(serv));
             break;
-        case ServiceType::KPersistenceService:
+        case ServiceType::KPersister:
             persistenceServiceList.insert(serv->serviceName(), qobject_cast<PersistenceInterface *>(serv));
             break;
-        case ServiceType::KCommunicationService:
+        case ServiceType::KCommunicator:
             communicationServiceList.insert(serv->serviceName(), qobject_cast<CommunicationInterface *>(serv));
             break;
-        case ServiceType::KExportService:
+        case ServiceType::KExporter:
             exportServiceList.insert(serv->serviceName(), qobject_cast<ExportInterface *>(serv));
             break;
-        case ServiceType::KPackagerService:
+        case ServiceType::KPackager:
             packagerServiceList.insert(serv->serviceName(), qobject_cast<PackagerInterface *>(serv));
             break;
-        case ServiceType::KSynchronizeService:
+        case ServiceType::KSynchronizer:
             synchronizationServiceList.insert(serv->serviceName(), qobject_cast<SynchronizationInterface *>(serv));
             break;
         default:
@@ -168,32 +167,32 @@ struct RFIDMonitorPrivate
     {
         QList<Service *> list;
         switch (type) {
-        case ServiceType::KReadingService:
+        case ServiceType::KReader:
             foreach (Service *ri, readingServiceList) {
                 list.append(ri);
             }
             break;
-        case ServiceType::KPersistenceService:
+        case ServiceType::KPersister:
             foreach (Service *ri, persistenceServiceList) {
                 list.append(ri);
             }
             break;
-        case ServiceType::KCommunicationService:
+        case ServiceType::KCommunicator:
             foreach (Service *ri, communicationServiceList) {
                 list.append(ri);
             }
             break;
-        case ServiceType::KExportService:
+        case ServiceType::KExporter:
             foreach (Service *ri, exportServiceList) {
                 list.append(ri);
             }
             break;
-        case ServiceType::KPackagerService:
+        case ServiceType::KPackager:
             foreach (Service *ri, packagerServiceList) {
                 list.append(ri);
             }
             break;
-        case ServiceType::KSynchronizeService:
+        case ServiceType::KSynchronizer:
             foreach (Service *ri, synchronizationServiceList) {
                 list.append(ri);
             }
@@ -207,22 +206,22 @@ struct RFIDMonitorPrivate
     Service * defaultService(ServiceType type)
     {
         switch (type) {
-        case ServiceType::KReadingService:
+        case ServiceType::KReader:
             return defaultReading;
             break;
-        case ServiceType::KPersistenceService:
+        case ServiceType::KPersister:
             return defaultPersistence;
             break;
-        case ServiceType::KCommunicationService:
+        case ServiceType::KCommunicator:
             return defaultCommunication;
             break;
-        case ServiceType::KExportService:
+        case ServiceType::KExporter:
             return defaultExport;
             break;
-        case ServiceType::KPackagerService:
+        case ServiceType::KPackager:
             return defaultPackager;
             break;
-        case ServiceType::KSynchronizeService:
+        case ServiceType::KSynchronizer:
             return defaultSynchronization;
             break;
         default:
@@ -283,23 +282,24 @@ void RFIDMonitor::start(const QCoreApplication &app)
 
     // Get Default services instance
     // ReadingService
-    QString readingServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KReadingService);
+    QString readingServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KReader);
     // PersintenceService
-    QString persistenceServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPersistenceService);
+    QString persistenceServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPersister);
     // CommunicationService
-    QString commServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KCommunicationService);
+    QString commServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KCommunicator);
     // ExportService
-    QString exportServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KExportService);
+    QString exportServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KExporter);
     // PackagerService
-    QString packagerServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPackagerService);
+    QString packagerServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPackager);
     // SynchronizationService
-    QString synchronizationServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KSynchronizeService);
+    QString synchronizationServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KSynchronizer);
 
     // Loads all Services available
     ReadingInterface *readingService = d_ptr->defaultReading;
     PersistenceInterface *persistenceService = d_ptr->defaultPersistence;
     CommunicationInterface *communicationService = d_ptr->defaultCommunication;
     ExportInterface *exportService = d_ptr->defaultExport;
+    (void)exportService;
     PackagerInterface *packagerService = d_ptr->defaultPackager;
     SynchronizationInterface *synchronizationService = d_ptr->defaultSynchronization;
 
@@ -350,22 +350,22 @@ QList<Service *> RFIDMonitor::services(ServiceType type)
 Service *RFIDMonitor::defaultService(ServiceType type)
 {
     switch (type) {
-    case ServiceType::KReadingService:
+    case ServiceType::KReader:
         return d_ptr->defaultReading;
         break;
-    case ServiceType::KPersistenceService:
+    case ServiceType::KPersister:
         return d_ptr->defaultPersistence;
         break;
-    case ServiceType::KCommunicationService:
+    case ServiceType::KCommunicator:
         return d_ptr->defaultCommunication;
         break;
-    case ServiceType::KExportService:
+    case ServiceType::KExporter:
         return d_ptr->defaultExport;
         break;
-    case ServiceType::KPackagerService:
+    case ServiceType::KPackager:
         return d_ptr->defaultPackager;
         break;
-    case ServiceType::KSynchronizeService:
+    case ServiceType::KSynchronizer:
         return d_ptr->defaultSynchronization;
         break;
     default:

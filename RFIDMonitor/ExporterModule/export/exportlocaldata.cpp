@@ -39,7 +39,6 @@
 #include <QProcess>
 #include <QRegularExpression>
 
-#include <servicemanager.h>
 #include <logger.h>
 #include "object/rfiddata.h"
 
@@ -150,18 +149,6 @@ bool ExportLocalData::exportToTempFile()
     // functions pointer
     std::function< bool(const QList<Rfiddata *> &) > updateObject;
     std::function< QList<Rfiddata *> (const QString &, QVariant) > getDataToExport;
-
-    try{
-        // reference to persistence service functions
-        getDataToExport = ServiceManager::instance()->get_function< QList<Rfiddata *>, const QString &, QVariant >("persistence.select_data");
-        updateObject = ServiceManager::instance()->get_function< bool, const QList<Rfiddata *> & >("persistence.update_object_list");
-    }catch(boost::bad_any_cast &ex){
-        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(ex.what()));
-        return false;
-    }catch(std::exception &e){
-        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
-        return false;
-    }
 
     Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Exporting to temporary file"));
     Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Search not synced data"));

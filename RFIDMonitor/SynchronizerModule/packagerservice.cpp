@@ -47,14 +47,14 @@ void PackagerService::init()
 
 ServiceType PackagerService::type()
 {
-    return ServiceType::KPackagerService;
+    return ServiceType::KPackager;
 }
 
 QMap<QString, QByteArray> PackagerService::getAll()
 {
     static PersistenceInterface *persitence = 0;
     if(!persitence){
-        persitence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService));
+        persitence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
     }
     QList<Rfiddata *> data = persitence->getObjectList("sync", QVariant("0"), 0);
     int stagesCount = data.size()%100;

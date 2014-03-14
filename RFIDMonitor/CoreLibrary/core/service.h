@@ -34,20 +34,13 @@
 
 
 enum class ServiceType {
-    KReadingService = 0x1,
-    KPersistenceService,
-    KExportService,
-    KSynchronizeService,
-    KCommunicationService,
-    KPackagerService
+    KReader = 0x1,
+    KPersister,
+    KExporter,
+    KSynchronizer,
+    KCommunicator,
+    KPackager
 };
-
-//namespace ServiceType{
-//    const QString KReadingService = "ReadingService";
-//    const QString KPersistenceService = "PersistenceService";
-//    const QString KExportService = "ReadingService";
-//    const QString KSynchronizeService = "ReadingService";
-//}
 
 class Service : public QObject
 {
@@ -59,8 +52,6 @@ public:
     virtual void init() = 0;
 
     virtual ServiceType type() = 0;
-
-
 
     /*!
      * \brief register_function is in charge of receiving a function address and a name, and save the function in a map by using the name as the key.

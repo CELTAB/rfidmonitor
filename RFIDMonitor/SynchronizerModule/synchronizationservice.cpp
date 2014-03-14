@@ -39,8 +39,8 @@ void SynchronizationService::readyRead()
     static PackagerInterface *packager = 0;
     static CommunicationInterface *communitacion = 0;
     if(!packager || !communitacion) {
-        packager = qobject_cast<PackagerInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPackagerService));
-        communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicationService));
+        packager = qobject_cast<PackagerInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPackager));
+        communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
     }
     if(packager) {
         QMap<QString, QByteArray> allData = packager->getAll();
@@ -67,10 +67,10 @@ void SynchronizationService::init()
 
 ServiceType SynchronizationService::type()
 {
-    return ServiceType::KSynchronizeService;
+    return ServiceType::KSynchronizer;
 }
 
 void SynchronizationService::onDataReceived(QString data)
 {
-
+    (void)data;
 }

@@ -50,6 +50,7 @@ void ApplicationSettings::installModule(CoreModule *module)
     if(!(module->name().size()&&module->version())) {
         // if the condition above is true, the system updates the file
         foreach (Service *serv, module->services()) {
+            (void)serv;
             // install all services
         }
         // update module version

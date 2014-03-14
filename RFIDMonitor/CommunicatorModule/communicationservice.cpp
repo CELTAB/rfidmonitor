@@ -53,7 +53,7 @@ void CommunicationService::init()
 
 ServiceType CommunicationService::type()
 {
-    return ServiceType::KCommunicationService;
+    return ServiceType::KCommunicator;
 }
 
 void CommunicationService::sendMessage(QByteArray value)

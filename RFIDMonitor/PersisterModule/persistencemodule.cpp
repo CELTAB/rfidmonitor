@@ -25,29 +25,37 @@
 **
 ****************************************************************************/
 
-#ifndef MAINSERVICEMODULE_H
-#define MAINSERVICEMODULE_H
+#include <rfidmonitor.h>
 
-#include <coremodule.h>
+#include "persistencemodule.h"
+#include "persistenceservice.h"
 
-/*!
- * \brief The MainServiceModule class is the interface of the module that offers a service where the application will call other services.
- *
- * The service provided by this module receives the name of the device as a parameter.
- */
-class MainServiceModule : public CoreModule
+
+PersistenceModule::PersistenceModule(QObject *parent) :
+    CoreModule(parent)
 {
 
-    Q_OBJECT
-#if QT_VERSION >= 0x050000
-    Q_PLUGIN_METADATA(IID "org.celtab.CoreModule" FILE "MainServiceModule.json")
-#endif // QT_VERSION >= 0x050000
-    
-public:
-    explicit MainServiceModule(QObject *parent = 0);
-    ~MainServiceModule();
+}
 
-    void init();
-};
+void PersistenceModule::init()
+{
+    setObjectName("PersistenceModule");
 
-#endif // MAINSERVICEMODULE_H
+    PersistenceService *persistenceService = new PersistenceService(this);
+    addService(persistenceService->serviceName(), persistenceService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KPersister, persistenceService->serviceName());
+}
+
+QString PersistenceModule::name()
+{
+    return "persistence.gustavo";
+}
+
+quint32 PersistenceModule::version()
+{
+    return 1;
+}
+
+#if QT_VERSION < 0x050000
+Q_EXPORT_PLUGIN2(PersistenceModule, CoreModule)
+#endif // QT_VERSION < 0x050000

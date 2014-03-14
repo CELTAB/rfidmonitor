@@ -3,7 +3,9 @@
 ** WWW.FISHMONITORING.COM.BR
 **
 ** Copyright (C) 2013
+**                     Gustavo Valiati <gustavovaliati@gmail.com>
 **                     Luis Valdes <luisvaldes88@gmail.com>
+**                     Thiago R. M. Bitencourt <thiago.mbitencourt@gmail.com>
 **
 ** This file is part of the FishMonitoring project
 **
@@ -24,41 +26,34 @@
 ****************************************************************************/
 
 #include <rfidmonitor.h>
+#include "exportservice.h"
+#include "exportmodule.h"
+#include "logger.h"
 
-#include "synchronizationmodule.h"
-#include "synchronizationservice.h"
-#include "packagerservice.h"
-
-SynchronizationModule::SynchronizationModule(QObject *parent) :
+ExportModule::ExportModule(QObject *parent) :
     CoreModule(parent)
 {
+
 }
 
-SynchronizationModule::~SynchronizationModule()
+void ExportModule::init()
 {
-
+    // register the service to exportation
+    ExportService *exportService = new ExportService(this);
+    addService(exportService->serviceName(), exportService);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KExporter, exportService->serviceName());
 }
 
-void SynchronizationModule::init()
+QString ExportModule::name()
 {
-    PackagerService *packager = new PackagerService(this);
-    SynchronizationService *syncService = new SynchronizationService(this);
-    addService(packager->serviceName(), packager);
-    addService(syncService->serviceName(), syncService);
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KPackagerService, packager->serviceName());
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KSynchronizeService, syncService->serviceName());
+    return "exportUSB.thiago";
 }
 
-QString SynchronizationModule::name()
-{
-    return "synchronization.module";
-}
-
-quint32 SynchronizationModule::version()
+quint32 ExportModule::version()
 {
     return 1;
 }
 
 #if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(SynchronizationModule, CoreModule)
+Q_EXPORT_PLUGIN2(ExportModule, ExportModule)
 #endif // QT_VERSION < 0x050000
