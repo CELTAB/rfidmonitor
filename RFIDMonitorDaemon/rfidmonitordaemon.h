@@ -38,6 +38,7 @@ class RFIDMonitorDaemon : public QObject
     Q_OBJECT
 public:
     explicit RFIDMonitorDaemon(QObject *parent = 0);
+    ~RFIDMonitorDaemon();
 
     void start();
 
@@ -51,10 +52,50 @@ public slots:
     void tcpReadyRead();
     void tcpHandleError(QAbstractSocket::SocketError);
 
+    void tcpSendMessage(const QString &message);
+
 private:
     QLocalServer *m_localServer;
     QTcpSocket *m_tcpSocket;
     QString m_serverName;
+    QString m_hostName;
+    int m_tcpPort;
+};
+
+#include <QCoreApplication>
+#include <QThread>
+#include <QTimer>
+
+#include <iostream>
+
+class Console : public QObject
+{
+    Q_OBJECT
+public:
+
+public slots:
+    void run()
+    {
+        using std::cin;
+        std::string command;
+        while(true){
+            qDebug() << "Commands:\nquit to exit RFIDMonitorDaemon\nkick to stop RFIDMonitor\n";
+            std::cin >> command;
+            if(command == "quit"){
+                emit exitApp();
+                break;
+            }else if(command == "kick"){
+                emit sendMessage(QString("ExitSystem"));
+            }else{
+                qDebug() << QString::fromStdString(std::string("Invalid command \"") + command + std::string("\"\n"));
+                emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
+            }
+        }
+    }
+
+signals:
+    void sendMessage(const QString &);
+    void exitApp();
 };
 
 #endif // RFIDMONITORDAEMON_H

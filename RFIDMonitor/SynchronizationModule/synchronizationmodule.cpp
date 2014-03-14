@@ -46,7 +46,7 @@ void SynchronizationModule::init()
     addService(packager->serviceName(), packager);
     addService(syncService->serviceName(), syncService);
     RFIDMonitor::instance()->setDefaultService(ServiceType::KPackagerService, packager->serviceName());
-    RFIDMonitor::instance()->setDefaultService(ServiceType::KCommunicationService, syncService->serviceName());
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KSynchronizeService, syncService->serviceName());
 }
 
 QString SynchronizationModule::name()

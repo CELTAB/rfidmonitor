@@ -43,7 +43,7 @@ OTHER_FILES += PersistenceModule.json
 
 buildPath = $$OUT_PWD
 
-coreLibPath = $$replace(buildPath, $$TARGET, "")/RFIDMonitor
+coreLibPath = $$replace(buildPath, $$TARGET, "")Main
 
 DESTDIR += $$coreLibPath/modules
 

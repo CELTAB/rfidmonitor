@@ -26,7 +26,7 @@ OTHER_FILES += SynchronizationModule.json \
 
 # A finalidade eh mandar os modulos para a pasta onde esta o executavel para poder fazer debug do projeto
 buildPath = $$OUT_PWD
-coreLibPath = $$replace(buildPath, $$TARGET, "")/RFIDMonitor
+coreLibPath = $$replace(buildPath, $$TARGET, "")Main
 
 DESTDIR += $$coreLibPath/modules
 

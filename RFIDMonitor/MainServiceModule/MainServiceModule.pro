@@ -22,7 +22,7 @@ OTHER_FILES += MainServiceModule.json
 INCLUDEPATH += ../CoreLibrary
 
 buildPath = $$OUT_PWD
-coreLibPath = $$replace(buildPath, $$TARGET, "")/RFIDMonitor
+coreLibPath = $$replace(buildPath, $$TARGET, "")Main
 
 DESTDIR += $$coreLibPath/modules
 

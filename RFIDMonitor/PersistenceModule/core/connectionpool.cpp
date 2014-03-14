@@ -58,8 +58,7 @@ ConnectionPool *ConnectionPool::instance()
  */
 QSqlDatabase * ConnectionPool::systemConnection()
 {
-    if(!QSqlDatabase::contains("System"))
-    {
+    if(!QSqlDatabase::contains("System")){
         //Path to the database file.
         QString appDirPath(QCoreApplication::applicationDirPath());
         QString sysdbPath(appDirPath + "/sysdb.db");
@@ -98,9 +97,8 @@ QSqlDatabase * ConnectionPool::systemConnection()
         }
     }
 
-    //Prints the last error occurred with the connection, if exists.
-     Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_systemConnection.lastError().text()));
-//    qDebug() << m_systemConnection.lastError().text();
+    if(m_systemConnection.lastError().isValid())
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_systemConnection.lastError().text()));
 
     return &m_systemConnection;
 }

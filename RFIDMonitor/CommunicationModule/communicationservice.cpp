@@ -64,6 +64,7 @@ void CommunicationService::sendMessage(QByteArray value)
 void CommunicationService::ipcConnected()
 {
     qDebug() << QString("CommunicationService -> Connected successfully to IPC Server.");
+    m_localSocket->write(QString("System Started").toLatin1());
 }
 
 void CommunicationService::ipcDisconnected()

@@ -26,7 +26,6 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QTcpSocket>
-#include <QTimer>
 #include <QDebug>
 
 #include "rfidmonitordaemon.h"
@@ -48,47 +47,71 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(tcpReadyRead()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
+    m_hostName = "179.106.217.11";
+    m_tcpPort = 8124;
+
+}
+
+RFIDMonitorDaemon::~RFIDMonitorDaemon()
+{
+    system(QString("rm -rf /tmp/%1").arg(m_localServer->serverName()).toStdString().c_str());
 }
 
 void RFIDMonitorDaemon::start()
 {
-   m_localServer->listen(m_serverName);
-   qDebug() << QString("Server name: %1").arg(m_localServer->serverName());
+
+   if(m_localServer->listen(m_serverName)){
+    qDebug() << QString("Server name: %1").arg(m_localServer->serverName());
+
+    QThread *consoleThread = new QThread(this);
+    Console *console = new Console;
+    console->moveToThread(consoleThread);
+
+    connect(consoleThread, SIGNAL(destroyed()), console, SLOT(deleteLater()));
+    connect(consoleThread, &QThread::started, console, &Console::run);
+    connect(console, SIGNAL(sendMessage(QString)), this, SLOT(tcpSendMessage(QString)));
+    connect(console, &Console::exitApp, consoleThread, &QThread::quit);
+    connect(console, SIGNAL(exitApp()), qApp, SLOT(quit()));
+
+//    consoleThread->start();
+
+    QTimer::singleShot(100, this, SLOT(tcpConnect()));
+   }else{
+    qDebug() << "Could not listen!";
+   }
 }
 
 void RFIDMonitorDaemon::ipcNewConnection()
 {
+    qDebug() << "New client connected.";
     QLocalSocket *clientConnection = m_localServer->nextPendingConnection();
     connect(clientConnection, SIGNAL(readyRead()), SLOT(ipcReadyRead()));
+    connect(clientConnection, &QLocalSocket::disconnected, [](){ qDebug() << "Client Disconnected";});
 
     connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
+    clientConnection->write("Welcome to IPC server\n");
 }
 
 void RFIDMonitorDaemon::ipcReadyRead()
 {
     QLocalSocket *clientConnection = qobject_cast<QLocalSocket *>(sender());
 
-    QDataStream in(clientConnection);
-    in.setVersion(QDataStream::Qt_5_2);
-    if (clientConnection->bytesAvailable() < (int)sizeof(quint16)) {
-        return;
-    }
-    QString message;
-    in >> message;
+    QByteArray data = clientConnection->readAll();
+    QString message(data);
 
     qDebug() << QString("RFIDMonitorDaemon -> Message received: %1").arg(message);
 
-    m_tcpSocket->write(message.toLatin1());
+    m_tcpSocket->write(data);
 }
 
 void RFIDMonitorDaemon::tcpConnect()
-{
-    m_tcpSocket->connectToHost("localhost", 3000);
+{    
+    m_tcpSocket->connectToHost(m_hostName, m_tcpPort);
 }
 
 void RFIDMonitorDaemon::tcpConnected()
 {
-    qDebug() << QString("Connected to %1 on port ").arg("localhost").append(3000);
+    qDebug() << QString("Connected to %1 on port %2").arg("localhost").arg(m_tcpPort);
 }
 
 void RFIDMonitorDaemon::tcpDisconnected()
@@ -107,4 +130,11 @@ void RFIDMonitorDaemon::tcpReadyRead()
 void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError)
 {
     qDebug() << QString("Error: %1 - %2").arg(m_tcpSocket->error()).arg(m_tcpSocket->errorString());
+}
+
+void RFIDMonitorDaemon::tcpSendMessage(const QString &message)
+{
+    foreach (QLocalSocket *socket, this->m_localServer->findChildren<QLocalSocket *>()) {
+        socket->write(message.toLatin1());
+    }
 }

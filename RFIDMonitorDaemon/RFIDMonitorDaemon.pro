@@ -20,3 +20,6 @@ SOURCES += main.cpp \
 
 HEADERS += \
     rfidmonitordaemon.h
+
+
+QMAKE_CXXFLAGS += -std=c++11

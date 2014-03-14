@@ -52,7 +52,6 @@ public:
     void init();
     ServiceType type();
 
-    bool startReading(const QString &device);
 private:
     QString m_module;
     QTextStream m_outReceived;

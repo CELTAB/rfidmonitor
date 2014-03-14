@@ -86,8 +86,7 @@ struct RFIDMonitorPrivate
     void loadModules()
     {
         QDir pluginsDir(qApp->applicationDirPath());
-        //    pluginsDir.cd("modules");
-        pluginsDir.cd("../RFIDMonitor/modules");
+        pluginsDir.cd("modules");
 
         foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
             QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
@@ -304,6 +303,8 @@ void RFIDMonitor::start(const QCoreApplication &app)
     PackagerInterface *packagerService = d_ptr->defaultPackager;
     SynchronizationInterface *synchronizationService = d_ptr->defaultSynchronization;
 
+    readingService->setParent(this);
+
     // Move Services to their respective threads
     persistenceService->setParent(0);
     persistenceService->moveToThread(d_ptr->persistenceThread);
@@ -333,6 +334,7 @@ void RFIDMonitor::start(const QCoreApplication &app)
     // Start threads
     d_ptr->persistenceThread->start();
     d_ptr->syncronizationThread->start();
+    readingService->start();
 }
 
 const QList<CoreModule *> &RFIDMonitor::moduleList() const
@@ -347,7 +349,29 @@ QList<Service *> RFIDMonitor::services(ServiceType type)
 
 Service *RFIDMonitor::defaultService(ServiceType type)
 {
-
+    switch (type) {
+    case ServiceType::KReadingService:
+        return d_ptr->defaultReading;
+        break;
+    case ServiceType::KPersistenceService:
+        return d_ptr->defaultPersistence;
+        break;
+    case ServiceType::KCommunicationService:
+        return d_ptr->defaultCommunication;
+        break;
+    case ServiceType::KExportService:
+        return d_ptr->defaultExport;
+        break;
+    case ServiceType::KPackagerService:
+        return d_ptr->defaultPackager;
+        break;
+    case ServiceType::KSynchronizeService:
+        return d_ptr->defaultSynchronization;
+        break;
+    default:
+        break;
+    }
+    return 0;
 }
 
 void RFIDMonitor::setDefaultService(ServiceType type, QString name)

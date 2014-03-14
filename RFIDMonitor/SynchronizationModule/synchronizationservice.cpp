@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include <rfidmonitor.h>
+#include <logger.h>
 
 #include "synchronizationservice.h"
 
@@ -34,6 +35,7 @@ SynchronizationService::SynchronizationService(QObject *parent) :
 
 void SynchronizationService::readyRead()
 {
+    Logger::instance()->writeRecord(Logger::fatal, "synchronizer", Q_FUNC_INFO, "Entering");
     static PackagerInterface *packager = 0;
     static CommunicationInterface *communitacion = 0;
     if(!packager || !communitacion) {

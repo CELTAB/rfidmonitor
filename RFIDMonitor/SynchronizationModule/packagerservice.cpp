@@ -56,26 +56,26 @@ QMap<QString, QByteArray> PackagerService::getAll()
     if(!persitence){
         persitence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService));
     }
-    QList<Rfiddata *> data = persitence->getObjectList("synced", QVariant("0"), this);
-    int stagesCount = data%100;
+    QList<Rfiddata *> data = persitence->getObjectList("sync", QVariant("0"), 0);
+    int stagesCount = data.size()%100;
 
     int currentIndex = 0;
     QMap<QString, QByteArray> package;
     for(int stage = 0; stage < stagesCount; stage++){
         QByteArray message;
         QString jsonData = "";
-        for(currentIndex; currentIndex < data.size(); currentIndex++){
+        for(; currentIndex < data.size(); currentIndex++){
             jsonData.append("{");
-            jsonData.append(QString("pontocoleta: %1,").append(data.at(currentIndex)->idpontocoleta().toString()));
+            jsonData.append(QString("pontocoleta: %1,").arg(data.at(currentIndex)->idpontocoleta().toString()));
             jsonData.append(QString("antena: %1,").arg(data.at(currentIndex)->idantena().toString()));
-            jsonData.append(QString("applicationcode: %1").arg(data.at(currentIndex)->applicationcode().toString()));
-            jsonData.append(QString("identificationcode: %1").arg(data.at(currentIndex)->identificationcode().toString()));
+            jsonData.append(QString("applicationcode: %1,").arg(data.at(currentIndex)->applicationcode().toString()));
+            jsonData.append(QString("identificationcode: %1,").arg(data.at(currentIndex)->identificationcode().toString()));
             jsonData.append(QString("datetime: %1").arg(data.at(currentIndex)->datetime().toDateTime().toString(Qt::ISODate)));
             jsonData.append("}");
         }
         message.append(jsonData);
         QByteArray hash = QCryptographicHash::hash(message, QCryptographicHash::Md5);
-        message.append(hash);
+//        message.append(hash);
         package.insert(QString(hash), message);
     }
 

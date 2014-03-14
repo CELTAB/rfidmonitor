@@ -134,4 +134,5 @@ void Logger::writeRecord(severity_level lvl, QString moduleName,
     QString currDate = QString::fromStdString(currentDateTime());
     record.append(currDate + " % " + moduleName + " % " + functionName + " % " + message + "\n");
     out << record;
+    qDebug() << record;
 }

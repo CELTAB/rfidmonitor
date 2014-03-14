@@ -78,7 +78,7 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //		qDebug() << ex;
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
@@ -121,7 +121,7 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //		qDebug() << ex;
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
@@ -167,7 +167,7 @@ bool RfiddataDAO::updateObject(Rfiddata *rfiddata)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //		qDebug() << ex;
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
@@ -209,8 +209,7 @@ bool RfiddataDAO::updateObjectList(const QList<Rfiddata *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
         return false;
@@ -241,8 +240,7 @@ bool RfiddataDAO::deleteObject(Rfiddata *rfiddata)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
         return false;
@@ -275,8 +273,7 @@ bool RfiddataDAO::deleteObjectList(const QList<Rfiddata *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         db->rollback();
         return false;
@@ -309,8 +306,7 @@ Rfiddata * RfiddataDAO::getById(qlonglong id, QObject *parent)
         }
         return rfiddata;
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return 0;
     }
 }
@@ -341,8 +337,7 @@ QList<Rfiddata *> RfiddataDAO::getAll(QObject *parent)
         return list;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return list;
     }
 }
@@ -380,8 +375,7 @@ QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant 
         return list;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return list;
     }
 }

@@ -37,6 +37,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QtConcurrent/QtConcurrent>
 
 #include <iostream>
 #include <ctime>
@@ -91,25 +92,6 @@ ServiceType DataReader::type()
     return ServiceType::KReadingService;
 }
 
-bool DataReader::startReading(const QString &device)
-{
-    QSerialPortInfo info(device);
-    m_serial->setPort(info);
-    if(!m_serial->open(QIODevice::ReadWrite))
-    {
-
-        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
-        // create class invalid_device exception on core Module
-        QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
-    }else{
-        m_serial->setBaudRate(QSerialPort::Baud9600);
-        m_serial->setDataBits(QSerialPort::Data8);
-        m_serial->setStopBits(QSerialPort::OneStop);
-        m_serial->setParity(QSerialPort::NoParity);
-    }
-    return false;
-}
-
 void DataReader::readData()
 {
     if(m_serial->canReadLine()){
@@ -162,10 +144,27 @@ void DataReader::readData()
 
                 QList<Rfiddata*> list;
                 list.append(data);
-                std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService)), std::placeholders::_1);
-                std::async(std::launch::async, persistence, list);
-                std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizeService)));
-                std::async(std::launch::async, synchronize);
+                try {
+                    PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersistenceService));
+                    Q_ASSERT(persister);
+                    /*C++11 std::async Version*/
+                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
+                    std::async(std::launch::async, persistence, list);
+
+                    /*Qt Concurrent Version*/
+//                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
+
+                    SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizeService));
+                    Q_ASSERT(synchronizer);
+                    /*C++11 std::async Version*/
+                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
+                    std::async(std::launch::async, synchronize);
+
+                    /*Qt Concurrent Version*/
+//                    QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
+                } catch (std::exception &e) {
+                    Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, e.what());
+                }
             }
         }
     }
@@ -185,9 +184,9 @@ void DataReader::start()
     m_serial->setPort(info);
     if(!m_serial->open(QIODevice::ReadWrite)) {
 
-        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1").arg(device));
+        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
         // create class invalid_device exception on core Module
-        QTimer::singleShot(300, QCoreApplication::instance(), SLOT(quit()));
+        QTimer::singleShot(1000, this, SLOT(start()));
     }else{
         m_serial->setBaudRate(QSerialPort::Baud9600);
         m_serial->setDataBits(QSerialPort::Data8);
