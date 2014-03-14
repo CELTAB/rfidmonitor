@@ -23,7 +23,7 @@ OTHER_FILES += ReaderRFM08BModule.json
 
 # A finalidade eh mandar os modulos para a pasta onde esta o executavel para poder fazer debug do projeto
 buildPath = $$OUT_PWD
-coreLibPath = $$replace(buildPath, $$TARGET, "")Main
+coreLibPath = $$replace(buildPath, $${TARGET}Module, "")/Main
 
 DESTDIR += $$coreLibPath/modules
 

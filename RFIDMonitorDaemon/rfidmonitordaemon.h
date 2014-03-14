@@ -79,13 +79,15 @@ public slots:
         using std::cin;
         std::string command;
         while(true){
-            qDebug() << "Commands:\nquit to exit RFIDMonitorDaemon\nkick to stop RFIDMonitor\n";
+            qDebug() << "Commands:\nquit to exit RFIDMonitorDaemon\nkick to stop RFIDMonitor\nrestart to restart RFIDMonitor";
             std::cin >> command;
             if(command == "quit"){
                 emit exitApp();
                 break;
             }else if(command == "kick"){
                 emit sendMessage(QString("ExitSystem"));
+            }else if(command == "restart"){
+                emit sendMessage(QString("RestartSystem"));
             }else{
                 qDebug() << QString::fromStdString(std::string("Invalid command \"") + command + std::string("\"\n"));
                 emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));

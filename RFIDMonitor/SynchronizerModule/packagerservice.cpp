@@ -50,6 +50,38 @@ ServiceType PackagerService::type()
     return ServiceType::KPackager;
 }
 
+/*
+
+{"id": 1,
+"name": "celtab",
+"mac": "78:2b:cb:c0:76:5e",
+"ip": "179.106.217.28",
+"packets": [ {
+"idinicial": 1,
+"idfinal": 100,
+"count": 100,
+"randomindex": 1408,
+"md5diggest": "78:2b:cb:c0:76:5e",
+
+"data": [{
+
+"id": 100,
+"idpontocoleta": 122,
+"idantena": 3,
+"applicationcode": 11099182342,
+"identificationcode": 0,
+"datetime": "2014-03-14T11:32:12"
+
+}]
+
+}]}
+
+*/
+static QString jsonAtribute(const QString &attr, const QString &value = "")
+{
+    return QString("\"%1\": %2").arg(attr).arg(value);
+}
+
 QMap<QString, QByteArray> PackagerService::getAll()
 {
     static PersistenceInterface *persitence = 0;
@@ -63,19 +95,52 @@ QMap<QString, QByteArray> PackagerService::getAll()
     QMap<QString, QByteArray> package;
     for(int stage = 0; stage < stagesCount; stage++){
         QByteArray message;
-        QString jsonData = "";
-        for(; currentIndex < data.size(); currentIndex++){
-            jsonData.append("{");
-            jsonData.append(QString("pontocoleta: %1,").arg(data.at(currentIndex)->idpontocoleta().toString()));
-            jsonData.append(QString("antena: %1,").arg(data.at(currentIndex)->idantena().toString()));
-            jsonData.append(QString("applicationcode: %1,").arg(data.at(currentIndex)->applicationcode().toString()));
-            jsonData.append(QString("identificationcode: %1,").arg(data.at(currentIndex)->identificationcode().toString()));
-            jsonData.append(QString("datetime: %1").arg(data.at(currentIndex)->datetime().toDateTime().toString(Qt::ISODate)));
-            jsonData.append("}");
+        // Begin Object
+        QString jsonData = "{";
+        // General Information
+        jsonData.append(jsonAtribute("id", "1").append(","));
+        jsonData.append(jsonAtribute("name", "\"celtab\"").append(","));
+        jsonData.append(jsonAtribute("mac", "\"78:2b:cb:c0:76:5e\"").append(","));
+        jsonData.append(jsonAtribute("ip", "\"179.106.217.28\"").append(","));
+
+
+        QString jsonPackets= "";
+        jsonPackets.append(jsonAtribute("data"));
+        // Begin Data Array
+        jsonPackets.append(" [ ");
+        for(; currentIndex < data.size()/(stagesCount/(stage+1)); currentIndex++){
+            jsonPackets.append("{");
+            jsonPackets.append(jsonAtribute("pontocoleta", data.at(currentIndex)->idpontocoleta().toString()).append(","));
+            jsonPackets.append(jsonAtribute("antena", data.at(currentIndex)->idantena().toString()).append(","));
+            jsonPackets.append(jsonAtribute("identificationcode", data.at(currentIndex)->identificationcode().toString()).append(","));
+            jsonPackets.append(jsonAtribute("applicationcode", data.at(currentIndex)->applicationcode().toString()).append(","));
+            jsonPackets.append(jsonAtribute("datetime", QString("\"%1\"").arg(data.at(currentIndex)->datetime().toDateTime().toString(Qt::ISODate))));
+            jsonPackets.append("}").append(currentIndex != (data.size()/(stagesCount/(stage+1))-1) ? "," : "");
         }
+        // Close Data Array
+        jsonPackets.append("]");
+
+
+        QByteArray hash = QCryptographicHash::hash(jsonPackets.toLatin1(), QCryptographicHash::Md5).toHex();
+
+        jsonData.append(jsonAtribute("packets"));
+
+        // Begin Packets Array
+        jsonData.append("[");
+        // Begin Data Array Content
+        jsonData.append("{");
+        jsonData.append(jsonAtribute("md5diggest", QString("\"%1\"").arg(QString(hash)).append(",")));
+        jsonData.append(jsonPackets);
+        // End Data Array Content
+        jsonData.append("}");
+
+        // Close Packets Array
+        jsonData.append("]");
+
+        // End Object
+        jsonData.append("}");
+
         message.append(jsonData);
-        QByteArray hash = QCryptographicHash::hash(message, QCryptographicHash::Md5);
-//        message.append(hash);
         package.insert(QString(hash), message);
     }
 

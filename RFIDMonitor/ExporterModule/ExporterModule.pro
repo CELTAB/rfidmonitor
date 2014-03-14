@@ -6,7 +6,7 @@
 
 QT       += core sql
 
-TARGET = ExportModule
+TARGET = Exporter
 TEMPLATE = lib
 CONFIG += plugin
 
@@ -28,7 +28,7 @@ SOURCES += exportmodule.cpp \
 OTHER_FILES += ExportModule.json
 
 buildPath = $$OUT_PWD
-coreLibPath = $$replace(buildPath, $$TARGET, "")Main
+coreLibPath = $$replace(buildPath, $${TARGET}Module, "")/Main
 
 DESTDIR = $$coreLibPath/modules
 

@@ -33,6 +33,8 @@ ExportService::ExportService(QObject *parent) :
 {
     m_exportThread = new QThread();
     m_daemonThread = new QThread();
+
+    m_exporter = new ExportLocalData();
 }
 
 ExportService::~ExportService()
@@ -62,7 +64,7 @@ void ExportService::startUSBExport()
      * Creates the object of the classes and then move these objects to execute as thread.
      * Make the connection between threads. Starts both threads.
      */
-    m_exporter = new ExportLocalData();
+
 
     m_exporter->moveToThread(m_exportThread);
     QObject::connect(m_exportThread, SIGNAL(started()), m_exporter, SLOT(startExport()));
@@ -88,6 +90,5 @@ void ExportService::stopUSBExport()
     m_exportThread->deleteLater();
 
     m_daemonThread->exit(0);
-    m_device->deleteLater();
     m_daemonThread->deleteLater();
 }

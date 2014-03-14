@@ -6,7 +6,7 @@
 
 QT  += core sql
 
-TARGET = PersistenceModule
+TARGET = Persister
 TEMPLATE = lib
 CONFIG += plugin
 
@@ -43,7 +43,7 @@ OTHER_FILES += PersistenceModule.json
 
 buildPath = $$OUT_PWD
 
-coreLibPath = $$replace(buildPath, $$TARGET, "")Main
+coreLibPath = $$replace(buildPath, $${TARGET}Module, "")/Main
 
 DESTDIR += $$coreLibPath/modules
 

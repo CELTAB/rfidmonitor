@@ -296,12 +296,18 @@ void RFIDMonitor::start(const QCoreApplication &app)
 
     // Loads all Services available
     ReadingInterface *readingService = d_ptr->defaultReading;
+    Q_ASSERT(readingService);
     PersistenceInterface *persistenceService = d_ptr->defaultPersistence;
+    Q_ASSERT(persistenceService);
     CommunicationInterface *communicationService = d_ptr->defaultCommunication;
+    Q_ASSERT(communicationService);
     ExportInterface *exportService = d_ptr->defaultExport;
+    Q_ASSERT(exportService);
     (void)exportService;
     PackagerInterface *packagerService = d_ptr->defaultPackager;
+    Q_ASSERT(packagerService);
     SynchronizationInterface *synchronizationService = d_ptr->defaultSynchronization;
+    Q_ASSERT(synchronizationService);
 
     readingService->setParent(this);
 
@@ -319,17 +325,8 @@ void RFIDMonitor::start(const QCoreApplication &app)
     connect(d_ptr->persistenceThread, SIGNAL(destroyed()), synchronizationService, SLOT(deleteLater()));
 
 
-    // Connect the events to listeners
-    // When there is new data, the data is sended to the persistence thread
-    //    connect(readingService, SIGNAL(dataRaceived(Rfiddata*)), persistenceService, SLOT(insert(Rfiddata*)));
-    // The it has to wake up the synchronization thread
-//    connect(readingService, SIGNAL(dataRaceived(Rfiddata*)), synchronizationService, SLOT(newData(Rfiddata *)));
-
-
-
     // Messages from the outside must be evaluated in RFIDMonitor
     connect(communicationService, SIGNAL(messageReceived(QByteArray)), SLOT(newMessage(QByteArray)));
-
 
     // Start threads
     d_ptr->persistenceThread->start();

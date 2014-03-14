@@ -96,7 +96,7 @@ void Reader_RFM008B::readData()
     if(m_serial->canReadLine()){
         QByteArray buffer = m_serial->readAll();
         QRegExp regex;
-        regex.setPattern("(L(\\d{2})?W)?(\\s?)[0-9a-fA-F]{4}(\\s)?[0-9a-fA-F]{16}");
+        regex.setPattern("(L(\\d{2})?W)\\s([0-9a-fA-F]{4})\\s([0-9a-fA-F]{16})");
 
         QString data(buffer);
 
@@ -116,7 +116,7 @@ void Reader_RFM008B::readData()
 
             // crear RFIDData
             QRegularExpression regexCode;
-            regexCode.setPattern("[0-9a-fA-F]{4}(\\s)?[0-9a-fA-F]{16}");
+            regexCode.setPattern("([0-9a-fA-F]{4})(\\s)([0-9a-fA-F]{16})");
             QRegularExpressionMatch match = regexCode.match(matches.at(0));
 
             if(m_outCaptured.device()){

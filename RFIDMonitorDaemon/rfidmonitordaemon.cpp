@@ -47,7 +47,8 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(tcpReadyRead()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
-    m_hostName = "179.106.217.11";
+//    m_hostName = "179.106.217.11";
+    m_hostName = "localhost";
     m_tcpPort = 8124;
 
 }
@@ -73,7 +74,7 @@ void RFIDMonitorDaemon::start()
     connect(console, &Console::exitApp, consoleThread, &QThread::quit);
     connect(console, SIGNAL(exitApp()), qApp, SLOT(quit()));
 
-//    consoleThread->start();
+    consoleThread->start();
 
     QTimer::singleShot(100, this, SLOT(tcpConnect()));
    }else{
