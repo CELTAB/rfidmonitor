@@ -3,6 +3,11 @@
 
 #include <QWidget>
 
+#include "raspconfigurationjson.h"
+#include "tabraspberryconfiguration.h"
+#include "tabraspberryconnection.h"
+#include "tabraspberrysenddata.h"
+
 namespace Ui {
 class ConfigRaspWindow;
 }
@@ -17,12 +22,10 @@ public:
 
 private:
     Ui::ConfigRaspWindow *ui;
-    bool needToBeSaved;
-    void monitorDataChanged();
+    TabRaspberryConfiguration *tabRaspberryConfigurarion;
+    TabRaspberryConnection *tabRaspberryConnection;
+    TabRaspberrySendData *tabRaspberrySendData;
 
-public slots:
-    void dataChanged(QString);
-    void btCreateNewFileClicked();
 };
 
 #endif // CONFIGRASPWINDOW_H

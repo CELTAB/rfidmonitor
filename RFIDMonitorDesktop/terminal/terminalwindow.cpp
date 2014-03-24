@@ -33,7 +33,6 @@ TerminalWindow::TerminalWindow(QWidget *parent) :
 TerminalWindow::~TerminalWindow()
 {
     delete ui;
-    m_terminalCommunicator->deleteLater();
 }
 
 void TerminalWindow::refreshDeviceList()
