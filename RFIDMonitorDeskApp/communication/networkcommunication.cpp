@@ -1,4 +1,3 @@
-#include <QCoreApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
@@ -6,6 +5,7 @@
 
 #include "networkcommunication.h"
 #include "settings.h"
+#include "../gui/systemmessageswidget.h"
 
 NetworkCommunication::NetworkCommunication(QObject *parent) :
     QObject(parent)
@@ -36,29 +36,41 @@ void NetworkCommunication::processDatagram(QByteArray &datagram)
     }
 }
 
+void NetworkCommunication::handshake(QByteArray byteArray)
+{
+    QString str(byteArray);
+    qDebug() << "Received from Rasp: " << str;
+    if(str.compare("I' am fine.") == 0)
+        qDebug() << "Ok! Answer correctly received from rasp. We can proced.";
+    else
+        qDebug() << "We could not understand what rasp said.";
+}
+
 NetworkCommunication *NetworkCommunication::instance()
 {
     static NetworkCommunication *singleton = 0;
     if(!singleton)
-        singleton = new NetworkCommunication(qApp);
+        singleton = new NetworkCommunication;
     return singleton;
 }
 
 void NetworkCommunication::startListeningBroadcast()
 {
     if(m_udpSocket->bind(m_udpPort,QUdpSocket::DontShareAddress)){
-        //        writeToLog(QString(tr("Listening for Raspberry Pi's on port %1.")).arg(m_udpPort));
-        qDebug() << "listening";
+        SystemMessagesWidget::instance()->writeMessage("Searching for Rasps...");
+
     }else{
-        //        writeToLog(QString(tr("Failed to start listening. Cannot bind to port %1")).arg(m_udpPort));
+        SystemMessagesWidget::instance()->writeMessage("Failed start searching for Rasps...",
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KDialogAndLog);
     }
 }
 
 void NetworkCommunication::stopListeningBroadcast()
 {
     m_udpSocket->close();
-    //        writeToLog(QString(tr("Stopped listening.")));
-    qDebug() << "stoped to listen";
+
+    SystemMessagesWidget::instance()->writeMessage("Stoped searching for rasps.");
 }
 
 void NetworkCommunication::sendData(const QByteArray &data, const Settings::TcpDataType &dataType)
@@ -70,26 +82,25 @@ bool NetworkCommunication::connectToRasp(QString ip, int port)
 {
     m_tcpSocket->connectToHost(QHostAddress(ip), port);
 
-//    QByteArray package;
+    QByteArray package;
 
-//    //DATA TYPE
-//    QByteArray dataType((int)Settings::KHandshake);
-//    dataType.resize(sizeof(quint8));
-//    package.append(dataType);
+    //DATA TYPE
+    QByteArray dataType;
+    QString dataTypeStr(QString::number(Settings::KHandshake));
+    dataType.fill('0', sizeof(quint32) - dataTypeStr.size());
+    dataType.append(dataTypeStr);
+    package.append(dataType);
+    //DATA
+    package.append(QByteArray("How are you?"));
 
-//    //DATA
-//    package.append(QByteArray("How are you?"));
+    //PACKAGE SIZE
+    QByteArray packageSize;
+    QString packageSizeStr(QString::number(package.size()));
+    packageSize.fill('0', sizeof(quint64) - packageSizeStr.size());
+    packageSize.append(packageSizeStr);
 
-//    //PACKAGE SIZE
-//    QByteArray packageSize(package.size());
-//    packageSize.resize(sizeof(quint64));
-
-//    //NAO VAI FUNCIONAR PQ O RESIZE VAI ENCHER DE LIXO O RESTO.
-
-//    qDebug() << "Package size: " << packageSize;
-
-//    m_tcpSocket->write(packageSize);
-//    m_tcpSocket->write(package);
+    m_tcpSocket->write(packageSize);
+    m_tcpSocket->write(package);
     return true;
 }
 
@@ -111,10 +122,8 @@ void NetworkCommunication::tcpSocketDisconnected()
 
 void NetworkCommunication::udpDataAvailable()
 {
-    qDebug() << "data available";
     while(m_udpSocket->hasPendingDatagrams()){
 
-        qDebug() << "reading new datagram";
         QByteArray datagram;
         datagram.resize(m_udpSocket->pendingDatagramSize());
         m_udpSocket->readDatagram(datagram.data(), datagram.size());
@@ -124,12 +133,44 @@ void NetworkCommunication::udpDataAvailable()
 
 void NetworkCommunication::tcpDataAvailable()
 {
-//    if(dataType == Settings::KRFIDMonitorAnswer){
-//        emit newRFIDMonitorAnswer(QString);
-//    }
-    //    if(dataType == Settings::KConfiguration){
-    //        emit currentConfigFromRasp(QbyteArray);
-    //    }
+    static bool waitingForPackage = false;
+    static quint64 sizeOfPackage = 0;
+
+    qDebug() << "dataarrived. Bytes available: " << m_tcpSocket->bytesAvailable();
+    if( ! waitingForPackage){
+        qDebug() << "not waiting for package";
+
+        if((quint64)m_tcpSocket->bytesAvailable() < sizeof(quint64))
+            return;
+
+        QString packageSizeStr(m_tcpSocket->read(sizeof(quint64)));
+
+        sizeOfPackage = packageSizeStr.toULongLong();
+        qDebug() << "Size of comming package: " << sizeOfPackage;
+        waitingForPackage = true;
+        qDebug() << "waiting for package";
+    }
+    qDebug() << "Bytes available after checking package size: " << m_tcpSocket->bytesAvailable();
+    if((quint64)m_tcpSocket->bytesAvailable() >=  sizeOfPackage){
+
+        qDebug() << "enought bytes for the package";
+
+        QByteArray package(m_tcpSocket->read(sizeOfPackage));
+        qDebug() << "Before handshake. package size: " << package.size();
+        qDebug() << "Before handshake. package data: " << package.data();
+        QString dataTypeStr(package.left(sizeof(quint32)));
+        Settings::TcpDataType dataType = (Settings::TcpDataType) dataTypeStr.toInt();
+        switch (dataType) {
+        case Settings::KHandshake:
+            handshake(package.right(package.size() - sizeof(quint32)));
+            break;
+        default:
+            qDebug() << "Data type invalid.";
+            break;
+        }
+        waitingForPackage = false;
+        sizeOfPackage = 0;
+    }
 }
 
 void NetworkCommunication::tcpSocketError(QAbstractSocket::SocketError socketError)

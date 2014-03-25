@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>258</height>
+    <height>278</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -240,28 +240,11 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="lbStatus">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="btConnect">
        <property name="text">
         <string>Connect</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btDisconnect">
-       <property name="text">
-        <string>Disconnect</string>
        </property>
       </widget>
      </item>

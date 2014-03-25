@@ -3,7 +3,6 @@
 #include "serialconnconfigwidget.h"
 #include "ui_serialconnconfigwidget.h"
 
-
 SerialConnConfigWidget::SerialConnConfigWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SerialConnConfigWidget)
@@ -15,7 +14,6 @@ SerialConnConfigWidget::SerialConnConfigWidget(QWidget *parent) :
 
     connect(ui->btRefreshDeviceList, &QPushButton::clicked, this, &SerialConnConfigWidget::btRefreshDeviceClicked);
     connect(ui->btConnect, &QPushButton::clicked, this, &SerialConnConfigWidget::btConnectToDeviceClicked);
-    connect(ui->btDisconnect, &QPushButton::clicked, this, &SerialConnConfigWidget::btDisconnectFromDeviceClicked);
 //    connect(ui->leCommand, &QLineEdit::returnPressed, this, &SerialConnConfigWidget::leCommandLineSent);
     connect(ui->btSearchLogFile, &QPushButton::clicked, this, &SerialConnConfigWidget::btSearchLogFileClicked);
 //    connect(ui->btClearOutput, &QPushButton::clicked, this, &SerialConnConfigWidget::btClearOutput);
@@ -33,7 +31,6 @@ void SerialConnConfigWidget::refreshDeviceList()
 {
     ui->cbDeviceList->clear();
     ui->cbDeviceList->addItems(m_serialCommunication->availablePorts());
-    ui->lbStatus->setText(tr("Device List refreshed."));
 }
 
 void SerialConnConfigWidget::connectToDevice()
@@ -44,7 +41,6 @@ void SerialConnConfigWidget::connectToDevice()
     //try to connect.
     if(m_serialCommunication->connectToDevice(ui->cbDeviceList->currentText())){
 
-        ui->btDisconnect->setEnabled(true);
         ui->cbDeviceList->setEnabled(false);
         ui->btConnect->setEnabled(false);
         ui->btRefreshDeviceList->setEnabled(false);
@@ -70,7 +66,6 @@ void SerialConnConfigWidget::connectToDevice()
 void SerialConnConfigWidget::disconnectFromDevice()
 {
     if(m_serialCommunication->disconnectFromDevice()){
-        ui->btDisconnect->setEnabled(false);
         ui->cbDeviceList->setEnabled(true);
         ui->btConnect->setEnabled(true);
         ui->btRefreshDeviceList->setEnabled(true);

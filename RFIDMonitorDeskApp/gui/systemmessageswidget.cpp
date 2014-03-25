@@ -1,4 +1,3 @@
-#include <QSharedPointer>
 #include <QTime>
 #include <QMessageBox>
 
@@ -7,10 +6,10 @@
 
 SystemMessagesWidget *SystemMessagesWidget::instance()
 {
-    static QSharedPointer<SystemMessagesWidget> instance(NULL);
-    if(instance.isNull())
-        instance = QSharedPointer<SystemMessagesWidget>(new SystemMessagesWidget);
-    return instance.data();
+    static SystemMessagesWidget *singleton = 0;
+    if(! singleton)
+        singleton = new SystemMessagesWidget;
+    return singleton;
 }
 
 SystemMessagesWidget::SystemMessagesWidget(QWidget *parent) :

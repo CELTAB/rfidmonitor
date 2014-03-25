@@ -1,5 +1,4 @@
 #include <QSerialPortInfo>
-#include <QCoreApplication>
 #include <QTextStream>
 #include <QTime>
 
@@ -9,7 +8,7 @@ SerialCommunication *SerialCommunication::instance()
 {
     static SerialCommunication *singleton = 0;
     if(!singleton)
-        singleton = new SerialCommunication(qApp);
+        singleton = new SerialCommunication;
     return singleton;
 }
 
@@ -18,6 +17,7 @@ SerialCommunication::SerialCommunication(QObject *parent) :
 {
     m_serialPort = new QSerialPort(this);
     m_logFile = new QFile(this);
+    m_openMode = QIODevice::ReadWrite;
     connect(m_serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));
     connect(m_serialPort, &QSerialPort::readyRead, this, &SerialCommunication::dataRead);
 }

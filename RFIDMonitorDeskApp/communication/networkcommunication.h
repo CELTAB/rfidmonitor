@@ -16,6 +16,7 @@ class NetworkCommunication : public QObject
 private:
     explicit NetworkCommunication(QObject *parent = 0);
     void processDatagram(QByteArray &datagram);
+    void handshake(QByteArray byteArray);
 
 public:
     static NetworkCommunication *instance();

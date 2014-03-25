@@ -48,7 +48,7 @@
       <item>
        <widget class="QListView" name="lvDevicesFound">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Double click to establish connection to a Raspberry Pi&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string/>
         </property>
         <property name="statusTip">
          <string/>

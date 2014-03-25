@@ -1,3 +1,6 @@
+#include <QStandardItem>
+#include <QStandardItemModel>
+
 #include "rfidmonitorinteractorwidget.h"
 #include "ui_rfidmonitorinteractorwidget.h"
 #include "communication/networkcommunication.h"
@@ -8,8 +11,39 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    //TESTE
+
+    QStandardItemModel *standardModel = new QStandardItemModel ;
+    QStandardItem *rootNode = standardModel->invisibleRootItem();
+
+    //defining a couple of items
+    QStandardItem *americaItem = new QStandardItem("America");
+    QStandardItem *mexicoItem =  new QStandardItem("Canada");
+    QStandardItem *usaItem =     new QStandardItem("USA");
+    QStandardItem *bostonItem =  new QStandardItem("Boston");
+    QStandardItem *europeItem =  new QStandardItem("Europe");
+    QStandardItem *italyItem =   new QStandardItem("Italy");
+    QStandardItem *romeItem =    new QStandardItem("Rome");
+    QStandardItem *veronaItem =  new QStandardItem("Verona");
+
+    //building up the hierarchy
+    rootNode->appendRow(americaItem);
+    rootNode->appendRow(europeItem);
+    americaItem->appendRow(mexicoItem);
+    americaItem->appendRow(usaItem);
+    usaItem->appendRow(bostonItem);
+    europeItem->appendRow(italyItem);
+    italyItem->appendRow(romeItem);
+    italyItem->appendRow(veronaItem);
+
+    //register the model
+    ui->treeViewAvailableModules->setModel(standardModel);
+    ui->treeViewAvailableModules->expandAll();
+
+    //FIM-TESTE
+
     connect(NetworkCommunication::instance(), SIGNAL(currentConfigFromRasp(QByteArray)),
-            this, SLOT(newConfigFromRaspArrived()));
+            this, SLOT(newConfigFromRaspArrived(QByteArray)));
 
     connect(NetworkCommunication::instance(), SIGNAL(newRFIDMontiorAnswer(QString)),
             this, SLOT(newAnswerFromRaspArrived(QString)));
@@ -56,8 +90,8 @@ void RFIDMonitorInteractorWidget::persistLocalyCurrentConfig(const QString &mac,
 
 void RFIDMonitorInteractorWidget::raspDisconnected()
 {
-   disableAllForm();
-   //tell to the user rasp has disconnected.
+    disableAllForm();
+    //tell to the user rasp has disconnected.
 }
 
 void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(QByteArray json)

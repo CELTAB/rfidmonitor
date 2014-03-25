@@ -9,7 +9,7 @@ Persistence *Persistence::instance()
 {
     static Persistence *singleton = 0;
     if(!singleton)
-        singleton = new Persistence(qApp);
+        singleton = new Persistence;
     return singleton;
 }
 
