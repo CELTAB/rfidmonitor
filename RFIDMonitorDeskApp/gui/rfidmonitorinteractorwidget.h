@@ -27,6 +27,7 @@ public slots:
     void raspDisconnected();
     void newConfigFromRaspArrived(QByteArray json);
     void newAnswerFromRaspArrived(QString answer);
+    void btSendToRaspClicked();
 };
 
 #endif // RFIDMONITORINTERACTORWIDGET_H

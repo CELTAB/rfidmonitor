@@ -15,6 +15,7 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
     connect(ui->btConnectToRasp, SIGNAL(clicked()), this, SLOT(btConnectToRaspClicked()));
 
     connect(NetworkCommunication::instance(), SIGNAL(newRaspFound(QVariantMap)), this, SLOT(newRaspFound(QVariantMap)));
+    connect(NetworkCommunication::instance(), SIGNAL(connectionFailed()), this, SLOT(connectionFailed()));
 
     ui->btStopRaspSearch->setEnabled(false);
 
@@ -27,6 +28,11 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
 NetworkConnConfigWidget::~NetworkConnConfigWidget()
 {
     delete ui;
+}
+
+bool NetworkConnConfigWidget::isReaderInteractorSelected()
+{
+    return ui->rbReaderInteraction->isChecked();
 }
 
 void NetworkConnConfigWidget::btRaspSearchClicked()
@@ -68,24 +74,18 @@ void NetworkConnConfigWidget::btConnectToRaspClicked()
 {
     if(m_selectedDevice.isValid()){
         QVariantMap raspInfo= m_selectedDevice.data(Qt::UserRole).toMap();
-        if(NetworkCommunication::instance()->connectToRasp(raspInfo.value("raspaddress").toString(),
-                                                           raspInfo.value("daemonport").toInt())){
-            NetworkCommunication::instance()->stopListeningBroadcast();
-
-            if(ui->rbReaderInteraction->isChecked())
-                emit networkCommunicationReady(Settings::KReader);
-            else if(ui->rbRFIDMonitorInteraction->isChecked())
-                emit networkCommunicationReady(Settings::KRFIDMonitor);
-
-        }else{
-            //failed to connect to rasp
-        }
+        NetworkCommunication::instance()->connectToRasp(raspInfo.value("raspaddress").toString(),
+                                                        raspInfo.value("daemonport").toInt());
     }
-
 }
 
 void NetworkConnConfigWidget::listViewClicked(QModelIndex index)
 {
     m_selectedDevice = index;
     ui->leDeviceChosen->setText(index.data(Qt::DisplayRole).toString());
+}
+
+void NetworkConnConfigWidget::connectionFailed()
+{
+    //fazer
 }

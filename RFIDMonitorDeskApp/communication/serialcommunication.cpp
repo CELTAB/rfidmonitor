@@ -1,6 +1,7 @@
 #include <QSerialPortInfo>
 #include <QTextStream>
 #include <QTime>
+#include <QDebug>
 
 #include "serialcommunication.h"
 
@@ -113,7 +114,6 @@ void SerialCommunication::setLogFile(const QString &logFile, const qint32 &openM
 void SerialCommunication::writeLog(QString text)
 {
         QString time("[" + QTime::currentTime().toString() + "] ");
-
         emit newAnswer(time + text);
         if(m_logFile->isOpen()){
             QTextStream logStream(m_logFile);

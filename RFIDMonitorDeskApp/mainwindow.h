@@ -32,10 +32,13 @@ private:
     void prepareReaderInteractorWidget(Settings::ConnectionType connectionType);
     void prepareRFIDMonitorInteractorWidget();
 
+    int tabSetUpConnectionIndex;
+    int tabConnectionIndex;
+
 
 public slots:
     void serialCommunicationReady();
-    void networkCommunicationReady(Settings::InteractionType interactionType);
+    void networkCommunicationReady();
 
     void rbSerialClicked();
     void rbNetworkClicked();

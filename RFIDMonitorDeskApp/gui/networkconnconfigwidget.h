@@ -21,6 +21,7 @@ public:
     enum HandleRaspType {KTimeout = 0, KAvaiable};
     explicit NetworkConnConfigWidget(QWidget *parent = 0);
     ~NetworkConnConfigWidget();
+    bool isReaderInteractorSelected();
 
 private:
     Ui::NetworkConnConfigWidget *ui;
@@ -36,6 +37,7 @@ public slots:
     void removeOlderItem();
     void btConnectToRaspClicked();
     void listViewClicked(QModelIndex index);
+    void connectionFailed();
 
 signals:
     void networkCommunicationReady(Settings::InteractionType interactionType);

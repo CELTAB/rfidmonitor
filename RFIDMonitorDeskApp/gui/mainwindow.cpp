@@ -4,12 +4,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "systemmessageswidget.h"
+#include "communication/networkcommunication.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    //tab main index for tabs.
+    tabSetUpConnectionIndex = 0;
+    tabConnectionIndex = 1;
 
     m_networkConnConfigWidget = 0;
     m_serialConnConfigWidget = 0;
@@ -20,12 +25,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->rbSerial, SIGNAL(clicked()), this, SLOT(rbSerialClicked()));
     connect(ui->rbNetwork, SIGNAL(clicked()), this, SLOT(rbNetworkClicked()));
 
-    //Lock Work
-    ui->toolBox->setItemEnabled(1, false);
+    ui->tabMain->setTabEnabled(tabConnectionIndex, false);
 
     QVBoxLayout *vbLayout = new QVBoxLayout(ui->frMessages);
     ui->frMessages->setLayout(vbLayout);
     vbLayout->addWidget(SystemMessagesWidget::instance());
+    this->showMaximized();
+    //    this->activateWindow();
+    //    this->raise();
 
 }
 
@@ -39,12 +46,15 @@ void MainWindow::serialCommunicationReady()
     prepareReaderInteractorWidget(Settings::KSerial);
 }
 
-void MainWindow::networkCommunicationReady(Settings::InteractionType interactionType)
+void MainWindow::networkCommunicationReady()
 {
-    if(interactionType == Settings::KReader)
+    NetworkCommunication::instance()->stopListeningBroadcast();
+    SystemMessagesWidget::instance()->writeMessage("Successfuly connect to rasp.");
+    if(m_networkConnConfigWidget->isReaderInteractorSelected()){
         prepareReaderInteractorWidget(Settings::KNetwork);
-    else if(interactionType == Settings::KRFIDMonitor)
+    }else{
         prepareRFIDMonitorInteractorWidget();
+    }
 }
 
 void MainWindow::prepareReaderInteractorWidget(Settings::ConnectionType connectionType)
@@ -52,18 +62,11 @@ void MainWindow::prepareReaderInteractorWidget(Settings::ConnectionType connecti
     if(! m_readerInteractorWidget)
         m_readerInteractorWidget = new ReaderInteractorWidget(connectionType,this);
 
-    ui->frWork->layout()->addWidget(m_readerInteractorWidget);
+    ui->tabConnection->layout()->addWidget(m_readerInteractorWidget);
     m_readerInteractorWidget->show();
 
-    //Unlock Work
-    ui->toolBox->setItemEnabled(1, true);
-    //Lock ConnectionConfiguration
-    ui->toolBox->setItemEnabled(0, false);
-
-    //Set current Connection
-    ui->toolBox->setItemText(0, tr("Set up the Connection - Connected to: Serial"));
-
-
+    ui->tabMain->setTabEnabled(tabConnectionIndex, true);
+    ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, false);
 }
 
 void MainWindow::prepareRFIDMonitorInteractorWidget()
@@ -71,16 +74,11 @@ void MainWindow::prepareRFIDMonitorInteractorWidget()
     if(! m_rfidmonitorInteractorWidget)
         m_rfidmonitorInteractorWidget = new RFIDMonitorInteractorWidget(this);
 
-    ui->frWork->layout()->addWidget(m_rfidmonitorInteractorWidget);
+    ui->tabConnection->layout()->addWidget(m_rfidmonitorInteractorWidget);
     m_rfidmonitorInteractorWidget->show();
 
-    //Unlock Work
-    ui->toolBox->setItemEnabled(1, true);
-    //Lock ConnectionConfiguration
-    ui->toolBox->setItemEnabled(0, false);
-
-    //Set current Connection
-    ui->toolBox->setItemText(0, tr("Set up the Connection - Connected to: Network"));
+    ui->tabMain->setTabEnabled(tabConnectionIndex, true);
+    ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, false);
 }
 
 void MainWindow::rbSerialClicked()
@@ -106,10 +104,10 @@ void MainWindow::rbNetworkClicked()
     if(! m_networkConnConfigWidget){
         m_networkConnConfigWidget = new NetworkConnConfigWidget(this);
         ui->gbConnConfig->layout()->addWidget(m_networkConnConfigWidget);
-        connect(m_networkConnConfigWidget,
-                SIGNAL(networkCommunicationReady(Settings::InteractionType)),
+        connect(NetworkCommunication::instance(),
+                SIGNAL(connectionEstablished()),
                 this,
-                SLOT(networkCommunicationReady(Settings::InteractionType)));
+                SLOT(networkCommunicationReady()));
     }
     m_networkConnConfigWidget->show();
 }

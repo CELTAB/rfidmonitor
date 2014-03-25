@@ -50,6 +50,7 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
 
     connect(NetworkCommunication::instance(), SIGNAL(raspDisconnected()),
             this, SLOT(raspDisconnected()));
+    connect(ui->btSendToRasp, SIGNAL(clicked()),this, SLOT(btSendToRaspClicked()));
 
 
     NetworkCommunication::instance()->triggerToGetCurrentConfigFromRasp();
@@ -102,4 +103,9 @@ void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(QByteArray json)
 void RFIDMonitorInteractorWidget::newAnswerFromRaspArrived(QString answer)
 {
     //show somewhere the answer from rasp. Maybe QmessageBox or a status label
+}
+
+void RFIDMonitorInteractorWidget::btSendToRaspClicked()
+{
+
 }
