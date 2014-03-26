@@ -114,6 +114,7 @@ void NetworkCommunication::connectToRasp(QString ip, int port)
 
 void NetworkCommunication::triggerToGetCurrentConfigFromRasp()
 {
+    qDebug() << "oi";
     QString instruction("give-me-your-current-config");
     sendData(instruction.toLocal8Bit(), Settings::KInstruction);
 }

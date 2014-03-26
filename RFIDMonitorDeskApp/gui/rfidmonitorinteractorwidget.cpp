@@ -48,7 +48,7 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     connect(NetworkCommunication::instance(), SIGNAL(newRFIDMontiorAnswer(QString)),
             this, SLOT(newAnswerFromRaspArrived(QString)));
 
-    connect(NetworkCommunication::instance(), SIGNAL(raspDisconnected()),
+    connect(NetworkCommunication::instance(), SIGNAL(connectionFailed()),
             this, SLOT(raspDisconnected()));
     connect(ui->btSendToRasp, SIGNAL(clicked()),this, SLOT(btSendToRaspClicked()));
 
