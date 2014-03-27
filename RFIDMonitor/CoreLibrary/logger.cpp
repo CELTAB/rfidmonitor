@@ -4,9 +4,15 @@
 
 #include "logger.h"
 
+
+/*
+    This source code is commented because we have som problems no cross-compiling boost for ARM architecture.
+*/
+
 Logger::Logger(QObject *parent):
     QObject(parent)
 {
+#ifdef BOOST_LOG
     logformat = expr::stream
             // Record format: 00001 % 05-25-2013_16:05:45 % severity % Module Name % Thread Name % Void functionName() % Any message
             << std::hex << std::setw(4) << std::setfill('0') << line_id << std::dec << std::setfill(' ') << " % "
@@ -15,6 +21,12 @@ Logger::Logger(QObject *parent):
             << expr::attr< std::string >("Module") << " % "
             << expr::attr< std::string >("Function") << " % "
             << expr::smessage;
+#endif
+
+    file.setFileName("RFID_log.log");
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+            return;
+        }
 }
 
 // The operator puts a human-friendly representation of the severity level to the stream
@@ -46,6 +58,7 @@ std::string Logger::currentDateTime()
 
 void Logger::startDebugMode()
 {
+#ifdef BOOST_LOG
                 boost::shared_ptr< sinks::text_file_backend > debugBackend =  boost::make_shared< sinks::text_file_backend >
                         (
                             keywords::file_name = "logs/Log_DEBUG_%Y%m_%H%M%S.log",
@@ -56,15 +69,19 @@ void Logger::startDebugMode()
 
                 sinkDebug->set_formatter(logformat);
                 logging::core::get()->add_sink(sinkDebug);
+#endif
 }
 
+#ifdef BOOST_LOG
 void Logger::writeLastRecord(sinks::text_file_backend::stream_type& file)
 {
     file << "\n";
 }
+#endif
 
 void Logger::initLog()
 {
+#ifdef BOOST_LOG
     boost::shared_ptr< sinks::text_file_backend > backend =
             boost::make_shared< sinks::text_file_backend >
             (
@@ -89,6 +106,7 @@ void Logger::initLog()
      * "LineID", "TimeStamp", "ProcessID" and "ThreadID" are registered globally
      */
     logging::add_common_attributes();
+#endif
 }
 
 Logger *Logger::instance()
@@ -102,9 +120,12 @@ Logger *Logger::instance()
 }
 
 void Logger::writeRecord(severity_level lvl, QString moduleName,
-                         QString FunctionName,
+                         QString functionName,
                          QString message)
 {
+    (void)lvl;
+    // 00001 % 05-25-2013_16:05:45 % severity % Module Name % Thread Name % Void functionName() % Any message
+#ifdef BOOST_LOG
     src::severity_logger< Logger::severity_level > m_logger;
 
     m_logger.add_attribute("DateTime", attrs::make_function(&currentDateTime));
@@ -112,4 +133,12 @@ void Logger::writeRecord(severity_level lvl, QString moduleName,
     m_logger.add_attribute("Function", attrs::constant< std::string >(FunctionName.toStdString()));
 
     BOOST_LOG_SEV(m_logger, lvl) << message.toStdString();
+#else
+    QTextStream out(&file);
+    QString record("99999 % ");
+    QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
+    record.append(currDate + " % " + moduleName + " % " + functionName + " % " + message + "\n");
+    out << record;
+    qDebug() << record;
+#endif
 }

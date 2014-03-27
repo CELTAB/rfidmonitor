@@ -29,7 +29,9 @@
 #define PLUGININTERFACE_H
 
 #include <QObject>
-#include <QStringList>
+#include <QMap>
+
+class Service;
 
 /*!
  * \brief The CoreModule class is the interface that every module of the system has to implement to make it available to the QPlubinLoader.
@@ -44,6 +46,40 @@ public:
      * \brief init is responsible fo any initialization of the module, eg. create data and register services.
      */
     virtual void init() = 0;
+
+    /*!
+     * \brief name
+     * \return
+     */
+    virtual QString name() = 0;
+
+    /*!
+     * \brief version
+     * \return
+     */
+    virtual quint32 version() = 0;
+
+    /*!
+     * \brief services
+     * \return
+     */
+    QList<Service *> services();
+
+    /*!
+     * \brief service
+     * \param name
+     * \return
+     */
+    Service * service(QString name);
+
+    /*!
+     * \brief addService
+     * \param serv
+     */
+    void addService(QString name, Service *serv);
+
+private:
+    QMap<QString, Service *> m_services;
 };
 
 #endif // PLUGININTERFACE_H

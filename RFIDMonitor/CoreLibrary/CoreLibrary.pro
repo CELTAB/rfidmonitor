@@ -11,20 +11,33 @@ QT       -= gui
 TARGET = CoreLibrary
 TEMPLATE = lib
 
-LIBS += -lboost_log
 
-SOURCES += servicemanager.cpp \
+SOURCES += \
     coremodule.cpp \
     object/rfiddata.cpp \
-    logger.cpp
+    logger.cpp \
+    core/interfaces.cpp \
+    core/service.cpp \
+    applicationsettings.cpp \
+    rfidmonitor.cpp \
+    json/rfidmonitorsettings.cpp \
+    json/synchronizationpacket.cpp \
+    json/nodejsmessage.cpp
 
 QMAKE_CXXFLAGS += -std=c++11 -Wmissing-field-initializers
 
 HEADERS += \
-    servicemanager.h \
     coremodule.h \
     object/rfiddata.h \
-    logger.h
+    logger.h \
+    core/interfaces.h \
+    core/service.h \
+    applicationsettings.h \
+    rfidmonitor.h \
+    json/jsonrwinterface.h \
+    json/rfidmonitorsettings.h \
+    json/synchronizationpacket.h \
+    json/nodejsmessage.h
 
 unix:{
     homePath = $$system(echo $HOME)
@@ -32,3 +45,8 @@ unix:{
     target.path = /usr/local/lib
     INSTALLS += target
 }
+
+
+#INCLUDEPATH += /home/luisvaldes/Workspace/boost-lib/include/
+#LIBS += -L/home/luisvaldes/Workspace/boost-lib/lib
+#LIBS += -lboost_log

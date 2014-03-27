@@ -32,3 +32,18 @@ CoreModule::CoreModule(QObject *parent) :
     QObject(parent)
 {
 }
+
+QList<Service *> CoreModule::services()
+{
+    return m_services.values();
+}
+
+Service *CoreModule::service(QString name)
+{
+    return m_services.value(name);
+}
+
+void CoreModule::addService(QString name, Service *serv)
+{
+    m_services.insert(name, serv);
+}

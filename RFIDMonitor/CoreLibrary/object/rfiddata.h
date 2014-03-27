@@ -7,9 +7,10 @@
 #define RFIDDATA_H
 
 #include <QObject>
-#include <QSqlRecord>
 #include <QVariant>
 #include <QDateTime>
+
+class QSqlRecord;
 
 /*!
  * \brief The Rfiddata class is an ORM represeting the table "rfiddata" of a database where all read data is stored.

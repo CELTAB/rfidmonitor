@@ -1,7 +1,10 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-// Include from boost log
+#ifdef BOOST_LOG
+
+// Headers from boost log
+
 #define BOOST_LOG_DYN_LINK
 
 #include <boost/log/utility/setup/common_attributes.hpp>
@@ -15,10 +18,14 @@
 #include <boost/log/sinks.hpp>
 #include <boost/log/core.hpp>
 
-//----------
+#endif
 
 #include <QObject>
 #include <QString>
+#include <QFile>
+#include <QTextStream>
+
+#ifdef BOOST_LOG
 
 //To keep the code simple, the following namespace aliases are defined:
 namespace logging = boost::log;
@@ -27,6 +34,8 @@ namespace src = boost::log::sources;
 namespace expr = boost::log::expressions;
 namespace attrs = boost::log::attributes;
 namespace keywords = boost::log::keywords;
+
+#endif
 
 class Logger : public QObject
 {
@@ -58,7 +67,9 @@ public:
     /**
      * @brief sink_t indicates that the sink is synchronous, that is, it allows for several threads to log simultaneously and will block in case of contention.
      */
+#ifdef BOOST_LOG
     typedef sinks::synchronous_sink< sinks::text_file_backend > sink_t;
+#endif
 
     /**
      * @brief instance return the unique instance of the \c Logger class
@@ -102,7 +113,7 @@ public:
      * @see currentDateTime()
      * @see severity_level
      */
-    void writeRecord(severity_level lvl, QString moduleName, QString FunctionName,
+    void writeRecord(severity_level lvl, QString moduleName, QString functionName,
                      QString message);
 
     /**
@@ -125,7 +136,9 @@ public:
      *
      * @param file stream to the log file
      */
+#ifdef BOOST_LOG
     static void writeLastRecord(sinks::text_file_backend::stream_type &file);
+#endif
 
     /**
      * @brief startDebugMode it called when system is running in debug mode
@@ -153,9 +166,13 @@ private:
      * @see startDebugMode()
      * @see initLog()
      */
+#ifdef BOOST_LOG
     logging::formatter logformat;
+#endif
 
     explicit Logger(QObject *parent = 0);
+
+    QFile file;
 
     /**
      * @brief initLog will configure and create a log file
@@ -174,7 +191,9 @@ private:
 
 };
 
+#ifdef BOOST_LOG
 BOOST_LOG_ATTRIBUTE_KEYWORD(line_id, "LineID", unsigned int)
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", Logger::severity_level)
+#endif
 
 #endif // LOGGER_H

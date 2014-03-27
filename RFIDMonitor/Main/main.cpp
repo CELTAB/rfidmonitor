@@ -30,12 +30,19 @@
 #include <QTimer>
 #include <logger.h>
 
-#include "rfidmonitor.h"
+#include <rfidmonitor.h>
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-    RFIDMonitor monitor;
-    monitor.start(a);
-    return a.exec();
+    int returnV = 1;
+
+    while(returnV){
+
+        QCoreApplication a(argc, argv);
+        RFIDMonitor::instance()->start(a);
+
+        returnV = a.exec();
+    }
+
+    return returnV;
 }

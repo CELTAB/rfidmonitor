@@ -3,6 +3,9 @@
 // * Fecha: 30/07/2013 10:33:09                       *
 // * Luis Valdes 2012 - Todos los Derechos Reservados *
 // ****************************************************
+
+#include <QSqlRecord>
+
 #include "rfiddata.h"
 
 Rfiddata::Rfiddata(QObject *parent) :
