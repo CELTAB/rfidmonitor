@@ -16,7 +16,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    synchronizationpacket.cpp
+    synchronizationpacket.cpp \
+    rfidmonitorsettings.cpp
 
 HEADERS += \
-    synchronizationpacket.h
+    synchronizationpacket.h \
+    rfidmonitorsettings.h \
+    jsonrwinterface.h

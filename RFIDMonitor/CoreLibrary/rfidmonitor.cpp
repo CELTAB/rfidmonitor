@@ -32,6 +32,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QMutexLocker>
+#include <QJsonDocument>
 
 #include <coremodule.h>
 #include <logger.h>
@@ -40,6 +41,7 @@
 #include "core/interfaces.h"
 #include "applicationsettings.h"
 #include "rfidmonitor.h"
+#include "json/rfidmonitorsettings.h"
 
 
 struct RFIDMonitorPrivate
@@ -82,6 +84,66 @@ struct RFIDMonitorPrivate
     QString device;
     QList<CoreModule *> moduleList;
 
+    // RFIDMonitor Settings
+    json::RFIDMonitorSettings systemSettings;
+
+    bool readSettings()
+    {
+        QFile loadFile("rfidmonitor.json");
+
+        if (!loadFile.open(QIODevice::ReadOnly)) {
+            qWarning("Couldn't open save file.");
+            return false;
+        }
+
+        QByteArray saveData = loadFile.readAll();
+        QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
+        systemSettings.read(loadDoc.object());
+
+        device = systemSettings.device();
+        return true;
+    }
+
+    bool writeSettings()
+    {
+        QFile saveFile("rfidmonitor.json");
+
+        if (!saveFile.open(QIODevice::WriteOnly)) {
+            qWarning("Couldn't open save file.");
+            return false;
+        }
+
+        QJsonObject obj;
+        systemSettings.write(obj);
+        QJsonDocument saveDoc(obj);
+        saveFile.write(saveDoc.toJson());
+        return true;
+    }
+
+    void installModule(CoreModule *mod)
+    {
+        json::Module sysMod;
+        sysMod.setModuleName(mod->name());
+        sysMod.setVersion(mod->version());
+        QList<json::Service> services;
+        foreach (Service *s, mod->services()) {
+            json::Service serv;
+            serv.setServiceName(s->serviceName());
+            serv.setServiceType(int(s->type()));
+            services.append(serv);
+        }
+        sysMod.setServices(services);
+        QList<json::Module> modules;
+        modules.append(sysMod);
+        foreach (json::Module module, systemSettings.modules()) {
+            if(!(sysMod == module)){
+                modules.append(module);
+            }
+        }
+        systemSettings.setModules(modules);
+        writeSettings();
+    }
+
     void loadModules()
     {
         QDir pluginsDir(qApp->applicationDirPath());
@@ -106,35 +168,38 @@ struct RFIDMonitorPrivate
             }
         }
         Logger::instance()->writeRecord(Logger::info, moduleName, Q_FUNC_INFO, "All Modules Loaded");
+
+        foreach (CoreModule *mod, moduleList) {
+            mod->init();
+            if(systemSettings.modules().contains(json::Module(mod->name()))){
+                json::Module sysMod = systemSettings.modules().at(systemSettings.modules().indexOf(json::Module(mod->name())));
+                if(sysMod.version() < mod->version()){
+                    installModule(mod);
+                }
+            }else{
+                installModule(mod);
+            }
+            foreach (Service *serv, mod->services()) {
+                addService(serv);
+            }            
+        }
+        //
     }
 
     void loadDefaultServices()
     {
-        QMap<ServiceType, QString>::iterator i;
-        for (i = defaultServiceNames.begin(); i != defaultServiceNames.end(); ++i){
-            switch (i.key()) {
-            case ServiceType::KReader:
-                defaultReading = readingServiceList.value(i.value());
-                break;
-            case ServiceType::KPersister:
-                defaultPersistence = persistenceServiceList.value(i.value());
-                break;
-            case ServiceType::KCommunicator:
-                defaultCommunication = communicationServiceList.value(i.value());
-                break;
-            case ServiceType::KExporter:
-                defaultExport = exportServiceList.value(i.value());
-                break;
-            case ServiceType::KPackager:
-                defaultPackager = packagerServiceList.value(i.value());
-                break;
-            case ServiceType::KSynchronizer:
-                defaultSynchronization = synchronizationServiceList.value(i.value());
-                break;
-            default:
-                break;
-            }
-        }
+        defaultReading = readingServiceList.value(systemSettings.defaultServices().reader());
+        Q_ASSERT(defaultReading);
+        defaultPersistence = persistenceServiceList.value(systemSettings.defaultServices().persister());
+        Q_ASSERT(defaultPersistence);
+        defaultCommunication = communicationServiceList.value(systemSettings.defaultServices().communicator());
+        Q_ASSERT(defaultCommunication);
+        defaultExport = exportServiceList.value(systemSettings.defaultServices().exporter());
+        Q_ASSERT(defaultExport);
+        defaultPackager = packagerServiceList.value(systemSettings.defaultServices().packager());
+        Q_ASSERT(defaultPackager);
+        defaultSynchronization = synchronizationServiceList.value(systemSettings.defaultServices().synchronizer());
+        Q_ASSERT(defaultSynchronization);
     }
 
     void addService(Service *serv)
@@ -259,55 +324,18 @@ RFIDMonitor::~RFIDMonitor()
 
 void RFIDMonitor::start(const QCoreApplication &app)
 {
-    // TEMP
-    if(app.arguments().contains("-d") && app.arguments().size() > (app.arguments().indexOf("-d") + 1)){
-        d_ptr->device = app.arguments().at(app.arguments().indexOf("-d") + 1);
-    }
-
-
+    d_ptr->readSettings();
     d_ptr->loadModules();
-    foreach (CoreModule *mod, d_ptr->moduleList) {
-        mod->init();
-        ApplicationSettings::instance()->installModule(mod);
-        foreach (Service *serv, mod->services()) {
-            //            d_ptr->services.insert(serv->serviceName(), serv);
-            d_ptr->addService(serv);
-        }
-    }
-    // TEMP
     d_ptr->loadDefaultServices();
-
-    // Loads default services information
-    ApplicationSettings::instance()->loadDefaultServices();
-
-    // Get Default services instance
-    // ReadingService
-    QString readingServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KReader);
-    // PersintenceService
-    QString persistenceServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPersister);
-    // CommunicationService
-    QString commServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KCommunicator);
-    // ExportService
-    QString exportServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KExporter);
-    // PackagerService
-    QString packagerServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KPackager);
-    // SynchronizationService
-    QString synchronizationServiceName = ApplicationSettings::instance()->defaultServices().value(ServiceType::KSynchronizer);
 
     // Loads all Services available
     ReadingInterface *readingService = d_ptr->defaultReading;
-    Q_ASSERT(readingService);
     PersistenceInterface *persistenceService = d_ptr->defaultPersistence;
-    Q_ASSERT(persistenceService);
     CommunicationInterface *communicationService = d_ptr->defaultCommunication;
-    Q_ASSERT(communicationService);
     ExportInterface *exportService = d_ptr->defaultExport;
-    Q_ASSERT(exportService);
     (void)exportService;
     PackagerInterface *packagerService = d_ptr->defaultPackager;
-    Q_ASSERT(packagerService);
     SynchronizationInterface *synchronizationService = d_ptr->defaultSynchronization;
-    Q_ASSERT(synchronizationService);
 
     readingService->setParent(this);
 
@@ -323,7 +351,6 @@ void RFIDMonitor::start(const QCoreApplication &app)
     synchronizationService->setParent(0);
     synchronizationService->moveToThread(d_ptr->syncronizationThread);
     connect(d_ptr->persistenceThread, SIGNAL(destroyed()), synchronizationService, SLOT(deleteLater()));
-
 
     // Messages from the outside must be evaluated in RFIDMonitor
     connect(communicationService, SIGNAL(messageReceived(QByteArray)), SLOT(newMessage(QByteArray)));
@@ -397,9 +424,15 @@ void RFIDMonitor::newMessage(QByteArray message)
 {
     qDebug() << QString(message);
 
+    //parse da mensagem para obter um json
+
     if(message == "ExitSystem"){
         qApp->exit(0);
     }else if(message == "RestartSystem"){
+        qApp->exit(1);
+    }else if(message == "json"){
+        d_ptr->systemSettings.setName("hole_gustavo");
+        d_ptr->writeSettings();
         qApp->exit(1);
     }
 }

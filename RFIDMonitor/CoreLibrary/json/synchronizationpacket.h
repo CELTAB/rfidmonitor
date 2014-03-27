@@ -3,6 +3,8 @@
 
 #include "jsonrwinterface.h"
 
+namespace json {
+
 class Data : public JsonRWInterface
 {
 public:
@@ -142,5 +144,9 @@ public:
     void read(const QJsonObject &json);
     void write(QJsonObject &json) const;
 };
+
+
+}
+
 
 #endif // SYNCHRONIZATIONPACKET_H

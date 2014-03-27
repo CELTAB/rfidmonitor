@@ -27,6 +27,12 @@
 #include <QLocalSocket>
 #include <QTcpSocket>
 #include <QDebug>
+#include <QDateTime>
+#include <QJsonObject>
+
+#include <QJsonDocument>
+
+#include "json/nodejsmessage.h"
 
 #include "rfidmonitordaemon.h"
 
@@ -48,6 +54,7 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
 //    m_hostName = "179.106.217.11";
+//    m_hostName = "179.106.217.27";
     m_hostName = "localhost";
     m_tcpPort = 8124;
 
@@ -98,11 +105,26 @@ void RFIDMonitorDaemon::ipcReadyRead()
     QLocalSocket *clientConnection = qobject_cast<QLocalSocket *>(sender());
 
     QByteArray data = clientConnection->readAll();
+
+    QJsonDocument jsonDoc = QJsonDocument::fromBinaryData(data);
+    QJsonObject obj = jsonDoc.object();
+    json::NodeJSMessage nodeMessage;
+    nodeMessage.read(obj);
+
+    if(nodeMessage.type() == "SYN"){
+        int clientsCount = this->m_localServer->findChildren<QLocalSocket *>().size();
+        if(!clientsCount){
+            m_tcpSocket->write(QString("{type: \"SYN-ERROR\", datetime: \"%1\", data: \"\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLatin1());
+        }else{
+            qDebug() << QString("");
+        }
+    }
+
     QString message(data);
 
-    qDebug() << QString("RFIDMonitorDaemon -> Message received: %1").arg(message);
+    qDebug() << QString("RFIDMonitorDaemon -> IPC Message received: %1").arg(message);
+    m_tcpSocket->write(QString("{type: \"SYN-ERROR\", datetime: \"%1\", data: \"%2\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).arg(message).toLatin1());
 
-    m_tcpSocket->write(data);
 }
 
 void RFIDMonitorDaemon::tcpConnect()
@@ -126,6 +148,10 @@ void RFIDMonitorDaemon::tcpReadyRead()
 
     QString message(data);
     qDebug() << QString("Message from Node.js: %1").arg(message);
+
+    foreach (QLocalSocket *socket, this->m_localServer->findChildren<QLocalSocket *>()) {
+        socket->write(data);
+    }
 }
 
 void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError)

@@ -4,6 +4,8 @@
 
 #include "synchronizationpacket.h"
 
+namespace json {
+
 DataSummary SynchronizationPacket::dataContent() const
 {
     return m_dataSummary;
@@ -322,6 +324,10 @@ void SynchronizationCheck::write(QJsonObject &json) const
         packets.append(obj);
     }
     json["packets"] = packets;
+}
+
+
+
 }
 
 

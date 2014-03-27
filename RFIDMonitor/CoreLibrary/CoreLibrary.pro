@@ -19,7 +19,10 @@ SOURCES += \
     core/interfaces.cpp \
     core/service.cpp \
     applicationsettings.cpp \
-    rfidmonitor.cpp
+    rfidmonitor.cpp \
+    json/rfidmonitorsettings.cpp \
+    json/synchronizationpacket.cpp \
+    json/nodejsmessage.cpp
 
 QMAKE_CXXFLAGS += -std=c++11 -Wmissing-field-initializers
 
@@ -30,7 +33,11 @@ HEADERS += \
     core/interfaces.h \
     core/service.h \
     applicationsettings.h \
-    rfidmonitor.h
+    rfidmonitor.h \
+    json/jsonrwinterface.h \
+    json/rfidmonitorsettings.h \
+    json/synchronizationpacket.h \
+    json/nodejsmessage.h
 
 unix:{
     homePath = $$system(echo $HOME)

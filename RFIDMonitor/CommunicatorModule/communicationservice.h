@@ -26,8 +26,8 @@
 #ifndef COMMUNICATIONSERVICE_H
 #define COMMUNICATIONSERVICE_H
 
-#include <core/interfaces.h>
 #include <QLocalSocket>
+#include <core/interfaces.h>
 
 class CommunicationService : public CommunicationInterface
 {
