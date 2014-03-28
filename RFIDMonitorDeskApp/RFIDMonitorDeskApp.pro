@@ -22,9 +22,10 @@ SOURCES += main.cpp\
     gui/networkconnconfigwidget.cpp \
     settings.cpp \
     persistence.cpp \
-    gui/systemmessageswidget.cpp
+    gui/systemmessageswidget.cpp \
+    gui/devicemodel.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     gui/serialconnconfigwidget.h \
     communication/serialcommunication.h \
     communication/networkcommunication.h \
@@ -33,7 +34,9 @@ HEADERS  += mainwindow.h \
     gui/networkconnconfigwidget.h \
     settings.h \
     persistence.h \
-    gui/systemmessageswidget.h
+    gui/systemmessageswidget.h \
+    gui/mainwindow.h \
+    gui/devicemodel.h
 
 FORMS    += \
     gui/mainwindow.ui \
@@ -42,3 +45,6 @@ FORMS    += \
     gui/rfidmonitorinteractorwidget.ui \
     gui/networkconnconfigwidget.ui \
     gui/systemmessageswidget.ui
+
+
+QMAKE_CXXFLAGS += -std=c++11

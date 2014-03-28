@@ -30,6 +30,8 @@ public:
     void connectToRasp(QString ip, int port);
     void triggerToGetCurrentConfigFromRasp();
     void sendNewConfigToRasp(QByteArray json);
+    void sendNewCommandToReader(QString command);
+    void closeTCPConnection();
 
 private slots:
     void udpDataAvailable();
@@ -39,6 +41,7 @@ signals:
     void newRaspFound(QVariantMap raspInfo);
     void currentConfigFromRasp(QByteArray json);
     void newRFIDMontiorAnswer(QString answer);
+    void newReaderAnswer(QString answer);
     void connectionEstablished();
     void connectionFailed();
 };

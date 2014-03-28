@@ -34,14 +34,12 @@ private:
 
     int tabSetUpConnectionIndex;
     int tabConnectionIndex;
-
-
 public slots:
     void serialCommunicationReady();
     void networkCommunicationReady();
-
     void rbSerialClicked();
     void rbNetworkClicked();
+    void btCloseConnectionClicked();
 };
 
 #endif // MAINWINDOW_H

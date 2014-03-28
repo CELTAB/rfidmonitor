@@ -1,5 +1,6 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <QDebug>
 
 #include "rfidmonitorinteractorwidget.h"
 #include "ui_rfidmonitorinteractorwidget.h"
@@ -15,7 +16,6 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
 
     QStandardItemModel *standardModel = new QStandardItemModel ;
     QStandardItem *rootNode = standardModel->invisibleRootItem();
-
     //defining a couple of items
     QStandardItem *americaItem = new QStandardItem("America");
     QStandardItem *mexicoItem =  new QStandardItem("Canada");
@@ -25,7 +25,6 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     QStandardItem *italyItem =   new QStandardItem("Italy");
     QStandardItem *romeItem =    new QStandardItem("Rome");
     QStandardItem *veronaItem =  new QStandardItem("Verona");
-
     //building up the hierarchy
     rootNode->appendRow(americaItem);
     rootNode->appendRow(europeItem);
@@ -35,7 +34,6 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     europeItem->appendRow(italyItem);
     italyItem->appendRow(romeItem);
     italyItem->appendRow(veronaItem);
-
     //register the model
     ui->treeViewAvailableModules->setModel(standardModel);
     ui->treeViewAvailableModules->expandAll();
@@ -61,6 +59,12 @@ RFIDMonitorInteractorWidget::~RFIDMonitorInteractorWidget()
     delete ui;
 }
 
+void RFIDMonitorInteractorWidget::closeConnection()
+{
+    disableAllForm();
+    NetworkCommunication::instance()->closeTCPConnection();
+}
+
 void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QByteArray &byteArray)
 {
     clearForm();
@@ -75,6 +79,11 @@ void RFIDMonitorInteractorWidget::clearForm()
 void RFIDMonitorInteractorWidget::disableAllForm()
 {
     //lock the form waiting for some answer or procedure ends.
+    ui->btSendToRasp->setEnabled(false);
+    ui->btCancel->setEnabled(false);
+    ui->btEdit->setEnabled(false);
+    ui->btRetrieveFromRasp->setEnabled(false);
+    ui->btSearchInHistory->setEnabled(false);
 }
 
 void RFIDMonitorInteractorWidget::sendCurrentConfiguration()

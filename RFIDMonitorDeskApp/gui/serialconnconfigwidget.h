@@ -23,18 +23,11 @@ private:
     SerialCommunication *m_serialCommunication;
     void refreshDeviceList();
     void connectToDevice();
-    void disconnectFromDevice();
     void populateFields();
-    void searchLogFile();
-    void clearOutput();
 
 public slots:
     void btRefreshDeviceClicked();
     void btConnectToDeviceClicked();
-    void btDisconnectFromDeviceClicked();
-    void btSearchLogFileClicked();
-    void btClearOutput();
-    void leCommandLineSent();
 
 signals:
     void serialCommunicationReady();

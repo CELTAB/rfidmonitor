@@ -38,7 +38,6 @@ void NetworkCommunication::processDatagram(QByteArray &datagram)
 void NetworkCommunication::handshake(QByteArray byteArray)
 {
     QString str(byteArray);
-    qDebug() << "Received from Rasp: " << str;
     if(str.compare("I' am fine.") == 0)
         emit connectionEstablished();
     else{
@@ -114,7 +113,6 @@ void NetworkCommunication::connectToRasp(QString ip, int port)
 
 void NetworkCommunication::triggerToGetCurrentConfigFromRasp()
 {
-    qDebug() << "oi";
     QString instruction("give-me-your-current-config");
     sendData(instruction.toLocal8Bit(), Settings::KInstruction);
 }
@@ -122,6 +120,16 @@ void NetworkCommunication::triggerToGetCurrentConfigFromRasp()
 void NetworkCommunication::sendNewConfigToRasp(QByteArray json)
 {
     sendData(json, Settings::KConfiguration);
+}
+
+void NetworkCommunication::sendNewCommandToReader(QString command)
+{
+    NetworkCommunication::instance()->sendData(command.toLocal8Bit(), Settings::KNewReaderCommand);
+}
+
+void NetworkCommunication::closeTCPConnection()
+{
+    m_tcpSocket->disconnectFromHost();
 }
 
 void NetworkCommunication::udpDataAvailable()
@@ -156,6 +164,9 @@ void NetworkCommunication::tcpDataAvailable()
         case Settings::KHandshake:
             handshake(package.right(package.size() - sizeof(quint32)));
             break;
+        case Settings::KNewReaderAnswer:
+            emit newReaderAnswer(package.right(package.size() - sizeof(quint32)));
+            break;
         default:
             qDebug() << "Data type invalid.";
             break;
@@ -169,7 +180,10 @@ void NetworkCommunication::tcpSocketError(QAbstractSocket::SocketError socketErr
 {
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
-        return;
+        SystemMessagesWidget::instance()->writeMessage("The host closed the connection.",
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KDialogAndLog);
+        break;
     case QAbstractSocket::HostNotFoundError:
         SystemMessagesWidget::instance()->writeMessage("The host was not found. Please check the "
                                                        "host name and port settings.",
@@ -178,7 +192,7 @@ void NetworkCommunication::tcpSocketError(QAbstractSocket::SocketError socketErr
         break;
     case QAbstractSocket::ConnectionRefusedError:
         SystemMessagesWidget::instance()->writeMessage("The connection was refused by the peer. "
-                                                       "Make sure the fortune server is running, "
+                                                       "Make sure the application on the host is running, "
                                                        "and check that the host name and port "
                                                        "settings are correct.",
                                                        SystemMessagesWidget::KError,

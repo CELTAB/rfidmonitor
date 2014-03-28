@@ -14,6 +14,7 @@ class RFIDMonitorInteractorWidget : public QWidget
 public:
     explicit RFIDMonitorInteractorWidget(QWidget *parent = 0);
     ~RFIDMonitorInteractorWidget();
+    void closeConnection();
 
 private:
     Ui::RFIDMonitorInteractorWidget *ui;

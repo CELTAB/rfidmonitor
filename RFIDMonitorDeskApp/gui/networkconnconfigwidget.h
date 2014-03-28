@@ -8,6 +8,7 @@
 
 #include "communication/networkcommunication.h"
 #include "settings.h"
+#include "devicemodel.h"
 
 namespace Ui {
 class NetworkConnConfigWidget;
@@ -26,15 +27,13 @@ public:
 private:
     Ui::NetworkConnConfigWidget *ui;
     NetworkCommunication *m_networkCommunication;
-    QStandardItemModel *m_raspFoundModel;
-    QModelIndex m_selectedDevice;
-
+    DeviceModel *m_raspFoundModel;
 
 public slots:
     void btRaspSearchClicked();
     void btStopRaspSearchClicked();
     void newRaspFound(QVariantMap raspInfo);
-    void removeOlderItem();
+    void newRaspTimeout(QString deviceDisplayRole);
     void btConnectToRaspClicked();
     void listViewClicked(QModelIndex index);
     void connectionFailed();

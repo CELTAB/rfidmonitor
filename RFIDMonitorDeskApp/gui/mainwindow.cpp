@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->rbSerial, SIGNAL(clicked()), this, SLOT(rbSerialClicked()));
     connect(ui->rbNetwork, SIGNAL(clicked()), this, SLOT(rbNetworkClicked()));
+    connect(ui->btCloseConnection, SIGNAL(clicked()), this, SLOT(btCloseConnectionClicked()));
 
     ui->tabMain->setTabEnabled(tabConnectionIndex, false);
 
@@ -48,7 +49,7 @@ void MainWindow::serialCommunicationReady()
 
 void MainWindow::networkCommunicationReady()
 {
-    NetworkCommunication::instance()->stopListeningBroadcast();
+    m_networkConnConfigWidget->btStopRaspSearchClicked();
     SystemMessagesWidget::instance()->writeMessage("Successfuly connect to rasp.");
     if(m_networkConnConfigWidget->isReaderInteractorSelected()){
         prepareReaderInteractorWidget(Settings::KNetwork);
@@ -110,4 +111,22 @@ void MainWindow::rbNetworkClicked()
                 SLOT(networkCommunicationReady()));
     }
     m_networkConnConfigWidget->show();
+}
+
+void MainWindow::btCloseConnectionClicked()
+{
+    ui->tabMain->setTabEnabled(tabConnectionIndex, false);
+    ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, true);
+
+    if(m_rfidmonitorInteractorWidget){
+        m_rfidmonitorInteractorWidget->closeConnection();
+        m_rfidmonitorInteractorWidget->close();
+        m_rfidmonitorInteractorWidget->deleteLater();
+        m_rfidmonitorInteractorWidget = 0;
+    } else if(m_readerInteractorWidget){
+        m_readerInteractorWidget->closeConnection();
+        m_readerInteractorWidget->close();
+        m_readerInteractorWidget->deleteLater();
+        m_readerInteractorWidget = 0;
+    }
 }

@@ -1,4 +1,5 @@
 #include <QFileDialog>
+#include <QDebug>
 
 #include "serialconnconfigwidget.h"
 #include "ui_serialconnconfigwidget.h"
@@ -14,9 +15,6 @@ SerialConnConfigWidget::SerialConnConfigWidget(QWidget *parent) :
 
     connect(ui->btRefreshDeviceList, &QPushButton::clicked, this, &SerialConnConfigWidget::btRefreshDeviceClicked);
     connect(ui->btConnect, &QPushButton::clicked, this, &SerialConnConfigWidget::btConnectToDeviceClicked);
-//    connect(ui->leCommand, &QLineEdit::returnPressed, this, &SerialConnConfigWidget::leCommandLineSent);
-    connect(ui->btSearchLogFile, &QPushButton::clicked, this, &SerialConnConfigWidget::btSearchLogFileClicked);
-//    connect(ui->btClearOutput, &QPushButton::clicked, this, &SerialConnConfigWidget::btClearOutput);
 
     refreshDeviceList();
     populateFields();
@@ -35,53 +33,26 @@ void SerialConnConfigWidget::refreshDeviceList()
 
 void SerialConnConfigWidget::connectToDevice()
 {
-    //set log file.
-    m_serialCommunication->setLogFile(ui->leLogFilePath->text(), ui->cbLogType->currentData().toInt());
-
-    //try to connect.
-    if(m_serialCommunication->connectToDevice(ui->cbDeviceList->currentText())){
-
-        ui->cbDeviceList->setEnabled(false);
-        ui->btConnect->setEnabled(false);
-        ui->btRefreshDeviceList->setEnabled(false);
-        ui->cbBaudRate->setEnabled(false);
-        ui->cbDataBits->setEnabled(false);
-        ui->cbLogType->setEnabled(false);
-        ui->cbOpenType->setEnabled(false);
-        ui->cbParity->setEnabled(false);
-        ui->cbStopBits->setEnabled(false);
-        ui->btSearchLogFile->setEnabled(false);
+    if(m_serialCommunication->connectToDevice(ui->cbDeviceList->currentText(),
+                                              (QIODevice::OpenModeFlag)ui->cbOpenType->currentData().toInt(),
+                                              (QSerialPort::BaudRate)ui->cbBaudRate->currentData().toInt(),
+                                              (QSerialPort::DataBits)ui->cbDataBits->currentData().toInt(),
+                                              (QSerialPort::StopBits)ui->cbStopBits->currentData().toInt(),
+                                              (QSerialPort::Parity)ui->cbParity->currentData().toInt()
+                                              )){
 
         //Notify MainWindow the connection is done.
         emit serialCommunicationReady();
 
-//        if( (ui->cbOpenType->currentText() == tr("Read/Write")) ||  (ui->cbOpenType->currentText() == tr("Write"))){
-//            ui->leCommand->setReadOnly(false);
-//            ui->leCommand->setFocus();
-//        }
-
-    }
-}
-
-void SerialConnConfigWidget::disconnectFromDevice()
-{
-    if(m_serialCommunication->disconnectFromDevice()){
-        ui->cbDeviceList->setEnabled(true);
-        ui->btConnect->setEnabled(true);
-        ui->btRefreshDeviceList->setEnabled(true);
-//        ui->leCommand->setReadOnly(true);
-        ui->cbBaudRate->setEnabled(true);
-        ui->cbDataBits->setEnabled(true);
-        ui->cbLogType->setEnabled(true);
-        ui->cbOpenType->setEnabled(true);
-        ui->cbParity->setEnabled(true);
-        ui->cbStopBits->setEnabled(true);
-        ui->btSearchLogFile->setEnabled(true);
     }
 }
 
 void SerialConnConfigWidget::populateFields()
 {
+    ui->cbOpenType->addItem("Read/Write", QIODevice::ReadWrite);
+    ui->cbOpenType->addItem("Read Only",QIODevice::ReadOnly);
+    ui->cbOpenType->addItem("Write Only",QIODevice::WriteOnly);
+
     ui->cbBaudRate->addItem("9600",QSerialPort::Baud9600);
     ui->cbBaudRate->addItem("1200",QSerialPort::Baud1200);
     ui->cbBaudRate->addItem("2400",QSerialPort::Baud2400);
@@ -104,27 +75,8 @@ void SerialConnConfigWidget::populateFields()
     ui->cbParity->addItem("Mark", QSerialPort::MarkParity);
     ui->cbParity->addItem("Space", QSerialPort::SpaceParity);
     ui->cbParity->addItem("Even", QSerialPort::EvenParity);
-
-    ui->cbLogType->addItem(tr("Append"), QIODevice::Append);
-    ui->cbLogType->addItem(tr("Overwrite"), QIODevice::WriteOnly);
 }
 
-void SerialConnConfigWidget::searchLogFile()
-{
-    //The file name is defined here on the text field, but send to TerminalCommunicator class on connectToDevice();.
-
-    QString fileName(QFileDialog::getOpenFileName(this, tr("Select log file"), QDir::homePath()));
-    if(!fileName.isEmpty()){
-        ui->leLogFilePath->setText(fileName);
-    }else{
-        ui->leLogFilePath->setText("");
-    }
-}
-
-void SerialConnConfigWidget::clearOutput()
-{
-//    ui->teOutput->clear();
-}
 
 void SerialConnConfigWidget::btRefreshDeviceClicked()
 {
@@ -136,26 +88,3 @@ void SerialConnConfigWidget::btConnectToDeviceClicked()
     connectToDevice();
 }
 
-void SerialConnConfigWidget::btDisconnectFromDeviceClicked()
-{
-    disconnectFromDevice();
-}
-
-void SerialConnConfigWidget::btSearchLogFileClicked()
-{
-    searchLogFile();
-}
-
-void SerialConnConfigWidget::btClearOutput()
-{
-    clearOutput();
-}
-
-void SerialConnConfigWidget::leCommandLineSent()
-{
-//    QString command(ui->leCommand->text());
-//    if( ! command.isEmpty()){
-//        m_serialCommunication->sendCommand(command);
-//        ui->leCommand->clear();
-//    }
-}
