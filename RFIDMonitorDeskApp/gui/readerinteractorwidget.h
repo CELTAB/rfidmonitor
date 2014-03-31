@@ -17,7 +17,7 @@ class ReaderInteractorWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ReaderInteractorWidget(Settings::ConnectionType type, QWidget *parent = 0);
+    explicit ReaderInteractorWidget(const Settings::ConnectionType type, QWidget *parent = 0);
     ~ReaderInteractorWidget();
     void closeConnection();
 
@@ -28,15 +28,15 @@ private:
     Settings::ConnectionType m_connectionType;
     QFile *m_logFile;
 
-    void sendCommand(const QString command);
+    void sendCommand(const QString &command);
 
 public slots:
-    void newAnswerFromSerialComm(QString answer);
-    void newAnswerFromNetworkComm(QString answer);
+    void newAnswerFromSerialComm(const QString answer);
+    void newAnswerFromNetworkComm(const QString answer);
     void btSendCommandClicked();
     void btClearOutputClicked();
     void btLogToClicked();
-    void btStartPauseReadingClicked(bool checked);
+    void btStartPauseReadingClicked(const bool checked);
 };
 
 #endif // READERINTERACTORWIDGET_H

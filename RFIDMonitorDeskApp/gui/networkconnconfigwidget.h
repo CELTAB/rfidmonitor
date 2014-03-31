@@ -32,10 +32,10 @@ private:
 public slots:
     void btRaspSearchClicked();
     void btStopRaspSearchClicked();
-    void newRaspFound(QVariantMap raspInfo);
-    void newRaspTimeout(QString deviceDisplayRole);
+    void newRaspFound(const QVariantMap raspInfo);
+    void newRaspTimeout(const QString deviceDisplayRole);
     void btConnectToRaspClicked();
-    void listViewClicked(QModelIndex index);
+    void listViewClicked(const QModelIndex index);
     void connectionFailed();
 
 signals:

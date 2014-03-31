@@ -17,9 +17,9 @@ public:
     static SystemMessagesWidget *instance();
     ~SystemMessagesWidget();
 
-    void writeMessage(const QString message,
-                      const MessageLevel messageLevel= KInfo,
-                      const MessageBehavior messageBehavior = KOnlyLog);
+    void writeMessage(const QString &message,
+                      const MessageLevel &messageLevel= KInfo,
+                      const MessageBehavior &messageBehavior = KOnlyLog);
 
 private:
     explicit SystemMessagesWidget(QWidget *parent = 0);

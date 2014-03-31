@@ -24,7 +24,7 @@ public:
     bool sendCommand(const QString &command);
 
 public slots:
-    void handleError(QSerialPort::SerialPortError error);
+    void handleError(const QSerialPort::SerialPortError error);
     void dataRead();
 
 signals:
@@ -33,7 +33,7 @@ signals:
 private:
     explicit SerialCommunication(QObject *parent = 0);
     QSerialPort *m_serialPort;
-    void writeLog(QString text);
+    void writeLog(const QString &text);
 };
 
 #endif // SERIALCOMMUNICATION_H

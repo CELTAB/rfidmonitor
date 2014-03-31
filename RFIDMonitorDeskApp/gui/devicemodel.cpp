@@ -8,7 +8,7 @@ DeviceModel::DeviceModel(QObject *parent) :
 {
 }
 
-void DeviceModel::addDevice(QString macAddress, QString ipAddress, int daemonPort)
+void DeviceModel::addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort)
 {
     if(!m_deviceMap.contains(macAddress)){
         Device *d = new Device;

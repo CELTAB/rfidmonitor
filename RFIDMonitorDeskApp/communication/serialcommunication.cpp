@@ -38,11 +38,10 @@ SerialCommunication::~SerialCommunication()
 
 }
 
-void SerialCommunication::writeLog(QString text)
+void SerialCommunication::writeLog(const QString &text)
 {
     QString time("[" + QTime::currentTime().toString() + "] ");
-    text = text.trimmed();
-    emit newAnswer(time + text);
+    emit newAnswer(time + text.trimmed());
 }
 
 bool SerialCommunication::connectToDevice(const QString &device,
@@ -103,7 +102,7 @@ bool SerialCommunication::sendCommand(const QString &command)
     }
 }
 
-void SerialCommunication::handleError(QSerialPort::SerialPortError error)
+void SerialCommunication::handleError(const QSerialPort::SerialPortError error)
 {
     if(error != QSerialPort::NoError){
         SystemMessagesWidget::instance()->writeMessage(QString(tr("Serial Port Error: %1")).arg(m_serialPort->errorString()));

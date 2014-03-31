@@ -49,7 +49,7 @@ class DeviceModel : public QAbstractListModel
     Q_OBJECT
 public:
     explicit DeviceModel(QObject *parent = 0);
-    void addDevice(QString macAddress, QString ipAddress, int daemonPort);
+    void addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort);
     void removeDevice(Device *device);
     QVariant deviceMacAddress(const QModelIndex &index) const;
     QVariant deviceIPAddress(const QModelIndex &index) const;

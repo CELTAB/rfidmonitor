@@ -29,7 +29,7 @@ private:
     ReaderInteractorWidget *m_readerInteractorWidget;
     RFIDMonitorInteractorWidget *m_rfidmonitorInteractorWidget;
 
-    void prepareReaderInteractorWidget(Settings::ConnectionType connectionType);
+    void prepareReaderInteractorWidget(const Settings::ConnectionType &connectionType);
     void prepareRFIDMonitorInteractorWidget();
 
     int tabSetUpConnectionIndex;

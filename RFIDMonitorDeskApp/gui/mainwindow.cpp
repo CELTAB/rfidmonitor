@@ -1,5 +1,8 @@
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QApplication>
+#include <QTranslator>
+#include <QDebug>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -40,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-}
+}   
 
 void MainWindow::serialCommunicationReady()
 {
@@ -58,7 +61,7 @@ void MainWindow::networkCommunicationReady()
     }
 }
 
-void MainWindow::prepareReaderInteractorWidget(Settings::ConnectionType connectionType)
+void MainWindow::prepareReaderInteractorWidget(const Settings::ConnectionType &connectionType)
 {
     if(! m_readerInteractorWidget)
         m_readerInteractorWidget = new ReaderInteractorWidget(connectionType,this);

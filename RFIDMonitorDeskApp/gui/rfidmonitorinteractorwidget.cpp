@@ -104,12 +104,12 @@ void RFIDMonitorInteractorWidget::raspDisconnected()
     //tell to the user rasp has disconnected.
 }
 
-void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(QByteArray json)
+void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(const QByteArray json)
 {
     loadConfigurationFromJson(json);
 }
 
-void RFIDMonitorInteractorWidget::newAnswerFromRaspArrived(QString answer)
+void RFIDMonitorInteractorWidget::newAnswerFromRaspArrived(const QString answer)
 {
     //show somewhere the answer from rasp. Maybe QmessageBox or a status label
 }

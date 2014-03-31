@@ -5,7 +5,7 @@
 #include "ui_readerinteractorwidget.h"
 #include "systemmessageswidget.h"
 
-ReaderInteractorWidget::ReaderInteractorWidget(Settings::ConnectionType type, QWidget *parent) :
+ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType type, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ReaderInteractorWidget),
     m_serialCommunication(0),
@@ -19,7 +19,6 @@ ReaderInteractorWidget::ReaderInteractorWidget(Settings::ConnectionType type, QW
     ui->cbLogType->setEnabled(true);
     ui->btSendCommand->setEnabled(false);
     ui->leCommand->setEnabled(false);
-    ui->teOutput->setEnabled(false);
 
     ui->cbLogType->addItem("Append", QIODevice::Append);
     ui->cbLogType->addItem("Overwrite", QIODevice::WriteOnly);
@@ -49,7 +48,7 @@ void ReaderInteractorWidget::closeConnection()
     }
 }
 
-void ReaderInteractorWidget::sendCommand(const QString command)
+void ReaderInteractorWidget::sendCommand(const QString &command)
 {
     if( ! command.isEmpty()){
         if(m_connectionType == Settings::KSerial){
@@ -61,12 +60,12 @@ void ReaderInteractorWidget::sendCommand(const QString command)
     }
 }
 
-void ReaderInteractorWidget::newAnswerFromSerialComm(QString answer)
+void ReaderInteractorWidget::newAnswerFromSerialComm(const QString answer)
 {
     ui->teOutput->append(answer);
 }
 
-void ReaderInteractorWidget::newAnswerFromNetworkComm(QString answer)
+void ReaderInteractorWidget::newAnswerFromNetworkComm(const QString answer)
 {
     ui->teOutput->append(answer);
     if(m_logFile->isOpen()){
@@ -97,7 +96,7 @@ void ReaderInteractorWidget::btLogToClicked()
     }
 }
 
-void ReaderInteractorWidget::btStartPauseReadingClicked(bool checked)
+void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
 {
     if(checked){
         //start reading
@@ -122,7 +121,6 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(bool checked)
         ui->cbLogType->setEnabled(false);
         ui->btSendCommand->setEnabled(true);
         ui->leCommand->setEnabled(true);
-        ui->teOutput->setEnabled(true);
 
         if(m_connectionType == Settings::KSerial){
             connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
@@ -141,7 +139,6 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(bool checked)
         ui->cbLogType->setEnabled(true);
         ui->btSendCommand->setEnabled(false);
         ui->leCommand->setEnabled(false);
-        ui->teOutput->setEnabled(false);
 
         if(m_connectionType == Settings::KSerial){
             disconnect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));

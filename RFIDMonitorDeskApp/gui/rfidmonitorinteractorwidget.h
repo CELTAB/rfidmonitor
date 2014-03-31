@@ -26,8 +26,8 @@ private:
 
 public slots:
     void raspDisconnected();
-    void newConfigFromRaspArrived(QByteArray json);
-    void newAnswerFromRaspArrived(QString answer);
+    void newConfigFromRaspArrived(const QByteArray json);
+    void newAnswerFromRaspArrived(const QString answer);
     void btSendToRaspClicked();
 };
 

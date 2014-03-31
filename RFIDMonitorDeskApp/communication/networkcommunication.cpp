@@ -63,7 +63,7 @@ void NetworkCommunication::startListeningBroadcast()
         SystemMessagesWidget::instance()->writeMessage("Searching for Rasps...");
 
     }else{
-        SystemMessagesWidget::instance()->writeMessage("Failed start searching for Rasps...",
+        SystemMessagesWidget::instance()->writeMessage("Failed start searching for Rasps... Cannot bind UDP port. Is open a other instance of this application?",
                                                        SystemMessagesWidget::KError,
                                                        SystemMessagesWidget::KDialogAndLog);
     }
@@ -100,7 +100,7 @@ void NetworkCommunication::sendData(const QByteArray &data, const Settings::TcpD
     m_tcpSocket->flush();
 }
 
-void NetworkCommunication::connectToRasp(QString ip, int port)
+void NetworkCommunication::connectToRasp(const QString &ip, const int &port)
 {
     m_tcpSocket->connectToHost(QHostAddress(ip), port);
     int limitWaitTime = 10000;
@@ -117,12 +117,12 @@ void NetworkCommunication::triggerToGetCurrentConfigFromRasp()
     sendData(instruction.toLocal8Bit(), Settings::KInstruction);
 }
 
-void NetworkCommunication::sendNewConfigToRasp(QByteArray json)
+void NetworkCommunication::sendNewConfigToRasp(const QByteArray &json)
 {
     sendData(json, Settings::KConfiguration);
 }
 
-void NetworkCommunication::sendNewCommandToReader(QString command)
+void NetworkCommunication::sendNewCommandToReader(const QString &command)
 {
     NetworkCommunication::instance()->sendData(command.toLocal8Bit(), Settings::KNewReaderCommand);
 }
@@ -176,7 +176,7 @@ void NetworkCommunication::tcpDataAvailable()
     }
 }
 
-void NetworkCommunication::tcpSocketError(QAbstractSocket::SocketError socketError)
+void NetworkCommunication::tcpSocketError(const QAbstractSocket::SocketError socketError)
 {
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:

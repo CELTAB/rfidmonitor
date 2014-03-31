@@ -24,9 +24,9 @@ SystemMessagesWidget::~SystemMessagesWidget()
     delete ui;
 }
 
-void SystemMessagesWidget::writeMessage(const QString message,
-                                        const SystemMessagesWidget::MessageLevel messageLevel,
-                                        const SystemMessagesWidget::MessageBehavior messageBehavior)
+void SystemMessagesWidget::writeMessage(const QString &message,
+                                        const SystemMessagesWidget::MessageLevel &messageLevel,
+                                        const SystemMessagesWidget::MessageBehavior &messageBehavior)
 {
     QString messageLevelString;
     QMessageBox::Icon icon;

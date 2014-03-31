@@ -53,13 +53,13 @@ void NetworkConnConfigWidget::btStopRaspSearchClicked()
     ui->leDeviceChosen->clear();
 }
 
-void NetworkConnConfigWidget::newRaspFound(QVariantMap raspInfo)
+void NetworkConnConfigWidget::newRaspFound(const QVariantMap raspInfo)
 {
 
     m_raspFoundModel->addDevice(raspInfo.value("raspmac").toString(), raspInfo.value("raspaddress").toString(), raspInfo.value("daemonport").toInt());
 }
 
-void NetworkConnConfigWidget::newRaspTimeout(QString deviceDisplayRole)
+void NetworkConnConfigWidget::newRaspTimeout(const QString deviceDisplayRole)
 {
     if(ui->leDeviceChosen->text().compare(deviceDisplayRole) == 0)
         ui->leDeviceChosen->clear();
@@ -76,7 +76,7 @@ void NetworkConnConfigWidget::btConnectToRaspClicked()
     }
 }
 
-void NetworkConnConfigWidget::listViewClicked(QModelIndex index)
+void NetworkConnConfigWidget::listViewClicked(const QModelIndex index)
 {
 
     ui->leDeviceChosen->setText(index.data(Qt::DisplayRole).toString());

@@ -27,16 +27,16 @@ public:
     void startListeningBroadcast();
     void stopListeningBroadcast();
     void sendData(const QByteArray &data, const Settings::TcpDataType &type);
-    void connectToRasp(QString ip, int port);
+    void connectToRasp(const QString &ip, const int &port);
     void triggerToGetCurrentConfigFromRasp();
-    void sendNewConfigToRasp(QByteArray json);
-    void sendNewCommandToReader(QString command);
+    void sendNewConfigToRasp(const QByteArray &json);
+    void sendNewCommandToReader(const QString &command);
     void closeTCPConnection();
 
 private slots:
     void udpDataAvailable();
     void tcpDataAvailable();
-    void tcpSocketError(QAbstractSocket::SocketError socketError);
+    void tcpSocketError(const QAbstractSocket::SocketError socketError);
 signals:
     void newRaspFound(QVariantMap raspInfo);
     void currentConfigFromRasp(QByteArray json);
