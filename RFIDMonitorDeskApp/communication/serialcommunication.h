@@ -11,6 +11,7 @@ class SerialCommunication : public QObject
 {
     Q_OBJECT
 public:
+    enum CommandType {KASCII = 0, KNumber};
     static SerialCommunication* instance();
     ~SerialCommunication();
     QStringList availablePorts();
@@ -21,7 +22,7 @@ public:
                                               const QSerialPort::StopBits &stopBits,
                                               const QSerialPort::Parity &parity);
     void disconnectFromDevice();
-    bool sendCommand(const QString &command);
+    bool sendCommand(const QString &command, const SerialCommunication::CommandType &type);
 
 public slots:
     void handleError(const QSerialPort::SerialPortError error);

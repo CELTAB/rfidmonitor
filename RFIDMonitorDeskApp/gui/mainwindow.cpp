@@ -122,13 +122,13 @@ void MainWindow::btCloseConnectionClicked()
     ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, true);
 
     if(m_rfidmonitorInteractorWidget){
-        m_rfidmonitorInteractorWidget->closeConnection();
         m_rfidmonitorInteractorWidget->close();
+        m_rfidmonitorInteractorWidget->closeConnection();
         m_rfidmonitorInteractorWidget->deleteLater();
         m_rfidmonitorInteractorWidget = 0;
     } else if(m_readerInteractorWidget){
-        m_readerInteractorWidget->closeConnection();
         m_readerInteractorWidget->close();
+        m_readerInteractorWidget->closeConnection();
         m_readerInteractorWidget->deleteLater();
         m_readerInteractorWidget = 0;
     }

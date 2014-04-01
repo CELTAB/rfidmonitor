@@ -87,13 +87,31 @@ void SerialCommunication::disconnectFromDevice()
 
 }
 
-bool SerialCommunication::sendCommand(const QString &command)
+bool SerialCommunication::sendCommand(const QString &command, const SerialCommunication::CommandType &type)
 {
     if(m_serialPort->isWritable()){
-        if (m_serialPort->write(command.trimmed().toLocal8Bit()) == -1){
-            SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
-            return false;
+        if(type == KASCII){
+            if (m_serialPort->write(command.trimmed().toLocal8Bit()) == -1){
+                SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
+                return false;
+            }
+        }else if(type == KNumber){
+            //convert QString to number
+
+            bool parseOK = false;
+            int parsedValue = command.toInt(&parseOK, 16);
+
+            if(parseOK){
+                if (m_serialPort->write(reinterpret_cast<char*>(&parsedValue), sizeof(int)) == -1){
+                    SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
+                    return false;
+                }
+            }else{
+                SystemMessagesWidget::instance()->writeMessage(tr("Could not convert the command to number."));
+                return false;
+            }
         }
+
         SystemMessagesWidget::instance()->writeMessage(QString(tr("Command sent: '%1'")).arg(command));
         return true;
     }else{

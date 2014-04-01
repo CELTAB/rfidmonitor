@@ -53,6 +53,9 @@
           <widget class="QLineEdit" name="leCommand"/>
          </item>
          <item>
+          <widget class="QComboBox" name="cbInputType"/>
+         </item>
+         <item>
           <widget class="QPushButton" name="btSendCommand">
            <property name="text">
             <string>Send</string>

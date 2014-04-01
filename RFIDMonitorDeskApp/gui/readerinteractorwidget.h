@@ -27,13 +27,16 @@ private:
     NetworkCommunication *m_networkCommunication;
     Settings::ConnectionType m_connectionType;
     QFile *m_logFile;
+    bool m_useLogFile;
 
     void sendCommand(const QString &command);
+    void writeToOutput(const QString &text);
 
 public slots:
     void newAnswerFromSerialComm(const QString answer);
     void newAnswerFromNetworkComm(const QString answer);
     void btSendCommandClicked();
+    void leCommandReturnPressed();
     void btClearOutputClicked();
     void btLogToClicked();
     void btStartPauseReadingClicked(const bool checked);
