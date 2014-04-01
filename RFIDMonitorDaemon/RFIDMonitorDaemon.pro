@@ -14,7 +14,7 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-INCLUDEPATH += /home/luisvaldes/Workspace/rfidmonitor/RFIDMonitor/
+INCLUDEPATH += ../RFIDMonitor/
 
 LIBS += -lCoreLibrary
 

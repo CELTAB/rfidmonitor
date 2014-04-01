@@ -61,6 +61,8 @@ public:
     QList<Service *> services(ServiceType type);
     Service * defaultService(ServiceType type);
 
+    QVariant getProperty(const QString &propName);
+
     /*!
      * \brief setDefaultService TEMP
      * \param type

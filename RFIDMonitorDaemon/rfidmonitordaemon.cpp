@@ -32,7 +32,7 @@
 
 #include <QJsonDocument>
 
-#include "json/nodejsmessage.h"
+#include <CoreLibrary/json/nodejsmessage.h>
 
 #include "rfidmonitordaemon.h"
 

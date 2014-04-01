@@ -39,7 +39,7 @@ class  Rfiddata : public QObject
 
 public:
 
-    enum SyncState {KNotSynced = 0, KSynced};
+    enum SyncState {KNotSynced = 0, KSynced, KPending};
 
 	explicit Rfiddata(QObject *parent = 0);
 	explicit Rfiddata(const QSqlRecord &, QObject *parent = 0);

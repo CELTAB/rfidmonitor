@@ -17,11 +17,11 @@ public:
     int idantena() const;
     void setIdantena(int idantena);
 
-    int identificationCode() const;
-    void setIdentificationCode(int identificationCode);
+    qlonglong identificationCode() const;
+    void setIdentificationCode(qlonglong identificationCode);
 
-    int applicationCode() const;
-    void setApplicationCode(int applicationCode);
+    qlonglong applicationCode() const;
+    void setApplicationCode(qlonglong applicationCode);
 
     QDateTime dateTime() const;
     void setDateTime(const QDateTime &dateTime);
@@ -30,8 +30,8 @@ private:
     int m_id;
     int m_idcollectorPoint;
     int m_idantena;
-    int m_identificationCode;
-    int m_applicationCode;
+    qlonglong m_identificationCode;
+    qlonglong m_applicationCode;
     QDateTime m_dateTime;
 
     // JsonRWInterface interface
@@ -79,16 +79,12 @@ public:
     QString macAddress() const;
     void setMacAddress(const QString &macAddress);
 
-    QString ipAddress() const;
-    void setIpAddress(const QString &ipAddress);
-
     DataSummary dataContent() const;
     void setDataContent(const DataSummary &dataContent);
 private:
     int m_id;
     QString m_name;
     QString m_macAddress;
-    QString m_ipAddress;
     DataSummary m_dataSummary;
 
     // JsonRWInterface interface

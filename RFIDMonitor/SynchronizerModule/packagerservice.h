@@ -26,6 +26,8 @@
 #ifndef PACKAGERSERVICE_H
 #define PACKAGERSERVICE_H
 
+#include <QTimer>
+
 #include <core/interfaces.h>
 
 class PackagerService : public PackagerInterface
@@ -40,6 +42,11 @@ public:
 
     QMap<QString, QByteArray> getAll();
 
+public slots:
+    void generatePackets();
+
+private:
+    QTimer m_timer;
 };
 
 #endif // PACKAGERSERVICE_H

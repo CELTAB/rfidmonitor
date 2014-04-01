@@ -21,7 +21,6 @@ void SynchronizationPacket::read(const QJsonObject &json)
     m_id = json["id"].toInt();
     m_name = json["name"].toString();
     m_macAddress = json["macaddress"].toString();
-    m_ipAddress = json["ipaddress"].toString();
     QJsonObject dataSummaryObj = json["datasummary"].toObject();
     m_dataSummary.read(dataSummaryObj);
 }
@@ -31,20 +30,9 @@ void SynchronizationPacket::write(QJsonObject &json) const
     json["id"] = m_id;
     json["name"] = m_name;
     json["macaddress"] = m_macAddress;
-    json["ipaddress"] = m_ipAddress;
     QJsonObject dataSummary;
     m_dataSummary.write(dataSummary);
     json["datasummary"] = dataSummary;
-}
-
-QString SynchronizationPacket::ipAddress() const
-{
-    return m_ipAddress;
-}
-
-void SynchronizationPacket::setIpAddress(const QString &ipAddress)
-{
-    m_ipAddress = ipAddress;
 }
 
 QString SynchronizationPacket::macAddress() const
@@ -137,22 +125,22 @@ void Data::write(QJsonObject &json) const
     json["datetime"] = dateTime;
 }
 
-int Data::applicationCode() const
+qlonglong Data::applicationCode() const
 {
     return m_applicationCode;
 }
 
-void Data::setApplicationCode(int applicationCode)
+void Data::setApplicationCode(qlonglong applicationCode)
 {
     m_applicationCode = applicationCode;
 }
 
-int Data::identificationCode() const
+qlonglong Data::identificationCode() const
 {
     return m_identificationCode;
 }
 
-void Data::setIdentificationCode(int identificationCode)
+void Data::setIdentificationCode(qlonglong identificationCode)
 {
     m_identificationCode = identificationCode;
 }

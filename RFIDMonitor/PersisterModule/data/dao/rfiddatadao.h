@@ -9,7 +9,7 @@
 #include <QList>
 #include <QString>
 
-#include "../../core/genericdao.h"
+#include <core/genericdao.h>
 
 class Rfiddata;
 

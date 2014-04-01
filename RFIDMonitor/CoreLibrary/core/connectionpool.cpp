@@ -89,11 +89,20 @@ QSqlDatabase * ConnectionPool::systemConnection()
                                         QString("  `nextvalue` BIGINT(12) NOT NULL ,\n") +
                                         QString("  UNIQUE (`name`) ,\n") +
                                         QString("  PRIMARY KEY (`name`) );\n"));
+            QString createPackages = QString(QString("CREATE  TABLE IF NOT EXISTS `packet` (\n") +
+                                        QString("  `md5hash` VARCHAR(32) NOT NULL ,\n") +
+                                        QString("  `datetime` datetime NOT NULL,\n") +
+                                        QString("  `idbegin` BIGINT(12) NOT NULL ,\n") +
+                                        QString("  `item_count` BIGINT(12) NOT NULL ,\n") +
+                                        QString("  `jsondata` BLOB NOT NULL ,\n") +
+                                        QString("  `status` int(2) NOT NULL,\n") +
+                                        QString("  PRIMARY KEY (`md5hash`) );\n"));
             QSqlQuery query(m_systemConnection);
 
             // Execute the queries.
             query.exec(createtable);
             query.exec(createSeq);
+            query.exec(createPackages);
         }
     }
 

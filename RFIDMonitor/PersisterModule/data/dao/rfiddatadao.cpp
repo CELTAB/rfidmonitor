@@ -8,9 +8,11 @@
 #include <QSqlRecord>
 #include <logger.h>
 
-#include "../../core/sql/sqlquery.h"
-#include "../../core/functions.h"
-#include "../../core/connectionpool.h"
+#include <rfidmonitor.h>
+
+#include <core/sql/sqlquery.h>
+#include <core/functions.h>
+#include <core/connectionpool.h>
 
 #include "rfiddatadao.h"
 #include "object/rfiddata.h"
@@ -33,11 +35,12 @@ QString RfiddataDAO::serviceNameInsertObject() const
  */
 RfiddataDAO * RfiddataDAO::instance()
 {
-    static RfiddataDAO *instance = 0;
-    if(! instance){
-        instance = new RfiddataDAO(qApp);
+    static RfiddataDAO *singleton = 0;
+    if(! singleton){
+        singleton = new RfiddataDAO;
+        singleton->setParent(RFIDMonitor::instance());
     }
-    return instance;
+    return singleton;
 }
 
 /*!

@@ -1,7 +1,7 @@
 #ifndef NODEJSMESSAGE_H
 #define NODEJSMESSAGE_H
 
-#include <CoreLibrary/json/jsonrwinterface.h>
+#include "jsonrwinterface.h"
 
 namespace json {
 

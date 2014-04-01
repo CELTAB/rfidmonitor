@@ -24,15 +24,41 @@
 ****************************************************************************/
 
 #include <QCryptographicHash>
+#include <QNetworkInterface>
+
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include <functional>
+#include <future>
 
 #include <rfidmonitor.h>
 #include <object/rfiddata.h>
 
+#include <json/synchronizationpacket.h>
+
 #include "packagerservice.h"
+
+#include "data/dao/packetdao.h"
+#include "data/object/packet.h"
+
+QString getMacAddress()
+{
+    foreach(QNetworkInterface netInterface, QNetworkInterface::allInterfaces())
+    {
+        // Return only the first non-loopback MAC Address
+        if (!(netInterface.flags() & QNetworkInterface::IsLoopBack))
+            return netInterface.hardwareAddress();
+    }
+    return QString();
+}
 
 PackagerService::PackagerService(QObject *parent) :
     PackagerInterface(parent)
 {
+    m_timer.setInterval(1000);
+    m_timer.setSingleShot(true);
 }
 
 QString PackagerService::serviceName() const
@@ -50,103 +76,144 @@ ServiceType PackagerService::type()
     return ServiceType::KPackager;
 }
 
-/*
-
-{"id": 1,
-"name": "celtab",
-"mac": "78:2b:cb:c0:76:5e",
-"ip": "179.106.217.28",
-"packets": [ {
-"idinicial": 1,
-"idfinal": 100,
-"count": 100,
-"randomindex": 1408,
-"md5diggest": "78:2b:cb:c0:76:5e",
-
-"data": [{
-
-"id": 100,
-"idpontocoleta": 122,
-"idantena": 3,
-"applicationcode": 11099182342,
-"identificationcode": 0,
-"datetime": "2014-03-14T11:32:12"
-
-}]
-
-}]}
-
-*/
-static QString jsonAtribute(const QString &attr, const QString &value = "")
-{
-    return QString("\"%1\": %2").arg(attr).arg(value);
-}
-
 QMap<QString, QByteArray> PackagerService::getAll()
 {
-    static PersistenceInterface *persitence = 0;
-    if(!persitence){
-        persitence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
+    static PersistenceInterface *persistence = 0;
+    if(!persistence){
+        persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
     }
-    QList<Rfiddata *> data = persitence->getObjectList("sync", QVariant("0"), 0);
+    QList<Rfiddata *> data = persistence->getObjectList("sync", QVariant(Rfiddata::KNotSynced), 0);
     int stagesCount = data.size()%100;
+
 
     int currentIndex = 0;
     QMap<QString, QByteArray> package;
     for(int stage = 0; stage < stagesCount; stage++){
-        QByteArray message;
-        // Begin Object
-        QString jsonData = "{";
-        // General Information
-        jsonData.append(jsonAtribute("id", "1").append(","));
-        jsonData.append(jsonAtribute("name", "\"celtab\"").append(","));
-        jsonData.append(jsonAtribute("mac", "\"78:2b:cb:c0:76:5e\"").append(","));
-        jsonData.append(jsonAtribute("ip", "\"179.106.217.28\"").append(","));
 
+        json::SynchronizationPacket synPacket;
+        synPacket.setMacAddress(getMacAddress());
+        synPacket.setName("celtab");
+        synPacket.setId(1);
 
-        QString jsonPackets= "";
-        jsonPackets.append(jsonAtribute("data"));
-        // Begin Data Array
-        jsonPackets.append(" [ ");
+        json::DataSummary summary;
+        QList<json::Data> rfidList;
         for(; currentIndex < data.size()/(stagesCount/(stage+1)); currentIndex++){
-            jsonPackets.append("{");
-            jsonPackets.append(jsonAtribute("pontocoleta", data.at(currentIndex)->idpontocoleta().toString()).append(","));
-            jsonPackets.append(jsonAtribute("antena", data.at(currentIndex)->idantena().toString()).append(","));
-            jsonPackets.append(jsonAtribute("identificationcode", data.at(currentIndex)->identificationcode().toString()).append(","));
-            jsonPackets.append(jsonAtribute("applicationcode", data.at(currentIndex)->applicationcode().toString()).append(","));
-            jsonPackets.append(jsonAtribute("datetime", QString("\"%1\"").arg(data.at(currentIndex)->datetime().toDateTime().toString(Qt::ISODate))));
-            jsonPackets.append("}").append(currentIndex != (data.size()/(stagesCount/(stage+1))-1) ? "," : "");
+            data.at(currentIndex)->setSync(Rfiddata::KSynced);
+            json::Data d;
+            d.setId(data[currentIndex]->id().toInt());
+            d.setIdcollectorPoint(data[currentIndex]->idpontocoleta().toInt());
+            d.setIdantena(data[currentIndex]->idantena().toInt());
+            d.setIdentificationCode(data[currentIndex]->identificationcode().toLongLong());
+            d.setApplicationCode(data[currentIndex]->applicationcode().toLongLong());
+            d.setDateTime(data[currentIndex]->datetime().toDateTime());
+            rfidList.append(d);
         }
-        // Close Data Array
-        jsonPackets.append("]");
+        summary.setData(rfidList);
+        // In this section we create the md5 hash of the data array
+        QJsonObject jsonSummary;
+        summary.write(jsonSummary);
+        QByteArray byteData(QJsonDocument(jsonSummary["data"].toArray()).toJson());
+        QByteArray hash = QCryptographicHash::hash(byteData, QCryptographicHash::Md5).toHex();
+        summary.setMd5diggest(hash);
+        // Set te summary for the synchronizationPacket
+        synPacket.setDataContent(summary);
 
+        QJsonObject packet;
+        synPacket.write(packet);
+        // The packet must be sent as a bytearray and the packet itself is identified by an md5 hash
+        QByteArray document = QJsonDocument(packet).toJson();
+        QByteArray packetHash = QCryptographicHash::hash(document, QCryptographicHash::Md5).toHex();
 
-        QByteArray hash = QCryptographicHash::hash(jsonPackets.toLatin1(), QCryptographicHash::Md5).toHex();
-
-        jsonData.append(jsonAtribute("packets"));
-
-        // Begin Packets Array
-        jsonData.append("[");
-        // Begin Data Array Content
-        jsonData.append("{");
-        jsonData.append(jsonAtribute("md5diggest", QString("\"%1\"").arg(QString(hash)).append(",")));
-        jsonData.append(jsonPackets);
-        // End Data Array Content
-        jsonData.append("}");
-
-        // Close Packets Array
-        jsonData.append("]");
-
-        // End Object
-        jsonData.append("}");
-
-        message.append(jsonData);
-        package.insert(QString(hash), message);
+        package.insert(QString(packetHash), document);
     }
+
+    persistence->updateObjectList(data);
+    QMap<QString, QByteArray>::iterator it;
+    for(it = package.begin(); it != package.end(); it++){
+        Packet pack;
+        pack.setMd5hash(it.key());
+        pack.setDateTime(QDateTime::currentDateTime());
+        pack.setIdBegin(0);
+        pack.setItemCount(10);
+        pack.setJsonData(it.value());
+        pack.setStatus((int)Packet::Status::KPending);
+        PacketDAO::instance()->insertObject(&pack);
+    }
+//    std::function<void (const QList<Rfiddata *> &data)> updateObjectList = std::bind(&PersistenceInterface::updateObjectList, persistence, std::placeholders::_1);
+//    std::async(updateObjectList, data);
 
     foreach (Rfiddata *rf, data) {
         rf->deleteLater();
     }
 
     return package;
+}
+
+void PackagerService::generatePackets()
+{
+    static PersistenceInterface *persistence = 0;
+    if(!persistence){
+        persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
+    }
+    QList<Rfiddata *> data = persistence->getObjectList("sync", QVariant(Rfiddata::KNotSynced), 0);
+    int stagesCount = data.size()%100;
+
+
+    int currentIndex = 0;
+    QMap<QString, QByteArray> package;
+    for(int stage = 0; stage < stagesCount; stage++){
+
+        json::SynchronizationPacket synPacket;
+        synPacket.setMacAddress(getMacAddress());
+        synPacket.setName("celtab");
+        synPacket.setId(1);
+
+        json::DataSummary summary;
+        QList<json::Data> rfidList;
+        for(; currentIndex < data.size()/(stagesCount/(stage+1)); currentIndex++){
+            data.at(currentIndex)->setSync(Rfiddata::KSynced);
+            json::Data d;
+            d.setId(data[currentIndex]->id().toInt());
+            d.setIdcollectorPoint(data[currentIndex]->idpontocoleta().toInt());
+            d.setIdantena(data[currentIndex]->idantena().toInt());
+            d.setIdentificationCode(data[currentIndex]->identificationcode().toLongLong());
+            d.setApplicationCode(data[currentIndex]->applicationcode().toLongLong());
+            d.setDateTime(data[currentIndex]->datetime().toDateTime());
+            rfidList.append(d);
+        }
+        summary.setData(rfidList);
+        // In this section we create the md5 hash of the data array
+        QJsonObject jsonSummary;
+        summary.write(jsonSummary);
+        QByteArray byteData(QJsonDocument(jsonSummary["data"].toArray()).toJson());
+        QByteArray hash = QCryptographicHash::hash(byteData, QCryptographicHash::Md5).toHex();
+        summary.setMd5diggest(hash);
+        // Set te summary for the synchronizationPacket
+        synPacket.setDataContent(summary);
+
+        QJsonObject packet;
+        synPacket.write(packet);
+        // The packet must be sent as a bytearray and the packet itself is identified by an md5 hash
+        QByteArray document = QJsonDocument(packet).toJson();
+        QByteArray packetHash = QCryptographicHash::hash(document, QCryptographicHash::Md5).toHex();
+
+        package.insert(QString(packetHash), document);
+    }
+
+    persistence->updateObjectList(data);
+    QMap<QString, QByteArray>::iterator it;
+    for(it = package.begin(); it != package.end(); it++){
+        Packet pack;
+        pack.setMd5hash(it.key());
+        pack.setDateTime(QDateTime::currentDateTime());
+        pack.setIdBegin(0);
+        pack.setItemCount(10);
+        pack.setJsonData(it.value());
+        pack.setStatus((int)Packet::Status::KPending);
+        PacketDAO::instance()->insertObject(&pack);
+    }
+
+    foreach (Rfiddata *rf, data) {
+        rf->deleteLater();
+    }
 }

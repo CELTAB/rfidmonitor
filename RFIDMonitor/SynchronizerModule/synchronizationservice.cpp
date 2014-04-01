@@ -23,6 +23,9 @@
 **
 ****************************************************************************/
 
+#include <future>
+#include <functional>
+
 #include <rfidmonitor.h>
 #include <logger.h>
 
@@ -49,7 +52,9 @@ void SynchronizationService::readyRead()
             QMap<QString, QByteArray>::iterator i;
             for(i = allData.begin(); i != allData.end(); ++i){
                 qDebug() << QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size());
-                communitacion->sendMessage(i.value());
+                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+                std::async(std::launch::async, sendMessage, i.value());
+//                communitacion->sendMessage(i.value());
             }
         }
     }

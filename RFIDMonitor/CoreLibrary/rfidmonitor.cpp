@@ -157,7 +157,7 @@ struct RFIDMonitorPrivate
             QObject *plugin = loader.instance();
 
             if(!loader.isLoaded()){
-                Logger::instance()->writeRecord(Logger::critical, moduleName, Q_FUNC_INFO, QString("Error to load module %1").arg(fileName));
+                Logger::instance()->writeRecord(Logger::critical, moduleName, Q_FUNC_INFO, QString("Error to load module %1: %2").arg(fileName).arg(loader.errorString()));
             }
 
             if (plugin){
@@ -396,6 +396,11 @@ Service *RFIDMonitor::defaultService(ServiceType type)
         break;
     }
     return 0;
+}
+
+QVariant RFIDMonitor::getProperty(const QString &propName)
+{
+    return QVariant();
 }
 
 void RFIDMonitor::setDefaultService(ServiceType type, QString name)

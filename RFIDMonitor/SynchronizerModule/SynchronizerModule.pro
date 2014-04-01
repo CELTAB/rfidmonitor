@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network
+QT       += core network sql
 
 TARGET = Synchronizer
 TEMPLATE = lib
@@ -15,11 +15,15 @@ INCLUDEPATH += ../CoreLibrary
 HEADERS += \
     synchronizationmodule.h \
     synchronizationservice.h \
-    packagerservice.h
+    packagerservice.h \
+    data/object/packet.h \
+    data/dao/packetdao.h
 SOURCES += \
     synchronizationmodule.cpp \
     synchronizationservice.cpp \
-    packagerservice.cpp
+    packagerservice.cpp \
+    data/object/packet.cpp \
+    data/dao/packetdao.cpp
 
 OTHER_FILES += SynchronizationModule.json \
     SynchronizationModule.json
