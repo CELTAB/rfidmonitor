@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QVBoxLayout *vbLayout = new QVBoxLayout(ui->frMessages);
     ui->frMessages->setLayout(vbLayout);
     vbLayout->addWidget(SystemMessagesWidget::instance());
-    this->showMaximized();
+    //this->showMaximized();
     //    this->activateWindow();
     //    this->raise();
 

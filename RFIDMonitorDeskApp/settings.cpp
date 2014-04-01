@@ -3,7 +3,7 @@
 Settings::Settings() :
 m_settings("settings.ini", QSettings::NativeFormat)
 {
-    setSetting("Test","test");
+
 }
 
 Settings *Settings::instance()
