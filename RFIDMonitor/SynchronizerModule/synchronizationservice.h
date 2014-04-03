@@ -26,6 +26,8 @@
 #ifndef SYNCHRONIZATIONSERVICE_H
 #define SYNCHRONIZATIONSERVICE_H
 
+#include <QTimer>
+
 #include <core/interfaces.h>
 
 class SynchronizationService : public SynchronizationInterface
@@ -42,6 +44,7 @@ public:
 
 public slots:
     void onDataReceived(QString data);
+    void sendData();
 
 };
 

@@ -31,7 +31,7 @@ class Packet : public QObject
                WRITE setStatus)
 
 public:
-    enum class Status {KSynchronized = 0, KPending};
+    enum class Status {KSynchronized = 0, KNew, KConfimationPending};
     explicit Packet(QObject *parent = 0);
     explicit Packet(const QSqlRecord &record, QObject *parent = 0);
 

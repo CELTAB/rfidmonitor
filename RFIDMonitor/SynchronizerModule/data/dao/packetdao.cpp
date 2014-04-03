@@ -119,7 +119,7 @@ bool PacketDAO::updateObject(Packet *packet)
     try{
         SqlQuery query(&m_db);
         query.prepare("update packet set idbegin = :idbegin, item_count = :item_count, jsondata = :jsondata, status = :status, "
-                      "datetime = :datetime where id = :md5hash ");
+                      "datetime = :datetime where md5hash = :md5hash ");
         query.bindValue(":md5hash", packet->md5hash());
         query.bindValue(":datetime", packet->dateTime());
         query.bindValue(":idbegin", packet->idBegin());
@@ -155,7 +155,7 @@ bool PacketDAO::updateObjectList(const QList<Packet *> &list)
 
             SqlQuery query(&m_db);
             query.prepare("update packet set idbegin = :idbegin, item_count = :item_count, jsondata = :jsondata, status = :status, "
-                          "datetime = :datetime where id = :md5hash ");
+                          "datetime = :datetime where md5hash = :md5hash ");
             query.bindValue(":md5hash", packet->md5hash());
             query.bindValue(":datetime", packet->dateTime());
             query.bindValue(":idbegin", packet->idBegin());
@@ -189,7 +189,7 @@ bool PacketDAO::deleteObject(Packet *packet)
 
     try{
         SqlQuery query(&m_db);
-        query.prepare("delete from packet where id = :md5hash");
+        query.prepare("delete from packet where md5hash = :md5hash");
         query.bindValue(":md5hash", packet->md5hash());
         query.exec();
 
@@ -218,7 +218,7 @@ bool PacketDAO::deleteObjectList(const QList<Packet *> &list)
     try{
         foreach (Packet * packet, list) {
             SqlQuery query(&m_db);
-            query.prepare("delete from packet where id = :md5hash");
+            query.prepare("delete from packet where md5hash = :md5hash");
             query.bindValue(":md5hash", packet->md5hash());
             query.exec();
         }
@@ -245,7 +245,7 @@ Packet * PacketDAO::getById(qlonglong id, QObject *parent)
 {
     try{
         SqlQuery query(&m_db);
-        query.prepare("select md5hash, datetime, idbegin, item_count, jsondata, status from packet  where id = :md5hash ");
+        query.prepare("select md5hash, datetime, idbegin, item_count, jsondata, status from packet  where md5hash = :md5hash ");
         query.bindValue(":md5hash", id);
         query.exec();
         Packet *packet = 0;
