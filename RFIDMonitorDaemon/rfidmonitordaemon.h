@@ -50,7 +50,7 @@ public slots:
     void tcpConnected();
     void tcpDisconnected();
     void tcpReadyRead();
-    void tcpHandleError(QAbstractSocket::SocketError);
+    void tcpHandleError(QAbstractSocket::SocketError error);
 
     void tcpSendMessage(const QString &message);
 

@@ -59,6 +59,8 @@ ServiceType CommunicationService::type()
 void CommunicationService::sendMessage(QByteArray value)
 {
     m_localSocket->write(value);
+    // WARNING: bool QLocalSocket::flush () using this to force the sending of data
+    m_localSocket->flush();
 }
 
 void CommunicationService::ipcConnected()

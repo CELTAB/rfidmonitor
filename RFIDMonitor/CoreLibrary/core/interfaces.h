@@ -98,9 +98,6 @@ public:
      */
     virtual QMap<QString, QByteArray> getAll() = 0;
 
-    virtual bool ready() = 0;
-    virtual bool reset() = 0;
-
 public slots:
 
 

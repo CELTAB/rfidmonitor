@@ -33,6 +33,7 @@
 #include <QJsonDocument>
 
 #include <CoreLibrary/json/nodejsmessage.h>
+#include <CoreLibrary/json/synchronizationpacket.h>
 
 #include "rfidmonitordaemon.h"
 
@@ -41,6 +42,8 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     m_localServer(0),
     m_tcpSocket(0)
 {
+
+
     m_localServer = new QLocalServer(0);
     m_tcpSocket = new QTcpSocket(0);
 
@@ -53,8 +56,8 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(tcpReadyRead()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
-//    m_hostName = "179.106.217.11";
-//    m_hostName = "179.106.217.27";
+    //    m_hostName = "179.106.217.11";
+    //    m_hostName = "179.106.217.27";
     m_hostName = "localhost";
     m_tcpPort = 8124;
 
@@ -68,25 +71,26 @@ RFIDMonitorDaemon::~RFIDMonitorDaemon()
 void RFIDMonitorDaemon::start()
 {
 
-   if(m_localServer->listen(m_serverName)){
-    qDebug() << QString("Server name: %1").arg(m_localServer->serverName());
+    system(QString("rm -rf /tmp/%1").arg(m_localServer->serverName()).toStdString().c_str());
+    if(m_localServer->listen(m_serverName)){
+        qDebug() << QString("Server name: %1").arg(m_localServer->serverName());
 
-    QThread *consoleThread = new QThread(this);
-    Console *console = new Console;
-    console->moveToThread(consoleThread);
+        QThread *consoleThread = new QThread(this);
+        Console *console = new Console;
+        console->moveToThread(consoleThread);
 
-    connect(consoleThread, SIGNAL(destroyed()), console, SLOT(deleteLater()));
-    connect(consoleThread, &QThread::started, console, &Console::run);
-    connect(console, SIGNAL(sendMessage(QString)), this, SLOT(tcpSendMessage(QString)));
-    connect(console, &Console::exitApp, consoleThread, &QThread::quit);
-    connect(console, SIGNAL(exitApp()), qApp, SLOT(quit()));
+        connect(consoleThread, SIGNAL(destroyed()), console, SLOT(deleteLater()));
+        connect(consoleThread, &QThread::started, console, &Console::run);
+        connect(console, SIGNAL(sendMessage(QString)), this, SLOT(tcpSendMessage(QString)));
+        connect(console, &Console::exitApp, consoleThread, &QThread::quit);
+        connect(console, SIGNAL(exitApp()), qApp, SLOT(quit()));
 
-    consoleThread->start();
+        consoleThread->start();
 
-    QTimer::singleShot(100, this, SLOT(tcpConnect()));
-   }else{
-    qDebug() << "Could not listen!";
-   }
+        QTimer::singleShot(100, this, SLOT(tcpConnect()));
+    }else{
+        qDebug() << "Could not listen!";
+    }
 }
 
 void RFIDMonitorDaemon::ipcNewConnection()
@@ -106,30 +110,27 @@ void RFIDMonitorDaemon::ipcReadyRead()
 
     QByteArray data = clientConnection->readAll();
 
-    QJsonDocument jsonDoc = QJsonDocument::fromBinaryData(data);
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
     QJsonObject obj = jsonDoc.object();
     json::NodeJSMessage nodeMessage;
     nodeMessage.read(obj);
 
-    if(nodeMessage.type() == "SYN"){
-        int clientsCount = this->m_localServer->findChildren<QLocalSocket *>().size();
-        if(!clientsCount){
-            m_tcpSocket->write(QString("{type: \"SYN-ERROR\", datetime: \"%1\", data: \"\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLatin1());
-        }else{
-            qDebug() << QString("");
-        }
+    if(nodeMessage.type() == "data"){
+        m_tcpSocket->write(data);
+        m_tcpSocket->flush();
+    }else{
+        QString message(data);
+
+        qDebug() << QString("RFIDMonitorDaemon -> IPC Message received: %1").arg(message);
+        m_tcpSocket->write(QString("{\"type\": \"SYN-ERROR\", \"datetime\": \"%1\", \"data\": \"%2\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).arg(message).toLatin1());
+        m_tcpSocket->flush();
     }
-
-    QString message(data);
-
-    qDebug() << QString("RFIDMonitorDaemon -> IPC Message received: %1").arg(message);
-    m_tcpSocket->write(QString("{type: \"SYN-ERROR\", datetime: \"%1\", data: \"%2\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).arg(message).toLatin1());
-
 }
 
 void RFIDMonitorDaemon::tcpConnect()
 {    
     m_tcpSocket->connectToHost(m_hostName, m_tcpPort);
+
 }
 
 void RFIDMonitorDaemon::tcpConnected()
@@ -149,13 +150,40 @@ void RFIDMonitorDaemon::tcpReadyRead()
     QString message(data);
     qDebug() << QString("Message from Node.js: %1").arg(message);
 
+    QJsonDocument jsonDoc = QJsonDocument::fromBinaryData(data);
+    QJsonObject obj = jsonDoc.object();
+    json::NodeJSMessage nodeMessage;
+    nodeMessage.read(obj);
+
+    if(nodeMessage.type() == "SYN"){
+        int clientsCount = this->m_localServer->findChildren<QLocalSocket *>().size();
+
+        json::NodeJSMessage answer;
+        answer.setType("SYN-ERROR");
+        answer.setDateTime(QDateTime::currentDateTime());
+        answer.setJsonData("");
+        QJsonObject jsonAnswer;
+        answer.write(jsonAnswer);
+
+        if(!clientsCount){
+            m_tcpSocket->write(QJsonDocument(jsonAnswer).toJson());
+            m_tcpSocket->flush();
+        }else{
+            qDebug() << QString("");
+        }
+    }
+
     foreach (QLocalSocket *socket, this->m_localServer->findChildren<QLocalSocket *>()) {
         socket->write(data);
+        socket->flush();
     }
 }
 
-void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError)
+void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError error )
 {
+    if(error == QAbstractSocket::ConnectionRefusedError)
+        tcpDisconnected();
+
     qDebug() << QString("Error: %1 - %2").arg(m_tcpSocket->error()).arg(m_tcpSocket->errorString());
 }
 

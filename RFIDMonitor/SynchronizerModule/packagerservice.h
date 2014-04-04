@@ -42,18 +42,8 @@ public:
 
     QMap<QString, QByteArray> getAll();
 
-public slots:
-    void generatePackets();
-
 private:
-    QTimer m_timer;
-    bool m_ready;
-    // PackagerInterface interface
-public:
-    bool ready();
-    bool reset();
-
-
+    void generatePackets();
 };
 
 #endif // PACKAGERSERVICE_H

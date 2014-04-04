@@ -58,12 +58,7 @@ QString getMacAddress()
 PackagerService::PackagerService(QObject *parent) :
     PackagerInterface(parent)
 {
-    m_ready = false;
-    m_timer.setInterval(5*1000);
-    m_timer.setSingleShot(true);
-    m_timer.start();
 
-    connect(&m_timer, SIGNAL(timeout()), SLOT(generatePackets()));
 }
 
 QString PackagerService::serviceName() const
@@ -83,6 +78,8 @@ ServiceType PackagerService::type()
 
 QMap<QString, QByteArray> PackagerService::getAll()
 {
+    generatePackets();
+
     QList<Packet *> packetList = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
 
     QMap<QString, QByteArray> packets;
@@ -167,18 +164,4 @@ void PackagerService::generatePackets()
     foreach (Rfiddata *rf, data) {
         rf->deleteLater();
     }
-    m_timer.start();
-    if(!m_ready)
-        m_ready = true;
-}
-
-bool PackagerService::ready()
-{
-    return m_ready;
-}
-
-bool PackagerService::reset()
-{
-    m_ready = false;
-    return false;
 }

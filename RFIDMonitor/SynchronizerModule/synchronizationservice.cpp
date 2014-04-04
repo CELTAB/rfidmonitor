@@ -23,17 +23,26 @@
 **
 ****************************************************************************/
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
 #include <future>
 #include <functional>
 
 #include <rfidmonitor.h>
 #include <logger.h>
 
+#include <json/nodejsmessage.h>
+#include <json/synchronizationpacket.h>
+
 #include "synchronizationservice.h"
 
 SynchronizationService::SynchronizationService(QObject *parent) :
     SynchronizationInterface(parent)
 {
+    m_timer.setInterval(5*1000);
+    m_timer.setSingleShot(true);
+    m_timer.start();
 }
 
 void SynchronizationService::readyRead()
@@ -44,20 +53,28 @@ void SynchronizationService::readyRead()
         packager = qobject_cast<PackagerInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPackager));
         communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
     }
-    if(packager && packager->ready()) {
+    if(packager /*&& !m_timer.remainingTime()*/) {
         Logger::instance()->writeRecord(Logger::fatal, "synchronizer", Q_FUNC_INFO, "Sending packets...");
         QMap<QString, QByteArray> allData = packager->getAll();
 
         if(communitacion) {
             QMap<QString, QByteArray>::iterator i;
             for(i = allData.begin(); i != allData.end(); ++i){
+
+                json::NodeJSMessage answer;
+                answer.setType("data");
+                answer.setDateTime(QDateTime::currentDateTime());
+                answer.setJsonData(QString(i.value()));
+                QJsonObject jsonAnswer;
+                answer.write(jsonAnswer);
+
                 qDebug() << QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size());
+                qDebug() << QJsonDocument(jsonAnswer).toJson();
                 std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
-                std::async(std::launch::async, sendMessage, i.value());
-//                communitacion->sendMessage(i.value());
+                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
             }
         }
-        packager->reset();
+        m_timer.start();
     }
 }
 
