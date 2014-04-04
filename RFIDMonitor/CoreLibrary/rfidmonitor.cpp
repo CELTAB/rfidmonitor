@@ -33,6 +33,7 @@
 #include <QThread>
 #include <QMutexLocker>
 #include <QJsonDocument>
+#include <QJsonObject>
 
 #include <coremodule.h>
 #include <logger.h>
@@ -436,7 +437,7 @@ void RFIDMonitor::newMessage(QByteArray message)
     }else if(message == "RestartSystem"){
         qApp->exit(1);
     }else if(message == "json"){
-        d_ptr->systemSettings.setName("hole_gustavo");
+        d_ptr->systemSettings.setName("");
         d_ptr->writeSettings();
         qApp->exit(1);
     }

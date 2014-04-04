@@ -131,8 +131,13 @@ void Data::write(QJsonObject &json) const
     json["id"] = m_id;
     json["idcollectorpoint"] = m_idcollectorPoint;
     json["idantena"] = m_idantena;
+#if QT_VERSION < 0x050200
+    json["applicationcode"] = (int)m_applicationCode;
+    json["identificationcode"] = (int)m_identificationCode;
+#else
     json["applicationcode"] = m_applicationCode;
     json["identificationcode"] = m_identificationCode;
+#endif // QT_VERSION < 0x050200
     QString dateTime = m_dateTime.toString(Qt::ISODate);
     json["datetime"] = dateTime;
 }
