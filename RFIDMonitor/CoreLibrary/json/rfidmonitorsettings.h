@@ -132,12 +132,16 @@ public:
     QString serverAddress() const;
     void setServerAddress(const QString &serverAddress);
 
+    int port() const;
+    void setPort(int port);
+
 private:
     int m_id;
     QString m_name;
     QString m_macAddress;
     QString m_device;
     QString m_serverAddress;
+    int m_port;
 
     QList<Module> m_modules;
     DefaultServices m_defaultServices;

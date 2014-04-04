@@ -72,6 +72,16 @@ void RFIDMonitorSettings::setServerAddress(const QString &serverAddress)
 {
     m_serverAddress = serverAddress;
 }
+int RFIDMonitorSettings::port() const
+{
+    return m_port;
+}
+
+void RFIDMonitorSettings::setPort(int port)
+{
+    m_port = port;
+}
+
 
 QString RFIDMonitorSettings::device() const
 {
@@ -95,7 +105,11 @@ void RFIDMonitorSettings::read(const QJsonObject &json)
     m_macAddress = json["maccaddress"].toString();
     m_device = json["device"].toString();
     m_serverAddress = json["serveraddress"].toString();
-
+#if QT_VERSION < 0x050200
+    m_port = json["port"].toVariant().toInt();
+#else
+    m_port = json["port"].toInt();
+#endif // QT_VERSION < 0x050200
     QJsonArray modules = json["modules"].toArray();
     for(int i=0; i < modules.size(); i++) {
         QJsonObject obj = modules[i].toObject();
@@ -118,6 +132,7 @@ void RFIDMonitorSettings::write(QJsonObject &json) const
     json["macaddress"] = m_macAddress;
     json["device"] = m_device;
     json["serveraddress"] = m_serverAddress;
+    json["port"] = m_port;
 
     QJsonArray modules;
     foreach (Module mod, m_modules) {
