@@ -18,7 +18,11 @@ void SynchronizationPacket::setDataContent(const DataSummary &dataContent)
 
 void SynchronizationPacket::read(const QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_id = json["id"].toVariant().toInt();
+#else
     m_id = json["id"].toInt();
+#endif // QT_VERSION < 0x050200
     m_name = json["name"].toString();
     m_macAddress = json["macaddress"].toString();
     QJsonObject dataSummaryObj = json["datasummary"].toObject();
@@ -105,11 +109,19 @@ void Data::setDateTime(const QDateTime &dateTime)
 
 void Data::read(const QJsonObject &json)
 {
-    m_id = json["id"].toInt();\
+#if QT_VERSION < 0x050200
+    m_id = json["id"].toVariant().toInt();
+    m_idcollectorPoint = json["idcollectorpoint"].toVariant().toInt();
+    m_idantena = json["idantena"].toVariant().toInt();
+    m_applicationCode = json["applicationcode"].toVariant().toInt();
+    m_identificationCode = json["identificationcode"].toVariant().toInt();
+#else
+    m_id = json["id"].toInt();
     m_idcollectorPoint = json["idcollectorpoint"].toInt();
     m_idantena = json["idantena"].toInt();
     m_applicationCode = json["applicationcode"].toInt();
     m_identificationCode = json["identificationcode"].toInt();
+#endif // QT_VERSION < 0x050200
     QString dateTime = json["datetime"].toString();
     m_dateTime = QDateTime::fromString(json["datetime"].toString(), Qt::ISODate);
 }
@@ -181,8 +193,13 @@ void DataSummary::setData(const QList<Data> &data)
 
 void DataSummary::read(const QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_idBegin = json["idbegin"].toVariant().toInt();
+    m_idEnd = json["idend"].toVariant().toInt();
+#else
     m_idBegin = json["idbegin"].toInt();
     m_idEnd = json["idend"].toInt();
+#endif // QT_VERSION < 0x050200
     m_md5diggest = json["md5diggest"].toString();
     QJsonArray dataArray = json["data"].toArray();
     for(int i = 0; i < dataArray.size(); i++){
@@ -288,7 +305,11 @@ void SynchronizationCheck::setPackets(const QList<Packet> &packets)
 
 void SynchronizationCheck::read(const QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_id = json["id"].toVariant().toInt();
+#else
     m_id = json["id"].toInt();
+#endif // QT_VERSION < 0x050200
     m_name = json["name"].toString();
     m_macAddress = json["macaddress"].toString();
     QJsonArray packets = json["packets"].toArray();

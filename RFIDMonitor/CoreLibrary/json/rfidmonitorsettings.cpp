@@ -86,7 +86,11 @@ void RFIDMonitorSettings::setDevice(const QString &device)
 
 void RFIDMonitorSettings::read(const QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_id = json["id"].toVariant().toInt();
+#else
     m_id = json["id"].toInt();
+#endif // QT_VERSION < 0x050200
     m_name = json["name"].toString();
     m_macAddress = json["maccaddress"].toString();
     m_device = json["device"].toString();
@@ -153,7 +157,11 @@ void Service::setServiceName(const QString &serviceName)
 
 void Service::read(const QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_serviceType = json["servicetype"].toVariant().toInt();
+#else
     m_serviceType = json["servicetype"].toInt();
+#endif // QT_VERSION < 0x050200
     m_serviceName = json["servicename"].toString();
 }
 
@@ -182,7 +190,11 @@ bool Module::operator==(const Module &module)
 void Module::read(const QJsonObject &json)
 {
     m_moduleName = json["modulename"].toString();
+#if QT_VERSION < 0x050200
+    m_version = json["version"].toVariant().toInt();
+#else
     m_version = json["version"].toInt();
+#endif // QT_VERSION < 0x050200
     QJsonArray services = json["services"].toArray();
     for(int i=0; i < services.size(); i++) {
         QJsonObject obj = services[i].toObject();
