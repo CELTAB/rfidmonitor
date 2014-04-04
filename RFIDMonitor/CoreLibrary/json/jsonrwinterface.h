@@ -2,6 +2,7 @@
 #define JSONRWINTERFACE_H
 
 #include <QObject>
+#include <QVariant>
 
 class QJsonObject;
 
