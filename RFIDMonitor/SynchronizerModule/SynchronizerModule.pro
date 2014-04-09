@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network sql
+QT       += core network sql concurrent
 
 TARGET = Synchronizer
 TEMPLATE = lib

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core sql serialport
+QT       += core sql serialport concurrent
 
 TARGET = ReaderRFM008B
 TEMPLATE = lib

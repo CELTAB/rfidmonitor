@@ -147,20 +147,20 @@ void Reader_RFM008B::readData()
                     PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
                     Q_ASSERT(persister);
                     /*C++11 std::async Version*/
-                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
-                    std::async(std::launch::async, persistence, list);
+//                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
+//                    std::async(std::launch::async, persistence, list);
 
                     /*Qt Concurrent Version*/
-//                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
+                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
 
                     SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
                     Q_ASSERT(synchronizer);
                     /*C++11 std::async Version*/
-                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
-                    std::async(std::launch::async, synchronize);
+//                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
+//                    std::async(std::launch::async, synchronize);
 
                     /*Qt Concurrent Version*/
-//                    QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
+                    QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
                 } catch (std::exception &e) {
                     Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, e.what());
                 }

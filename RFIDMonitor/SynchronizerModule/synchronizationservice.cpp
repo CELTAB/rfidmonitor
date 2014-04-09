@@ -23,6 +23,7 @@
 **
 ****************************************************************************/
 
+#include <QtConcurrent>
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -70,8 +71,11 @@ void SynchronizationService::readyRead()
 
                 qDebug() << QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size());
                 qDebug() << QJsonDocument(jsonAnswer).toJson();
-                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
-                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+                /*C++11 std::async Version*/
+//                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+//                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+                /*Qt Concurrent Version*/
+                QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
             }
         }
         m_timer.start();
