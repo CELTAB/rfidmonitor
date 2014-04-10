@@ -28,8 +28,8 @@ QMAKE_CXXFLAGS += -std=c++11
 
 
 unix: {
-    homePath = $$system(echo $HOME)
-#    homePath = /home/pi
+    #homePath = $$system(echo $HOME)
+    homePath = /home/pi
     target.path = $$homePath/FishMonitoring
     INSTALLS += target
 }

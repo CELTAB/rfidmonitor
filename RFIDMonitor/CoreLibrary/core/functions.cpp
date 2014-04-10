@@ -66,8 +66,7 @@ qlonglong Functions::getSequence(const QString &className, QSqlDatabase *db)
             return getSequence(className, db);
         }
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "PersistenceModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
-        //        qDebug() << ex;
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "PersistenceModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.what()));
         return -1;
     }
     return result;

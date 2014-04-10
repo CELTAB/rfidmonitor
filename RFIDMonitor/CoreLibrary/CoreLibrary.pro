@@ -57,8 +57,8 @@ HEADERS += \
     core/sql/exception/sqlunknownexception.h
 
 unix:{
-    homePath = $$system(echo $HOME)
-#    homePath = /home/pi
+    #homePath = $$system(echo $HOME)
+    homePath = /home/pi
     target.path = /usr/local/lib
     INSTALLS += target
 }

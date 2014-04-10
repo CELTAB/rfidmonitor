@@ -65,7 +65,7 @@ BlinkLed::~BlinkLed()
 
 void BlinkLed::writeLog(char *message)
 {
-    Logger::instance()->writeRecord(Logger::error, "ExportModule", "Error from GPIOInterface.c", QString::fromLocal8Bit(message));
+    Logger::instance()->writeRecord(Logger::severity_level::error, "ExportModule", "Error from GPIOInterface.c", QString::fromLocal8Bit(message));
 }
 
 void BlinkLed::blinkRedLed(int value)

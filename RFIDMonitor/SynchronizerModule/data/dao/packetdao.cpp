@@ -1,6 +1,8 @@
 #include <QCoreApplication>
 #include <QSqlDatabase>
 #include <QSqlRecord>
+#include <QSharedPointer>
+
 #include <logger.h>
 
 #include <rfidmonitor.h>
@@ -11,6 +13,8 @@
 
 #include "packetdao.h"
 #include "../object/packet.h"
+
+
 
 PacketDAO::PacketDAO(QObject *parent) :
     GenericDAO<Packet>(parent)
@@ -27,12 +31,12 @@ PacketDAO::PacketDAO(QObject *parent) :
 
 PacketDAO *PacketDAO::instance()
 {
-    static PacketDAO *singleton=0;
-    if(!singleton){
-        singleton = new PacketDAO;
-        singleton->setParent(RFIDMonitor::instance());
+    static QSharedPointer<PacketDAO> singleton(0);
+    if(!singleton.data()){
+        singleton = QSharedPointer<PacketDAO>(new PacketDAO, &PacketDAO::deleteLater);
+        singleton->setParent(0);
     }
-    return singleton;
+    return singleton.data();
 }
 
 /*!
@@ -65,7 +69,7 @@ bool PacketDAO::insertObject(Packet *packet)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -99,7 +103,7 @@ bool PacketDAO::insertObjectList(const QList<Packet *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -133,7 +137,7 @@ bool PacketDAO::updateObject(Packet *packet)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -170,7 +174,7 @@ bool PacketDAO::updateObjectList(const QList<Packet *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -198,7 +202,7 @@ bool PacketDAO::deleteObject(Packet *packet)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -228,7 +232,7 @@ bool PacketDAO::deleteObjectList(const QList<Packet *> &list)
         return true;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
         m_db.rollback();
         return false;
@@ -258,7 +262,7 @@ Packet * PacketDAO::getById(qlonglong id, QObject *parent)
         }
         return packet;
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::error, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::error, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return 0;
     }
 }
@@ -286,7 +290,7 @@ QList<Packet *> PacketDAO::getAll(QObject *parent)
         return list;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return list;
     }
 }
@@ -321,7 +325,7 @@ QList<Packet *> PacketDAO::getByMatch(const QString &ColumnObject, QVariant valu
         return list;
 
     }catch(SqlException &ex){
-        Logger::instance()->writeRecord(Logger::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
         return list;
     }
 }

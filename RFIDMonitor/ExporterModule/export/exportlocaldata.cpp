@@ -85,7 +85,7 @@ bool ExportLocalData::exportToDevice(QString device)
     if(!device.isEmpty()){
         try{
             // export data to external device
-            Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Exporting temp file to device"));
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting temp file to device"));
 
             // name of file to save on device (absolute path)
             QString destinationPath(device + "/export_" + QDateTime::currentDateTime().toString().replace(" ", "_").replace(":","") + ".fish");
@@ -94,23 +94,23 @@ bool ExportLocalData::exportToDevice(QString device)
             if(m_tempFile.exists()){
                 if(QFile::copy(m_tempFile.fileName(), destinationPath)){
                     if(!QFile::remove(m_tempFile.fileName())){
-                        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("ERROR to remove temp file from disk"));
+                        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("ERROR to remove temp file from disk"));
                         throw std::exception();
                     }
                 } else {
-                    Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("ERROR to copy temp file to device"));
+                    Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("ERROR to copy temp file to device"));
                     throw std::exception();
                 }
             } else {
-                Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("There's nothing to be exported"));
+                Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("There's nothing to be exported"));
                 returnValue = true;
             }
         }catch(std::exception &e){
-            Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
+            Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
             returnValue = false;
         }
     } else {
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: Can\'t export to external device"));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: Can\'t export to external device"));
         returnValue = false;
     }
 
@@ -150,8 +150,8 @@ bool ExportLocalData::exportToTempFile()
     std::function< bool(const QList<Rfiddata *> &) > updateObject;
     std::function< QList<Rfiddata *> (const QString &, QVariant) > getDataToExport;
 
-    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Exporting to temporary file"));
-    Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Search not synced data"));
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting to temporary file"));
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Search not synced data"));
 
     /*!
      * \brief list of data with non-synced status
@@ -165,11 +165,11 @@ bool ExportLocalData::exportToTempFile()
     {
         // try to open a file to append the records to be exported. Return false if the file cannot be opened for some reason
         if (!m_tempFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
-            Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
+            Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
             return false;
         }
 
-        Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("Exporting %1 records to %2").arg(list.length()).arg(m_tempFile.fileName()));
+        Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("Exporting %1 records to %2").arg(list.length()).arg(m_tempFile.fileName()));
 
         // RAII para eliminar automaticamente os registros do "list" alocados no heap cuando a funcao sai do scope
         // E criado um shared pointer que guarda o endereco de um std::function< void() > f1 que e chamado para eliminar os registros da list
@@ -201,17 +201,17 @@ bool ExportLocalData::exportToTempFile()
             out.flush();
             var->setSync(Rfiddata::KSynced); // change status to synced
         }
-        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("%1 records exported").arg(list.length()));
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("%1 records exported").arg(list.length()));
 
         // close the file
         m_tempFile.close();
 
         try{
             // update database
-            Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, QString("Update data base to synced status"));
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Update data base to synced status"));
             updateObject(list);
         }catch(std::exception &e){
-            Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
+            Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
             return false;
         }
 
@@ -224,7 +224,7 @@ bool ExportLocalData::exportToTempFile()
         m_blinkLed->blinkRedLed(0);
 
     } else {
-        Logger::instance()->writeRecord(Logger::debug, m_module, Q_FUNC_INFO, "No records to be exported");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "No records to be exported");
     }
 
     // If all made successfully return true.

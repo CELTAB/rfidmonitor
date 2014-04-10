@@ -28,8 +28,8 @@ coreLibPath = $$replace(buildPath, $${TARGET}Module, "")/Main
 DESTDIR += $$coreLibPath/modules
 
 unix: {
-    homePath = $$system(echo $HOME)
-#    homePath = /home/pi
+    #homePath = $$system(echo $HOME)
+    homePath = /home/pi
     target.path = $$homePath/FishMonitoring/modules
     INSTALLS += target
 }

@@ -24,6 +24,7 @@
 #include <QString>
 #include <QFile>
 #include <QTextStream>
+#include <QMutex>
 
 #ifdef BOOST_LOG
 
@@ -49,12 +50,12 @@ public:
    * \par Example:
    *  When the writeRecord function is called the severity level must be informed. To pass the the severity uses:
    * \code
-   *  Logger::info
+   *  Logger::severity_level::info
    * \endcode
    *
    * @see writeRecord()
    */
-    enum severity_level
+    enum class severity_level
     {
         info, /**< It used when the record is about an important event but common or expected */
         debug, /**< Used to write record only if debug mode is on */
@@ -102,7 +103,7 @@ public:
      * #include <logger.h>
      * \endcode
      * \code
-     * Logger::instance()->writeRecord(Logger::info, "Module Name", Q_FUNC_INFO, "Hello from log record");
+     * Logger::instance()->writeRecord(Logger::severity_level::info, "Module Name", Q_FUNC_INFO, "Hello from log record");
      * \endcode
      *
      * @param lvl severity level for the record
@@ -172,7 +173,9 @@ private:
 
     explicit Logger(QObject *parent = 0);
 
-    QFile file;
+    QFile m_file;
+    QFile m_debugFile;
+    QMutex m_mutex;
 
     /**
      * @brief initLog will configure and create a log file

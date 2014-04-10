@@ -103,7 +103,7 @@ void deviceAddedCallback(const char *)
     QFile m_mounts;
     m_mounts.setFileName("/proc/mounts");
 
-    Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, "Device Detected");
+    Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, "Device Detected");
 
     QString devicePath("");
     bool notMatched = true;
@@ -135,21 +135,21 @@ void deviceAddedCallback(const char *)
             QString dev(match.captured(0));
             QStringList infoDevice = dev.split(" ");
 
-            Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("Inspectin device: %1").arg(infoDevice.at(1)));
+            Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("Inspectin device: %1").arg(infoDevice.at(1)));
             QFileInfo device(infoDevice.at(1));
             // check if the device found is writable
             if(device.isWritable()){
-                Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("Using device: %1. Mount point: %2. File System: %3").arg(infoDevice.at(0)).arg(infoDevice.at(1)).arg(infoDevice.at(2)));
+                Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("Using device: %1. Mount point: %2. File System: %3").arg(infoDevice.at(0)).arg(infoDevice.at(1)).arg(infoDevice.at(2)));
                 devicePath = infoDevice.at(1);
             } else {
-                Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("%1 is not writable").arg(device.fileName()));
+                Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("%1 is not writable").arg(device.fileName()));
             }
             notMatched = false;
         }
     }
     // If was not found any device in /media write an info log record
     if(notMatched)
-        Logger::instance()->writeRecord(Logger::info, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: No media found to export data"));
+        Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: No media found to export data"));
 
     // call function responsible to export data to device just connected
     emit DeviceThread::instance()->exportToDevice(devicePath);
@@ -160,14 +160,14 @@ void deviceAddedCallback(const char *)
  */
 void deviceRemovedCallback()
 {
-    Logger::instance()->writeRecord(Logger::info, "ExportModule", Q_FUNC_INFO, "Device Removed");
+    Logger::instance()->writeRecord(Logger::severity_level::info, "ExportModule", Q_FUNC_INFO, "Device Removed");
     // turn off green led when a device is removed
     emit DeviceThread::instance()->turnLedOff();
 }
 
 void writeLog(const char *str)
 {
-    Logger::instance()->writeRecord(Logger::error, "ExportModule", "void start_listening", QString(str));
+    Logger::instance()->writeRecord(Logger::severity_level::error, "ExportModule", "void start_listening", QString(str));
 }
 
 extern "C" {

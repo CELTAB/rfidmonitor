@@ -26,6 +26,8 @@
 #include <QLocalSocket>
 #include <QTcpSocket>
 
+#include <logger.h>
+
 #include "communicationservice.h"
 
 CommunicationService::CommunicationService(QObject *parent) :
@@ -58,6 +60,7 @@ ServiceType CommunicationService::type()
 
 void CommunicationService::sendMessage(QByteArray value)
 {
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message: %1").arg(QString(value)));
     m_localSocket->write(value);
     // WARNING: bool QLocalSocket::flush () using this to force the sending of data
     m_localSocket->flush();
@@ -65,24 +68,24 @@ void CommunicationService::sendMessage(QByteArray value)
 
 void CommunicationService::ipcConnected()
 {
-    qDebug() << QString("CommunicationService -> Connected successfully to IPC Server.");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
     m_localSocket->write(QString("System Started").toLatin1());
 }
 
 void CommunicationService::ipcDisconnected()
 {
-    qDebug() << QString("CommunicationService -> Disconected from IPC Server.");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Disconected from IPC Server."));
 }
 
 void CommunicationService::ipcReadyRead()
 {
     QByteArray data = m_localSocket->readAll();
     QString message(data);
-    qDebug() << QString("CommunicationService -> Message received: %1").arg(message);
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Message received: %1").arg(message));
     emit messageReceived(data);
 }
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)
 {
-    qDebug() << QString("Error: %1 - %2").arg(m_localSocket->error()).arg(m_localSocket->errorString());
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Error: %1 - %2").arg(m_localSocket->error()).arg(m_localSocket->errorString()));
 }

@@ -153,12 +153,12 @@ struct RFIDMonitorPrivate
         foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
             QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
 
-            Logger::instance()->writeRecord(Logger::info, moduleName, Q_FUNC_INFO, QString("Load module %1").arg(fileName));
+            Logger::instance()->writeRecord(Logger::severity_level::info, moduleName, Q_FUNC_INFO, QString("Load module %1").arg(fileName));
 
             QObject *plugin = loader.instance();
 
             if(!loader.isLoaded()){
-                Logger::instance()->writeRecord(Logger::critical, moduleName, Q_FUNC_INFO, QString("Error to load module %1: %2").arg(fileName).arg(loader.errorString()));
+                Logger::instance()->writeRecord(Logger::severity_level::critical, moduleName, Q_FUNC_INFO, QString("Error to load module %1: %2").arg(fileName).arg(loader.errorString()));
             }
 
             if (plugin){
@@ -168,7 +168,7 @@ struct RFIDMonitorPrivate
                 }
             }
         }
-        Logger::instance()->writeRecord(Logger::info, moduleName, Q_FUNC_INFO, "All Modules Loaded");
+        Logger::instance()->writeRecord(Logger::severity_level::info, moduleName, Q_FUNC_INFO, "All Modules Loaded");
 
         foreach (CoreModule *mod, moduleList) {
             mod->init();
@@ -310,7 +310,7 @@ RFIDMonitor::RFIDMonitor(QObject *parent) :
     QObject(parent),
     d_ptr(new RFIDMonitorPrivate)
 {
-    Logger::instance()->writeRecord(Logger::info, "Main", Q_FUNC_INFO, "System started");
+    Logger::instance()->writeRecord(Logger::severity_level::info, "Main", Q_FUNC_INFO, "System started");
     d_ptr->moduleName = "Main";
     d_ptr->persistenceThread = new QThread(this);
     d_ptr->syncronizationThread = new QThread(this);
@@ -428,10 +428,6 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-    qDebug() << QString(message);
-
-    //parse da mensagem para obter um json
-
     if(message == "ExitSystem"){
         qApp->exit(0);
     }else if(message == "RestartSystem"){

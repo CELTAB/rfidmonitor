@@ -107,7 +107,7 @@ QSqlDatabase * ConnectionPool::systemConnection()
     }
 
     if(m_systemConnection.lastError().isValid())
-        Logger::instance()->writeRecord(Logger::critical, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_systemConnection.lastError().text()));
+        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_systemConnection.lastError().text()));
 
     return &m_systemConnection;
 }

@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QSharedPointer>
+#include <QMutexLocker>
 
 #include "logger.h"
 
@@ -23,10 +24,14 @@ Logger::Logger(QObject *parent):
             << expr::smessage;
 #endif
 
-    file.setFileName("RFID_log.log");
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)){
-            return;
-        }
+    m_file.setFileName("RFID_log.log");
+    if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text)){
+
+    }
+    m_debugFile.setFileName("RFID_log_debug.log");
+    if (!m_debugFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+
+    }
 }
 
 // The operator puts a human-friendly representation of the severity level to the stream
@@ -43,9 +48,9 @@ std::ostream& operator<< (std::ostream& strm, Logger::severity_level level)
     };
 
     if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
-        strm << strings[level];
+        strm << strings[(int)level];
     else
-        strm << static_cast< int >(level);
+        strm << static_cast< int >((int)level);
 
     return strm;
 }
@@ -59,16 +64,16 @@ std::string Logger::currentDateTime()
 void Logger::startDebugMode()
 {
 #ifdef BOOST_LOG
-                boost::shared_ptr< sinks::text_file_backend > debugBackend =  boost::make_shared< sinks::text_file_backend >
-                        (
-                            keywords::file_name = "logs/Log_DEBUG_%Y%m_%H%M%S.log",
-                            keywords::rotation_size = 3 * 1024 * 1024
-                        );
+    boost::shared_ptr< sinks::text_file_backend > debugBackend =  boost::make_shared< sinks::text_file_backend >
+            (
+                keywords::file_name = "logs/Log_DEBUG_%Y%m_%H%M%S.log",
+                keywords::rotation_size = 3 * 1024 * 1024
+            );
 
-                boost::shared_ptr< sink_t > sinkDebug(new sink_t(debugBackend));
+    boost::shared_ptr< sink_t > sinkDebug(new sink_t(debugBackend));
 
-                sinkDebug->set_formatter(logformat);
-                logging::core::get()->add_sink(sinkDebug);
+    sinkDebug->set_formatter(logformat);
+    logging::core::get()->add_sink(sinkDebug);
 #endif
 }
 
@@ -123,7 +128,7 @@ void Logger::writeRecord(severity_level lvl, QString moduleName,
                          QString functionName,
                          QString message)
 {
-    (void)lvl;
+    QMutexLocker locker(&m_mutex);
     // 00001 % 05-25-2013_16:05:45 % severity % Module Name % Thread Name % Void functionName() % Any message
 #ifdef BOOST_LOG
     src::severity_logger< Logger::severity_level > m_logger;
@@ -134,11 +139,31 @@ void Logger::writeRecord(severity_level lvl, QString moduleName,
 
     BOOST_LOG_SEV(m_logger, lvl) << message.toStdString();
 #else
-    QTextStream out(&file);
-    QString record("99999 % ");
-    QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
-    record.append(currDate + " % " + moduleName + " % " + functionName + " % " + message + "\n");
-    out << record;
-    qDebug() << record;
+    switch (lvl) {
+    case severity_level::info:
+    {
+        QTextStream out(&m_file);
+        QString record("99999 % ");
+        QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
+        record.append(currDate + " % " + moduleName + " % " + functionName + " % " + message + "\n");
+        out << record;
+        break;
+    }
+    case severity_level::debug:
+    {
+        QTextStream out(&m_debugFile);
+        QString record("99999 % ");
+        QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
+        record.append(currDate + " % " + moduleName + " % " + functionName + " % " + message + "\n");
+        out << record;
+        break;
+    }
+    case severity_level::error:
+    case severity_level::fatal:
+    case severity_level::warning:
+        break;
+    default:
+        break;
+    }
 #endif
 }

@@ -98,7 +98,7 @@ QMap<QString, QByteArray> PackagerService::getAll()
 
 void PackagerService::generatePackets()
 {
-    Logger::instance()->writeRecord(Logger::fatal, "PackagerService", Q_FUNC_INFO, "Generating packets...");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
     static PersistenceInterface *persistence = 0;
     if(!persistence){
         persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));

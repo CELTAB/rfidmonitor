@@ -146,23 +146,22 @@ void Reader_RFM008B::readData()
                 try {
                     PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
                     Q_ASSERT(persister);
-                    /*C++11 std::async Version*/
-//                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
-//                    std::async(std::launch::async, persistence, list);
-
-                    /*Qt Concurrent Version*/
-                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
-
                     SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
                     Q_ASSERT(synchronizer);
-                    /*C++11 std::async Version*/
-//                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
-//                    std::async(std::launch::async, synchronize);
 
-                    /*Qt Concurrent Version*/
+#ifdef CPP_11_ASYNC
+                /*C++11 std::async Version*/
+                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
+                    std::async(std::launch::async, persistence, list);
+                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
+                    std::async(std::launch::async, synchronize);
+#else
+                /*Qt Concurrent Version*/
+                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
                     QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
+#endif
                 } catch (std::exception &e) {
-                    Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, e.what());
+                    Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
                 }
             }
         }
@@ -172,7 +171,7 @@ void Reader_RFM008B::readData()
 void Reader_RFM008B::handleError(QSerialPort::SerialPortError error)
 {
     if (error != QSerialPort::NoError) {
-        Logger::instance()->writeRecord(Logger::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
+        Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
     }
 }
 
@@ -183,7 +182,7 @@ void Reader_RFM008B::start()
     m_serial->setPort(info);
     if(!m_serial->open(QIODevice::ReadWrite)) {
 
-        Logger::instance()->writeRecord(Logger::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
+        Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
         // create class invalid_device exception on core Module
         QTimer::singleShot(1000, this, SLOT(start()));
     }else{

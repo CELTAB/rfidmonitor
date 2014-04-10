@@ -55,7 +55,7 @@ void SynchronizationService::readyRead()
         communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
     }
     if(packager /*&& !m_timer.remainingTime()*/) {
-        Logger::instance()->writeRecord(Logger::fatal, "synchronizer", Q_FUNC_INFO, "Sending packets...");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "Sending packets...");
         QMap<QString, QByteArray> allData = packager->getAll();
 
         if(communitacion) {
@@ -69,14 +69,23 @@ void SynchronizationService::readyRead()
                 QJsonObject jsonAnswer;
                 answer.write(jsonAnswer);
 
-                qDebug() << QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size());
-                qDebug() << QJsonDocument(jsonAnswer).toJson();
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size()));
+
+#ifdef DEBUG_VERBOSE
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QJsonDocument(jsonAnswer).toJson());
+#endif
+
+#ifdef CPP_11_ASYNC
                 /*C++11 std::async Version*/
-//                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
-//                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+#else
                 /*Qt Concurrent Version*/
                 QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
+#endif
             }
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
         }
         m_timer.start();
     }

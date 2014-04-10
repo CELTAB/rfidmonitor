@@ -18,10 +18,19 @@ INCLUDEPATH += ../RFIDMonitor/
 
 LIBS += -lCoreLibrary
 
+DEFINES += DEBUG_VERBOSE
+
 SOURCES += main.cpp \
     rfidmonitordaemon.cpp
 HEADERS += \
     rfidmonitordaemon.h
 
+
+unix: {
+    #homePath = $$system(echo $HOME)
+    homePath = /home/pi
+    target.path = $$homePath/FishMonitoring
+    INSTALLS += target
+}
 
 QMAKE_CXXFLAGS += -std=c++11
