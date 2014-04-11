@@ -38,10 +38,10 @@ SerialCommunication::~SerialCommunication()
 
 }
 
-void SerialCommunication::writeLog(const QString &text)
+void SerialCommunication::writeLog(QString text)
 {
     QString time("[" + QTime::currentTime().toString() + "] ");
-    emit newAnswer(time + text.trimmed());
+    emit newAnswer(time + text.replace(QString("\r"), QString("<CR>")).replace(QString("\n"),QString("<LF>")));
 }
 
 bool SerialCommunication::connectToDevice(const QString &device,
@@ -91,7 +91,7 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
 {
     if(m_serialPort->isWritable()){
         if(type == KASCII){
-            if (m_serialPort->write(command.trimmed().toLocal8Bit()) == -1){
+            if (m_serialPort->write(command.toUtf8()) == -1){
                 SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
                 return false;
             }

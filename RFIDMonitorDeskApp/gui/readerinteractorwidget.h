@@ -8,6 +8,8 @@
 #include <communication/networkcommunication.h>
 #include <settings.h>
 
+#include "rictlmb2b30widget.h"
+
 namespace Ui {
 class ReaderInteractorWidget;
 }
@@ -28,6 +30,7 @@ private:
     Settings::ConnectionType m_connectionType;
     QFile *m_logFile;
     bool m_useLogFile;
+    RICTLMB2B30Widget *m_mb2b30;
 
     void sendCommand(const QString &command);
     void writeToOutput(const QString &text);

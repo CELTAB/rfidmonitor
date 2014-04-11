@@ -32,6 +32,9 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
     connect(ui->btStartPauseReading, SIGNAL(clicked(bool)), this, SLOT(btStartPauseReadingClicked(bool)));
     connect(ui->btLogTo, SIGNAL(clicked()), this, SLOT(btLogToClicked()));
     connect(ui->btClearOutput, SIGNAL(clicked()), this, SLOT(btClearOutputClicked()));
+
+    m_mb2b30 = new RICTLMB2B30Widget(m_connectionType, this);
+    ui->tabWidget->addTab(m_mb2b30, "RI-CTL-MB2B-30");
 }
 
 ReaderInteractorWidget::~ReaderInteractorWidget()

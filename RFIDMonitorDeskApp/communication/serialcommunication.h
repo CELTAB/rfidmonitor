@@ -34,7 +34,7 @@ signals:
 private:
     explicit SerialCommunication(QObject *parent = 0);
     QSerialPort *m_serialPort;
-    void writeLog(const QString &text);
+    void writeLog(QString text);
 };
 
 #endif // SERIALCOMMUNICATION_H

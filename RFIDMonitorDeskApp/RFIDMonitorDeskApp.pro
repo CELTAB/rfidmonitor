@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     settings.cpp \
     persistence.cpp \
     gui/systemmessageswidget.cpp \
-    gui/devicemodel.cpp
+    gui/devicemodel.cpp \
+    gui/rictlmb2b30widget.cpp
 
 HEADERS  += \
     gui/serialconnconfigwidget.h \
@@ -36,7 +37,8 @@ HEADERS  += \
     persistence.h \
     gui/systemmessageswidget.h \
     gui/mainwindow.h \
-    gui/devicemodel.h
+    gui/devicemodel.h \
+    gui/rictlmb2b30widget.h
 
 FORMS    += \
     gui/mainwindow.ui \
@@ -44,7 +46,8 @@ FORMS    += \
     gui/readerinteractorwidget.ui \
     gui/rfidmonitorinteractorwidget.ui \
     gui/networkconnconfigwidget.ui \
-    gui/systemmessageswidget.ui
+    gui/systemmessageswidget.ui \
+    gui/rictlmb2b30widget.ui
 
 
 QMAKE_CXXFLAGS += -std=c++11
