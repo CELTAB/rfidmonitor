@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QRegExpValidator>
 
 #include "settings.h"
 
@@ -26,6 +27,8 @@ private:
     Settings::ConnectionType m_connectionType;
     void sendCommand(const QString &command);
     QTimer m_timeout;
+    QRegExpValidator *m_hexaValidator;
+    QRegExpValidator *m_deciValidator;
 
 public slots:
     void leIdentificationChanged(QString newText);

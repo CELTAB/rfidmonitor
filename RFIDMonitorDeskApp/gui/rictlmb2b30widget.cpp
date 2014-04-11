@@ -1,6 +1,4 @@
 #include <QDebug>
-#include <QPixmap>
-#include <QPainter>
 
 #include "rictlmb2b30widget.h"
 #include "ui_rictlmb2b30widget.h"
@@ -20,9 +18,13 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
     m_timeout.setInterval(1000);
     m_timeout.setSingleShot(true);
 
-    ui->leIdentification->setInputMask("hhhhhhhhhhhhhhhh"); //hexa only mask
-    ui->leIdentification->setMaxLength(16);
-    ui->leIdentification->setCursorPosition(0);
+    QRegExp hexaRegExp("[0-9a-fA-F]{16}");
+    m_hexaValidator = new QRegExpValidator(hexaRegExp,this);
+
+    QRegExp decRegExp("[0-9]{16}");
+    m_deciValidator = new QRegExpValidator(decRegExp,this);
+
+    ui->leIdentification->setValidator(m_hexaValidator);
 
     connect(ui->leIdentification, SIGNAL(textChanged(QString)), this, SLOT(leIdentificationChanged(QString)));
     connect(ui->btWrite, SIGNAL(clicked()), this, SLOT(btWriteClicked()));
@@ -50,6 +52,7 @@ void RICTLMB2B30Widget::sendCommand(const QString &command)
 
 void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
 {
+    qDebug() << "Bug when incrementing Hexadecimal value.";
     m_identification.clear();
     if(ui->leIdentification->text().size() > 0){
 
@@ -130,13 +133,21 @@ void RICTLMB2B30Widget::timeout()
 
 void RICTLMB2B30Widget::rbDecimalClicked()
 {
-    ui->leIdentification->setInputMask("0000000000000000"); //numeric only mask
+    ui->leIdentification->setValidator(m_deciValidator);
+    int pos;
+    QString identification(ui->leIdentification->text());
+    if(m_deciValidator->validate(identification,pos) == QRegExpValidator::Invalid)
+        ui->leIdentification->clear();
     leIdentificationChanged(QString());
 }
 
 void RICTLMB2B30Widget::rbHexadecimalClicked()
 {
-    ui->leIdentification->setInputMask("hhhhhhhhhhhhhhhh"); //hexa only mask
+    ui->leIdentification->setValidator(m_hexaValidator);
+    int pos;
+    QString identification(ui->leIdentification->text());
+    if(m_hexaValidator->validate(identification,pos) == QRegExpValidator::Invalid)
+        ui->leIdentification->clear();
     leIdentificationChanged(QString());
 }
 
@@ -145,6 +156,19 @@ void RICTLMB2B30Widget::incrementIdentification()
     if(ui->leIdentification->text().size() > 0){
         quint64 val = ui->leIdentification->text().toULongLong();
         val++;
-        ui->leIdentification->setText(QString().setNum(val));
+        QString newIdentification;
+        newIdentification.setNum(val);
+        int pos;
+        if(ui->rbHexadecimal->isChecked()){
+            if(m_hexaValidator->validate(newIdentification,pos) == QRegExpValidator::Invalid)
+                ui->leIdentification->clear();
+            else
+                ui->leIdentification->setText(newIdentification);
+        }else if(ui->rbDecimal->isChecked()){
+            if(m_deciValidator->validate(newIdentification,pos) == QRegExpValidator::Invalid)
+                ui->leIdentification->clear();
+            else
+                ui->leIdentification->setText(newIdentification);
+        }
     }
 }
