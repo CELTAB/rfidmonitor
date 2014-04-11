@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QJsonObject>
+#include <QFile>
 
 #include <QJsonDocument>
 
@@ -59,6 +60,13 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     m_hostName = "192.168.0.117";
 //    m_hostName = "localhost";
     m_tcpPort = 8124;
+
+    QString socketFile = QString("/tmp/%1").arg(m_serverName);
+
+    if(QFile::exists(socketFile)){
+        QString rmCommand = QString("rm -f %1").arg(socketFile);
+        system(rmCommand.toStdString().c_str());
+    }
 
 }
 

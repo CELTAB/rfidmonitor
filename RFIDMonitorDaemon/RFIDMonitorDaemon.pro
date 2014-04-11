@@ -18,7 +18,7 @@ INCLUDEPATH += ../RFIDMonitor/
 
 LIBS += -lCoreLibrary
 
-DEFINES += DEBUG_VERBOSE
+#DEFINES += DEBUG_VERBOSE
 
 SOURCES += main.cpp \
     rfidmonitordaemon.cpp
