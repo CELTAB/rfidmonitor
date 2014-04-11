@@ -14,14 +14,16 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-INCLUDEPATH += /home/luisvaldes/Workspace/rfidmonitor/RFIDMonitor/
+INCLUDEPATH += ../RFIDMonitor/
 
 LIBS += -lCoreLibrary
 
 SOURCES += main.cpp \
-    rfidmonitordaemon.cpp
+    rfidmonitordaemon.cpp \
+    configmanager.cpp
 HEADERS += \
-    rfidmonitordaemon.h
+    rfidmonitordaemon.h \
+    configmanager.h
 
 
 QMAKE_CXXFLAGS += -std=c++11

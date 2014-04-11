@@ -33,6 +33,8 @@
 #include <QThread>
 #include <QMutexLocker>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
 
 #include <coremodule.h>
 #include <logger.h>
@@ -422,11 +424,11 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-    qDebug() << QString(message);
+//    qDebug() << QString(message);
 
     //parse da mensagem para obter um json
-
     if(message == "ExitSystem"){
+        qDebug() << "Exit ... !!";
         qApp->exit(0);
     }else if(message == "RestartSystem"){
         qApp->exit(1);

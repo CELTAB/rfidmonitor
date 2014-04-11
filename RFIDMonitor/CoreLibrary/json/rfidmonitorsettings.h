@@ -2,6 +2,7 @@
 #define RFIDMONITORSETTINGS_H
 
 #include "jsonrwinterface.h"
+#include <QDebug>
 
 namespace json {
 
@@ -132,8 +133,12 @@ public:
     QString serverAddress() const;
     void setServerAddress(const QString &serverAddress);
 
+    int serverPort() const;
+    void setServerPort(const int &serverPort);
+
 private:
     int m_id;
+    int m_serverPort;
     QString m_name;
     QString m_macAddress;
     QString m_device;

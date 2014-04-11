@@ -29,6 +29,12 @@
 #include <QObject>
 #include <QAbstractSocket>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
+
+#include "configmanager.h"
+
 class QLocalServer;
 class QTcpSocket;
 class QLocalSocket;
@@ -52,7 +58,7 @@ public slots:
     void tcpReadyRead();
     void tcpHandleError(QAbstractSocket::SocketError);
 
-    void tcpSendMessage(const QString &message);
+    void tcpSendMessage(const QByteArray &message);
 
 private:
     QLocalServer *m_localServer;
@@ -60,6 +66,10 @@ private:
     QString m_serverName;
     QString m_hostName;
     int m_tcpPort;
+
+    ConfigManager *m_configManager;
+    QJsonDocument buildMessage(QJsonObject dataObj, QString type);
+    void routeMessage(const QByteArray &message);
 };
 
 #include <QCoreApplication>
@@ -85,18 +95,20 @@ public slots:
                 emit exitApp();
                 break;
             }else if(command == "kick"){
-                emit sendMessage(QString("ExitSystem"));
+                emit sendMessage(QByteArray("ExitSystem"));
             }else if(command == "restart"){
-                emit sendMessage(QString("RestartSystem"));
+                emit sendMessage(QByteArray("RestartSystem"));
             }else{
                 qDebug() << QString::fromStdString(std::string("Invalid command \"") + command + std::string("\"\n"));
-                emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
+                QString random(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
+                emit sendMessage(QByteArray().append(random));
+//                emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
             }
         }
     }
 
 signals:
-    void sendMessage(const QString &);
+    void sendMessage(const QByteArray &);
     void exitApp();
 };
 

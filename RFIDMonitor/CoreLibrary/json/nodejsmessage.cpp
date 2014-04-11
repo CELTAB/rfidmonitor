@@ -1,4 +1,5 @@
 #include <QJsonObject>
+#include <QDebug>
 
 #include "nodejsmessage.h"
 
@@ -11,7 +12,8 @@ NodeJSMessage::NodeJSMessage()
 void NodeJSMessage::read(const QJsonObject &json)
 {
     m_type = json["type"].toString();
-    m_jsonData = json["data"].toString();
+    m_jsonData = json["data"].toObject();
+    m_dateTime = json["datetime"].toString();
 }
 
 void NodeJSMessage::write(QJsonObject &json) const
@@ -27,17 +29,24 @@ void NodeJSMessage::setType(const QString &type)
 {
     m_type = type;
 }
-QString NodeJSMessage::jsonData() const
+QJsonObject NodeJSMessage::jsonData() const
 {
     return m_jsonData;
 }
 
-void NodeJSMessage::setJsonData(const QString &jsonData)
+void NodeJSMessage::setJsonData(const QJsonObject &jsonData)
 {
     m_jsonData = jsonData;
 }
 
+QString NodeJSMessage::jsonDateTime() const
+{
+    return m_dateTime;
+}
 
-
+void NodeJSMessage::setJsonDateTime(const QString &dateTime)
+{
+    m_dateTime = dateTime;
+}
 }
 
