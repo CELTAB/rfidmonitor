@@ -33,6 +33,10 @@ void SerialConnConfigWidget::refreshDeviceList()
 
 void SerialConnConfigWidget::connectToDevice()
 {
+
+    //REMOVE BELLOW
+    emit serialCommunicationReady();
+    //REMOVE ABOVE
     if(m_serialCommunication->connectToDevice(ui->cbDeviceList->currentText(),
                                               (QIODevice::OpenModeFlag)ui->cbOpenType->currentData().toInt(),
                                               (QSerialPort::BaudRate)ui->cbBaudRate->currentData().toInt(),

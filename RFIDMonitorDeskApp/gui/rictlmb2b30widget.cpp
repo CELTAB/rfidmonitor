@@ -52,7 +52,6 @@ void RICTLMB2B30Widget::sendCommand(const QString &command)
 
 void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
 {
-    qDebug() << "Bug when incrementing Hexadecimal value.";
     m_identification.clear();
     if(ui->leIdentification->text().size() > 0){
 
@@ -154,17 +153,27 @@ void RICTLMB2B30Widget::rbHexadecimalClicked()
 void RICTLMB2B30Widget::incrementIdentification()
 {
     if(ui->leIdentification->text().size() > 0){
-        quint64 val = ui->leIdentification->text().toULongLong();
-        val++;
-        QString newIdentification;
-        newIdentification.setNum(val);
-        int pos;
         if(ui->rbHexadecimal->isChecked()){
-            if(m_hexaValidator->validate(newIdentification,pos) == QRegExpValidator::Invalid)
-                ui->leIdentification->clear();
-            else
-                ui->leIdentification->setText(newIdentification);
+            bool parseOk = false;
+            quint64 val = ui->leIdentification->text().toULongLong(&parseOk,16);
+            if(parseOk){
+                val++;
+                QString newIdentification;
+                newIdentification.setNum(val,16);
+                int pos;
+                if(m_hexaValidator->validate(newIdentification,pos) == QRegExpValidator::Invalid)
+                    ui->leIdentification->clear();
+                else
+                    ui->leIdentification->setText(newIdentification);
+            }else{
+                qDebug() << QString(tr("Failed to parse Hexadecimal to Decimal."));
+            }
         }else if(ui->rbDecimal->isChecked()){
+            quint64 val = ui->leIdentification->text().toULongLong();
+            val++;
+            QString newIdentification;
+            newIdentification.setNum(val);
+            int pos;
             if(m_deciValidator->validate(newIdentification,pos) == QRegExpValidator::Invalid)
                 ui->leIdentification->clear();
             else
