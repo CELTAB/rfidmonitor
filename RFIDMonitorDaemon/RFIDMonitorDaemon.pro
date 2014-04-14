@@ -21,9 +21,11 @@ LIBS += -lCoreLibrary
 #DEFINES += DEBUG_VERBOSE
 
 SOURCES += main.cpp \
-    rfidmonitordaemon.cpp
+    rfidmonitordaemon.cpp \
+    configmanager.cpp
 HEADERS += \
-    rfidmonitordaemon.h
+    rfidmonitordaemon.h \
+    configmanager.h
 
 
 unix: {

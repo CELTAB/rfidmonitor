@@ -28,13 +28,13 @@
 #include <QTcpSocket>
 #include <QDebug>
 #include <QDateTime>
-#include <QJsonObject>
+
+#include <QNetworkInterface>
 #include <QFile>
 
-#include <QJsonDocument>
+#include "CoreLibrary/json/nodejsmessage.h"
+#include "CoreLibrary/json/rfidmonitorsettings.h"
 
-#include <CoreLibrary/json/nodejsmessage.h>
-#include <CoreLibrary/json/synchronizationpacket.h>
 
 #include "rfidmonitordaemon.h"
 
@@ -43,10 +43,13 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     m_localServer(0),
     m_tcpSocket(0)
 {
-    m_localServer = new QLocalServer(0);
-    m_tcpSocket = new QTcpSocket(0);
+    m_localServer = new QLocalServer(this);
+    m_tcpSocket = new QTcpSocket(this);
 
     m_serverName = "RFIDMonitorDaemon";
+
+    m_configManager = new ConfigManager(this);
+    connect(m_configManager, SIGNAL(sendTcpMessage(QByteArray)), SLOT(tcpSendMessage(QByteArray)));
 
     connect(m_localServer, SIGNAL(newConnection()), SLOT(ipcNewConnection()));
 
@@ -55,19 +58,21 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(tcpReadyRead()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
-    //    m_hostName = "179.106.217.11";
-//    m_hostName = "179.106.217.28";
-    m_hostName = "192.168.0.117";
-//    m_hostName = "localhost";
-    m_tcpPort = 8124;
-
     QString socketFile = QString("/tmp/%1").arg(m_serverName);
 
     if(QFile::exists(socketFile)){
         QString rmCommand = QString("rm -f %1").arg(socketFile);
         system(rmCommand.toStdString().c_str());
     }
+    m_hostName = m_configManager->hostName();
+    m_tcpPort = m_configManager->hostPort();
 
+    qDebug() << "HostName: " << m_hostName;
+    qDebug() << "Port: " << m_tcpPort;
+
+    //m_hostName = "179.106.217.27";
+    //m_hostName = "179.106.217.11";
+    //m_tcpPort = 8124;
 }
 
 RFIDMonitorDaemon::~RFIDMonitorDaemon()
@@ -76,7 +81,6 @@ RFIDMonitorDaemon::~RFIDMonitorDaemon()
 
 void RFIDMonitorDaemon::start()
 {
-
     if(m_localServer->listen(m_serverName)){
 #ifdef DEBUG_VERBOSE
         qDebug() << QString("Server name: %1").arg(m_localServer->serverName());
@@ -131,20 +135,27 @@ void RFIDMonitorDaemon::ipcReadyRead()
     json::NodeJSMessage nodeMessage;
     nodeMessage.read(obj);
 
-    if(nodeMessage.type() == "data"){
-
 #ifdef DEBUG_VERBOSE
         qDebug() << QString("RFIDMonitorDaemon -> IPC Message received: %1").arg(QString(data));
 #endif
-        m_tcpSocket->write(data);
-        m_tcpSocket->flush();
-    }else{
+
+    if(nodeMessage.type() == "SYN"){
+        int clientsCount = this->m_localServer->findChildren<QLocalSocket *>().size();
+        if(!clientsCount){
+            m_tcpSocket->write(QString("{type: \"SYN\", datetime: \"%1\", data: \"\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).toLatin1());
+        }else{
+            qDebug() << QString("");
+        }
+    }
+    else{
         QString message(data);
 
         //qDebug() << QString("RFIDMonitorDaemon -> IPC Message received: %1").arg(message);
         m_tcpSocket->write(QString("{\"type\": \"SYN-ERROR\", \"datetime\": \"%1\", \"data\": \"%2\"}").arg(QDateTime::currentDateTime().toString(Qt::ISODate)).arg(message).toLatin1());
         m_tcpSocket->flush();
     }
+//        m_tcpSocket->write(data);
+//        m_tcpSocket->flush();
 }
 
 void RFIDMonitorDaemon::tcpConnect()
@@ -160,6 +171,8 @@ void RFIDMonitorDaemon::tcpConnected()
 #ifdef DEBUG_VERBOSE
     qDebug() << QString("Connected to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
 #endif
+
+    tcpSendMessage(buildMessage(m_configManager->identification(), "SYN").toJson());
 }
 
 void RFIDMonitorDaemon::tcpDisconnected()
@@ -169,39 +182,26 @@ void RFIDMonitorDaemon::tcpDisconnected()
 
 void RFIDMonitorDaemon::tcpReadyRead()
 {
-    QByteArray data = m_tcpSocket->readAll();
+    static bool hasPackage = false;
+    static quint64 packageSize = 0;
 
-    QString message(data);
 #ifdef DEBUG_VERBOSE
     qDebug() << QString("Message from Node.js: %1").arg(message);
 #endif
+    if( ! hasPackage){
+        qDebug() << "waiting for package";
 
-    QJsonDocument jsonDoc = QJsonDocument::fromBinaryData(data);
-    QJsonObject obj = jsonDoc.object();
-    json::NodeJSMessage nodeMessage;
-    nodeMessage.read(obj);
+        if((quint64)m_tcpSocket->bytesAvailable() < sizeof(quint64))
+            return;
+        m_tcpSocket->read((char *)&packageSize, sizeof(quint64));
 
-    if(nodeMessage.type() == "SYN"){
-        int clientsCount = this->m_localServer->findChildren<QLocalSocket *>().size();
-
-        json::NodeJSMessage answer;
-        answer.setType("SYN-ERROR");
-        answer.setDateTime(QDateTime::currentDateTime());
-        answer.setJsonData("");
-        QJsonObject jsonAnswer;
-        answer.write(jsonAnswer);
-
-        if(!clientsCount){
-            m_tcpSocket->write(QJsonDocument(jsonAnswer).toJson());
-            m_tcpSocket->flush();
-        }else{
-            //qDebug() << QString("");
-        }
+        qDebug() << "Size of comming package: " << packageSize;
+        hasPackage = true;
     }
 
-    foreach (QLocalSocket *socket, this->m_localServer->findChildren<QLocalSocket *>()) {
-        socket->write(data);
-        socket->flush();
+    if((quint64)m_tcpSocket->bytesAvailable() >=  packageSize){
+        QByteArray data(m_tcpSocket->read(packageSize));
+        routeMessage(data);
     }
 }
 
@@ -215,9 +215,131 @@ void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError error )
 #endif
 }
 
-void RFIDMonitorDaemon::tcpSendMessage(const QString &message)
+void RFIDMonitorDaemon::tcpSendMessage(const QByteArray &message)
 {
-    foreach (QLocalSocket *socket, this->m_localServer->findChildren<QLocalSocket *>()) {
-        socket->write(message.toLatin1());
+    qDebug() << "Message size: " << message.size();
+
+    //PACKAGE SIZE
+    //    QByteArray packageSize;
+    //    QString packageSizeStr(QString::number(message.size()));
+    //    packageSize.fill('0', sizeof(quint64) - packageSizeStr.size());
+    //    packageSize.append(packageSizeStr);
+
+    //    m_tcpSocket->write(packageSize);
+
+    quint64 packageSize = message.size();
+    QByteArray data;
+    data.append((char*)&packageSize, sizeof(quint64));
+
+    m_tcpSocket->write(data);
+    m_tcpSocket->write(message);
+}
+
+QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
+{
+    QJsonObject rootObj;
+    QJsonDocument rootDoc;
+
+    rootObj.insert("type", type);
+    rootObj.insert("datetime", QJsonValue(QDateTime::currentDateTime().toString(Qt::ISODate)));
+    rootObj.insert("data", QJsonValue(dataObj));
+
+    rootDoc.setObject(rootObj);
+    return rootDoc;
+}
+
+void RFIDMonitorDaemon::routeMessage(const QByteArray &message)
+{
+    json::NodeJSMessage nodeMessage;
+
+    nodeMessage.read(QJsonDocument::fromJson(message).object());
+    QString messageType(nodeMessage.type());
+
+    if(messageType == "ACK-SYN"){
+        qDebug() << "ACK-SYN Message";
+
+        QJsonObject obj(nodeMessage.jsonData());
+
+        m_configManager->setIdentification(obj);
+
+        QJsonObject dataObj;
+        QDateTime dateTime = QDateTime::fromString(nodeMessage.jsonDateTime(), Qt::ISODate);
+
+        dataObj.insert("message", m_configManager->setDateTime(dateTime)? QString("Date/Time update successfully") : QString("Error to update Date/Time"));
+        tcpSendMessage(buildMessage(dataObj, "ACK").toJson());
+
+    }else if (messageType == "GET-CONFIG") {
+        qDebug() << "GET-CONFIG Received";
+        tcpSendMessage(buildMessage(m_configManager->currentConfig(), "CONFIG").toJson());
+
+    }else if (messageType == "READER-COMMAND") {
+
+        qDebug() << "READER-COMMAND Received";
+
+        QJsonObject response(nodeMessage.jsonData());
+        qDebug() << "Command: " << response.value("command").toString();
+
+
+    }else if (messageType == "READER-RESPONSE") {
+
+        qDebug() << "READER-RESPONSE Received";
+        QJsonObject response(nodeMessage.jsonData());
+        tcpSendMessage(buildMessage(response, "READER-RESPONSE").toJson());
+
+    }else if (messageType == "NEW-CONFIG") {
+        qDebug() << "NEW-CONFIG Received";
+
+        QJsonObject newConfig(nodeMessage.jsonData());
+        QString message(m_configManager->newConfig(newConfig)? "New configuration saved successfully" : "Culd not save the new configuration");
+        QJsonObject dataObj;
+        dataObj.insert("message", message);
+        tcpSendMessage(buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
+
+    }else if (messageType == "BROADCAST") {
+        qDebug() << "BROADCAST Received";
+
+
+
+
+    }else if (messageType == "DATETIME") {
+        qDebug() << "DATETIME Received";
+
+        QJsonObject dataObj;
+        QDateTime dateTime = QDateTime::fromString(nodeMessage.jsonDateTime(), Qt::ISODate);
+
+        dataObj.insert("message", m_configManager->setDateTime(dateTime)? QString("Date/Time update successfully") : QString("Error to update Date/Time"));
+        tcpSendMessage(buildMessage(dataObj, "ACK").toJson());
+
+    }else if (messageType == "DATA") {
+        qDebug() << "DATA Received";
+
+    }else if (messageType == "ACK-DATA") {
+        qDebug() << "ACK-DATA Received";
+
+        QJsonObject ackData(nodeMessage.jsonData());
+        QString hash = ackData["packageHash"].toString();
+        qDebug() << "The package was successfulle synced. PACKAGE HASH: " << hash;
+
+    }else if (messageType == "GET-NET-CONFIG") {
+        qDebug() << "GET-NET-CONFIG Received";
+        tcpSendMessage(buildMessage(m_configManager->netConfig(), "NET-CONFIG").toJson());
+
+    }else if (messageType == "NEW-NET") {
+        qDebug() << "NEW-NET Received";
+
+        QJsonObject netConfig(nodeMessage.jsonData());
+        QString message(m_configManager->setNetConfig(netConfig)? "New network configuration saved successfully" : "Culd not save the new network configuration");
+        QJsonObject dataObj;
+        dataObj.insert("message", message);
+        tcpSendMessage(buildMessage(dataObj, "ACK-NET").toJson());
+
+        qDebug() << QString(m_configManager->restartNetwork()? "Network restarted" : "Networkt Don't restarted");
+
+    }else if (messageType == "ACK-UNKNOWN") {
+        qDebug() << "The server don't understand the message type: " << nodeMessage.jsonData().value("type").toString();
+    }
+    else{
+        qDebug() << "UNKNOWN MESSAGE";
+        tcpSendMessage(buildMessage(QJsonDocument::fromJson(message).object(), "ACK-UNKNOWN").toJson());
     }
 }

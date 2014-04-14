@@ -1,6 +1,9 @@
 #ifndef NODEJSMESSAGE_H
 #define NODEJSMESSAGE_H
 
+
+#include <QDateTime>
+#include <QJsonObject>
 #include <QDateTime>
 
 #include "jsonrwinterface.h"
@@ -20,16 +23,24 @@ public:
     QString type() const;
     void setType(const QString &type);
 
-    QString jsonData() const;
-    void setJsonData(const QString &jsonData);
+    QJsonObject jsonData() const;
+    void setJsonData(const QJsonObject &jsonData);
 
-    QDateTime dateTime() const;
-    void setDateTime(const QDateTime &dateTime);
+    QString jsonDateTime() const;
+    void setJsonDateTime(const QString &dateTime);
+
+//    QDateTime dateTime() const;
+//    void setDateTime(const QDateTime &dateTime);
 
 private:
     QString m_type;
-    QString m_jsonData;
-    QDateTime m_dateTime;
+
+//    QString m_jsonData;
+//    QDateTime m_dateTime;
+
+    QJsonObject m_jsonData;
+    QString m_dateTime;
+
 };
 
 }
