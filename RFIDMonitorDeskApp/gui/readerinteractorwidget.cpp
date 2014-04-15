@@ -8,22 +8,21 @@
 ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType type, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ReaderInteractorWidget),
-    m_serialCommunication(0),
-    m_networkCommunication(0),
     m_connectionType(type)
 {
     ui->setupUi(this);
+
+    // Log file.
     m_logFile = new QFile(this);
     m_useLogFile = false;
 
+    // Define the default window state.
     ui->btLogTo->setEnabled(true);
     ui->cbLogType->setEnabled(true);
     ui->btSendCommand->setEnabled(false);
     ui->leCommand->setEnabled(false);
-
     ui->cbLogType->addItem("Append", QIODevice::Append);
     ui->cbLogType->addItem("Overwrite", QIODevice::WriteOnly);
-
     ui->cbInputType->addItem("ASCII", SerialCommunication::KASCII);
     ui->cbInputType->addItem("Number", SerialCommunication::KNumber);
 
@@ -33,12 +32,14 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
     connect(ui->btLogTo, SIGNAL(clicked()), this, SLOT(btLogToClicked()));
     connect(ui->btClearOutput, SIGNAL(clicked()), this, SLOT(btClearOutputClicked()));
 
+    // instantiate the RI-CTL-MB2B-30 interactor and add it to the main tab.
     m_mb2b30 = new RICTLMB2B30Widget(m_connectionType, this);
     ui->tabWidget->addTab(m_mb2b30, "RI-CTL-MB2B-30");
 }
 
 ReaderInteractorWidget::~ReaderInteractorWidget()
 {
+    //When this interactor is ordered to close, close the log file first.
     if(m_logFile->isOpen())
         m_logFile->close();
 
@@ -76,7 +77,7 @@ void ReaderInteractorWidget::writeToOutput(const QString &text)
 {
     ui->teOutput->append(text);
 
-    if(m_useLogFile && m_logFile->isOpen()){ //save processing to check it the file is open, using the flag.
+    if(m_useLogFile && m_logFile->isOpen()){
         QTextStream logStream(m_logFile);
         logStream << text << QString("\r");
         logStream.flush();
@@ -112,22 +113,34 @@ void ReaderInteractorWidget::btLogToClicked()
 {
     QString fileName(QFileDialog::getOpenFileName(this, tr("Select log file"), QDir::homePath()));
     if(!fileName.isEmpty()){
+        // If a file was selected.
+
+
         if(m_logFile->isOpen())
             m_logFile->close();
 
-        //test if the log file can be used.
+        // Test if the log file can be used.
         m_logFile->setFileName(fileName);
         if(m_logFile->open(QIODevice::Append)){
+
+            // The log file can be used.
+
             m_logFile->close();
             m_useLogFile = true;
             SystemMessagesWidget::instance()->writeMessage(tr("The selected log file is good."));
         }else{
+
+            // The log file cannot be used.
+
             m_useLogFile = false;
             SystemMessagesWidget::instance()->writeMessage(tr("Cannot use the selected log file. It is not writable"));
         }
         ui->leLogFile->setText(fileName);
 
     }else{
+
+        // No file was selected.
+
         ui->leLogFile->setText("");
         m_useLogFile = false;
     }
@@ -136,8 +149,9 @@ void ReaderInteractorWidget::btLogToClicked()
 void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
 {
     if(checked){
-        //start reading
+        // Start reading selected.
 
+        // Try to open the log file to use if must use it.
         if(m_useLogFile){
             if( ! m_logFile->open((QIODevice::OpenModeFlag)ui->cbLogType->currentData().toInt())){
                 m_useLogFile = false;
@@ -152,6 +166,8 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
         ui->btSendCommand->setEnabled(true);
         ui->leCommand->setEnabled(true);
 
+
+        // Connect the signal of new messagens from connections, to display them in the QTextEdit and in the log file.
         if(m_connectionType == Settings::KSerial){
             connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
         }
@@ -160,7 +176,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
         }
 
     }else{
-        //pause reading
+        // Pause reading selected.
 
         if(m_logFile->isOpen())
             m_logFile->close();
@@ -171,6 +187,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
         ui->btSendCommand->setEnabled(false);
         ui->leCommand->setEnabled(false);
 
+        // Disconnect the signals to stop the output of answers.
         if(m_connectionType == Settings::KSerial){
             disconnect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
         }

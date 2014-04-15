@@ -16,7 +16,7 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
     ui->lvDevicesFound->setModel(m_raspFoundModel);
 
     connect(ui->btRaspSearch, SIGNAL(clicked()), this, SLOT(btRaspSearchClicked()));
-    connect(ui->btStopRaspSearch, SIGNAL(clicked()), this, SLOT(btStopRaspSearchClicked()));
+    connect(ui->btStopRaspSearch, SIGNAL(clicked()), this, SLOT(stopSearchingRasp()));
     connect(ui->lvDevicesFound, SIGNAL(clicked(QModelIndex)), this, SLOT(listViewClicked(QModelIndex)));
     connect(ui->btConnectToRasp, SIGNAL(clicked()), this, SLOT(btConnectToRaspClicked()));
     connect(m_raspFoundModel, SIGNAL(deviceRemoved(QString)),this,SLOT(newRaspTimeout(QString)));
@@ -44,7 +44,7 @@ void NetworkConnConfigWidget::btRaspSearchClicked()
     NetworkCommunication::instance()->startListeningBroadcast();
 }
 
-void NetworkConnConfigWidget::btStopRaspSearchClicked()
+void NetworkConnConfigWidget::stopSearchingRasp()
 {   
     ui->btRaspSearch->setEnabled(true);
     ui->btStopRaspSearch->setEnabled(false);

@@ -10,16 +10,21 @@ DeviceModel::DeviceModel(QObject *parent) :
 
 void DeviceModel::addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort)
 {
+    // Adds the device only if it does not exists yet. If already exists restart the timer.
     if(!m_deviceMap.contains(macAddress)){
         Device *d = new Device;
         d->daemonPort = daemonPort;
         d->ipAddress = ipAddress;
         d->macAddress = macAddress;
         m_deviceMap.insert(macAddress,d);
+
+        // When the timeout signal is emited from the timer for this device,
+        //calls this lambda function to remove it from the model.
         connect(&d->timer, &QTimer::timeout, [this,d](){this->removeDevice(d);});
 
         int index = m_deviceMap.keys().indexOf(macAddress);
 
+        //Informs the model has changed with a insert.
         beginInsertRows(QModelIndex(), index, index);
         endInsertRows();
     }else{
@@ -80,7 +85,6 @@ void DeviceModel::clear()
     endResetModel();
 
 }
-
 
 int DeviceModel::rowCount(const QModelIndex &parent) const
 {

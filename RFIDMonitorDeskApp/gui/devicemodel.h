@@ -5,13 +5,16 @@
 #include <QTimer>
 #include <QList>
 
+/**
+ * @brief The Device struct represents the Raspberry device object.
+ */
 struct Device
 {
     Device()
     {
-        timer.setSingleShot(true);
-        timer.setInterval(10000);
-        timer.start();
+        timer.setSingleShot(true); /**< Set the timeout timer to execute only one time. */
+        timer.setInterval(10000); /**< Set the timeout period to 10 seconds. */
+        timer.start(); /**< Start the timeout timer when the object is created here.*/
     }
 
     ~Device()
@@ -19,51 +22,110 @@ struct Device
 
     }
 
+    /**
+     * @brief resetTimer restarts the timer.
+     */
     void resetTimer()
     {
         timer.start();
     }
 
-
+    /**
+     * @brief operator == Overload the ==operator to compare with the macAddress value.
+     * @param value is the macAddress to be compared.
+     * @return true if equals, false otherwise.
+     */
     bool operator==(const QString &value) const
     {
         return macAddress==value;
     }
 
+    /**
+     * @brief toString prints in a pattern the state of the object.
+     * @return the QString with "MAC - IP:Port" format"
+     */
     QString toString()
     {
         return QString("MAC: %1 - IP:Port %2:%3").arg(macAddress).arg(ipAddress).arg(daemonPort);
     }
 
-
     QString macAddress;
     QString ipAddress;
     int daemonPort;
     QTimer timer;
-
-
 };
 
+/**
+ * @brief The DeviceModel class is the list model to be used in the QListView that represents a list of Devices.
+ */
 class DeviceModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
     explicit DeviceModel(QObject *parent = 0);
-    void addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort);
-    void removeDevice(Device *device);
-    QVariant deviceMacAddress(const QModelIndex &index) const;
-    QVariant deviceIPAddress(const QModelIndex &index) const;
-    QVariant deviceDaemonPort(const QModelIndex &index) const;
-    void clear();
 
+    /**
+     * @brief reimplemented function from QAbstractListModel.
+     */
+    void addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort);
+
+    /**
+     * @brief reimplemented function from QAbstractListModel.
+     */
+    void removeDevice(Device *device);
+
+    /**
+     * @brief reimplemented function from QAbstractListModel.
+     */
     int rowCount(const QModelIndex &parent) const;
+
+    /**
+     * @brief reimplemented function from QAbstractListModel.
+     */
     QVariant data(const QModelIndex &index, int role) const;
+
+    /**
+     * @brief reimplemented function from QAbstractListModel.
+     */
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
+
+    /**
+     * @brief deviceMacAddress gets the MAC address for the device of the passed index.
+     * @param index refers the requested device index.
+     * @return QVariant with MAC Address.
+     */
+    QVariant deviceMacAddress(const QModelIndex &index) const;
+
+    /**
+     * @brief deviceIPAddress gets the IP address for the device of the passed index.
+     * @param index refers the requested device index.
+     * @return QVariant with IP address.
+     */
+    QVariant deviceIPAddress(const QModelIndex &index) const;
+
+    /**
+     * @brief deviceDaemonPort gets the daemon port for the device of the passed index.
+     * @param index refers the requested device index.
+     * @return QVariant with daemon port.
+     */
+    QVariant deviceDaemonPort(const QModelIndex &index) const;
+
+    /**
+     * @brief clear remove all devices from the model.
+     */
+    void clear();
+
 private:
+    /**
+     * @brief m_deviceMap is a map that holds the list of devices, by a key as MAC Address.
+     */
     QMap<QString,Device*> m_deviceMap;
 
 signals:
+    /**
+     * @brief deviceRemoved is a signal that informs a removed device from the model.
+     */
     void deviceRemoved(QString);
 };
 

@@ -10,13 +10,13 @@ SerialConnConfigWidget::SerialConnConfigWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    m_serialCommunication = SerialCommunication::instance();
-
-
     connect(ui->btRefreshDeviceList, &QPushButton::clicked, this, &SerialConnConfigWidget::btRefreshDeviceClicked);
     connect(ui->btConnect, &QPushButton::clicked, this, &SerialConnConfigWidget::btConnectToDeviceClicked);
 
+    // Load the combobox for the first time in the instatiation.
     refreshDeviceList();
+
+    // Fill all other connection options to the user in the window.
     populateFields();
 }
 
@@ -28,16 +28,12 @@ SerialConnConfigWidget::~SerialConnConfigWidget()
 void SerialConnConfigWidget::refreshDeviceList()
 {
     ui->cbDeviceList->clear();
-    ui->cbDeviceList->addItems(m_serialCommunication->availablePorts());
+    ui->cbDeviceList->addItems(SerialCommunication::instance()->availablePorts());
 }
 
 void SerialConnConfigWidget::connectToDevice()
 {
-
-    //REMOVE BELLOW
-    emit serialCommunicationReady();
-    //REMOVE ABOVE
-    if(m_serialCommunication->connectToDevice(ui->cbDeviceList->currentText(),
+    if(SerialCommunication::instance()->connectToDevice(ui->cbDeviceList->currentText(),
                                               (QIODevice::OpenModeFlag)ui->cbOpenType->currentData().toInt(),
                                               (QSerialPort::BaudRate)ui->cbBaudRate->currentData().toInt(),
                                               (QSerialPort::DataBits)ui->cbDataBits->currentData().toInt(),
@@ -45,7 +41,7 @@ void SerialConnConfigWidget::connectToDevice()
                                               (QSerialPort::Parity)ui->cbParity->currentData().toInt()
                                               )){
 
-        //Notify MainWindow the connection is done.
+        //Notify MainWindow the connection is ready.
         emit serialCommunicationReady();
 
     }

@@ -26,12 +26,11 @@ public:
 
 private:
     Ui::NetworkConnConfigWidget *ui;
-    NetworkCommunication *m_networkCommunication;
     DeviceModel *m_raspFoundModel;
 
 public slots:
     void btRaspSearchClicked();
-    void btStopRaspSearchClicked();
+    void stopSearchingRasp();
     void newRaspFound(const QVariantMap raspInfo);
     void newRaspTimeout(const QString deviceDisplayRole);
     void btConnectToRaspClicked();

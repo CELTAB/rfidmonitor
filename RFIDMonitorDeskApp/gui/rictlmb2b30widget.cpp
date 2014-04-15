@@ -15,15 +15,20 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
 {
     ui->setupUi(this);
 
+    // Set up the interval time of the timeout to 1 second.
     m_timeout.setInterval(1000);
+    // Define the timer to execute only one time.
     m_timeout.setSingleShot(true);
 
+    // Define the regular expression for hexadecimal with 16 digits.
     QRegExp hexaRegExp("[0-9a-fA-F]{16}");
     m_hexaValidator = new QRegExpValidator(hexaRegExp,this);
 
+    // Define the regular expression for decimal with 16 digits.
     QRegExp decRegExp("[0-9]{16}");
     m_deciValidator = new QRegExpValidator(decRegExp,this);
 
+    // Set the default validator as hexadecimal.
     ui->leIdentification->setValidator(m_hexaValidator);
 
     connect(ui->leIdentification, SIGNAL(textChanged(QString)), this, SLOT(leIdentificationChanged(QString)));
@@ -53,12 +58,18 @@ void RICTLMB2B30Widget::sendCommand(const QString &command)
 void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
 {
     m_identification.clear();
-    if(ui->leIdentification->text().size() > 0){
+
+    if( ! ui->leIdentification->text().isEmpty()){
+        // If the field contains some value.
 
         if(ui->rbDecimal->isChecked()){
+            // Parse to hexadecimal.
+
             quint64 decimal = ui->leIdentification->text().toULongLong();
             m_identification.setNum(decimal,16);
+
         }else if(ui->rbHexadecimal->isChecked()){
+            // Do not parse, simple set it
             m_identification.append(ui->leIdentification->text());
         }
         QString finalIdentification;
@@ -68,6 +79,8 @@ void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
         m_identification.append(finalIdentification);
         ui->labelIdentificationStatus->setText(tr("The identification will be writted in hexadecimal, as: ") + m_identification);
     }else{
+        // If the identification field is empty, then clear the field instead of
+        // trying to handle it.
         ui->labelIdentificationStatus->clear();
     }
 }
@@ -81,29 +94,60 @@ void RICTLMB2B30Widget::btWriteClicked()
         return;
     }
 
-    if(ui->leIdentification->text().size() < 1){
+    if(ui->leIdentification->text().isEmpty()){
         SystemMessagesWidget::instance()->writeMessage(tr("The identification must have at least 1 characters."), SystemMessagesWidget::KWarning);
         return;
     }
 
     ui->btWrite->setEnabled(false);
+
+    // Mark the processing to check for a answers on reading.
     m_waitingForAnswer = true;
+
+    /* Send the "L" command to the reader. This ensure that the reader operates in Line Mode.
+     * It is needed to keep the reader responding for reads, to check the command responses
+     * and the identification codes from transponder, automatically. */
     sendCommand("L");
+
+    /* Send the "K0" command to the reader. This ensure that the reader understant it is working
+     * with a 64-bits transponder, a K0. If the reader is not set with K0, it will not understand
+     * the commands and will not answer, correctly. */
     sendCommand("K0");
+
+    /* Send the "P" + identification code to the reader. This is the way to define a new code
+     * to the trasponder. */
     sendCommand("P" + m_identification);
+
+    // Start the timeout to wait for a response. If the timer ends, define as failed.
     m_timeout.start();
 }
 
 void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
 {
+    // Only check anything if is waiting for a answer, after sending a command.
     if(m_waitingForAnswer){
         if(answer.contains(QString("P0"))){
-            m_timeout.start(); //restart the timeout to have more time, now check the new identification.
+            // The answer "P0" from the reader means the new code is successfully defined.
+
+            //restart the timeout to have more time, now check the new identification.
+            m_timeout.start();
+
+            /* With a positive response from  the reader, its time to ensure the new code is
+             * really in the transponder. So mark the process to compare the new code with
+             * the defined one. */
             m_waitingForCheck = true;
-        }else if(m_waitingForCheck && answer.contains(QString().setNum(answer.toULongLong()))){
+
+        }else if(m_waitingForCheck && answer.contains(m_identification)){
+            /* If need to check the code, and it is inside the answer, means it was
+             * really defined in the transponder. Now its consired success. */
+
+            // Cancel the timeout.
             m_timeout.stop();
+
+            // Does not wait for check anymore.
             m_waitingForCheck = false;
 
+            // Print a cool message to the user.
             QString message(tr("New identification defined successfully"));
             SystemMessagesWidget::instance()->writeMessage(message, SystemMessagesWidget::KInfo);
             ui->labelRectangleStatus->setText(message);
@@ -111,10 +155,17 @@ void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
             ui->labelRectangleStatus->show();
 
         }else if(answer.contains(QString("P1")))
+            /* The answer "P1" from the reader means: The identification received from the
+             * transponder is different to the identification transmitted. */
             SystemMessagesWidget::instance()->writeMessage(tr("Reader said: P1"), SystemMessagesWidget::KError);
         else if(answer.contains(QString("P12"))){
+            /* The answer "P12" from the reader means: the reader could not understand the transponder.
+             * Probably because the reader is trying to handle a different kind of transponder, in the
+             * wrong K1 mode. So it is needed to change the mode to K0 for a 64-bits transponder. */
             SystemMessagesWidget::instance()->writeMessage(tr("The reader is operatin in K1 mode. Change it to K0! Reader said: P12"), SystemMessagesWidget::KError);
         }else if(answer.contains(QString("P2"))){
+            /* The answer "P2" from the reader means: The TIRIS reader did not receive any
+             * identification from the transponder for comparison. */
             SystemMessagesWidget::instance()->writeMessage(tr("Reader said: P2"), SystemMessagesWidget::KError);
         }
         ui->btWrite->setEnabled(true);
@@ -123,6 +174,7 @@ void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
 
 void RICTLMB2B30Widget::timeout()
 {
+    // The answer from the reader did not come, or the checking for new code failed.
     m_waitingForAnswer = false;
     ui->btWrite->setEnabled(true);
     ui->labelRectangleStatus->setText(tr("Failed to define new identification."));
@@ -135,8 +187,12 @@ void RICTLMB2B30Widget::rbDecimalClicked()
     ui->leIdentification->setValidator(m_deciValidator);
     int pos;
     QString identification(ui->leIdentification->text());
+
+    // Check if the code is valid for a decimal value.
     if(m_deciValidator->validate(identification,pos) == QRegExpValidator::Invalid)
         ui->leIdentification->clear();
+
+    // Call leIdentificationChanged to handle the code.
     leIdentificationChanged(QString());
 }
 
@@ -145,14 +201,18 @@ void RICTLMB2B30Widget::rbHexadecimalClicked()
     ui->leIdentification->setValidator(m_hexaValidator);
     int pos;
     QString identification(ui->leIdentification->text());
+
+    // Check if the code is valid for a hexadecimal value.
     if(m_hexaValidator->validate(identification,pos) == QRegExpValidator::Invalid)
         ui->leIdentification->clear();
+
+    // Call leIdentificationChanged to handle the code.
     leIdentificationChanged(QString());
 }
 
 void RICTLMB2B30Widget::incrementIdentification()
 {
-    if(ui->leIdentification->text().size() > 0){
+    if( ! ui->leIdentification->text().isEmpty()){
         if(ui->rbHexadecimal->isChecked()){
             bool parseOk = false;
             quint64 val = ui->leIdentification->text().toULongLong(&parseOk,16);

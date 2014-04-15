@@ -32,16 +32,11 @@ QStringList SerialCommunication::availablePorts()
     return deviceList;
 }
 
-
-SerialCommunication::~SerialCommunication()
+void SerialCommunication::writeAnswer(QString text)
 {
-
-}
-
-void SerialCommunication::writeLog(QString text)
-{
+    // Emits the answer with time and the string trimmed().
     QString time("[" + QTime::currentTime().toString() + "] ");
-    emit newAnswer(time + text.replace(QString("\r"), QString("<CR>")).replace(QString("\n"),QString("<LF>")));
+    emit newAnswer(time + text.trimmed());
 }
 
 bool SerialCommunication::connectToDevice(const QString &device,
@@ -96,11 +91,10 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
                 return false;
             }
         }else if(type == KNumber){
-            //convert QString to number
 
+            //convert QString to number
             bool parseOK = false;
             int parsedValue = command.toInt(&parseOK, 16);
-
             if(parseOK){
                 if (m_serialPort->write(reinterpret_cast<char*>(&parsedValue), sizeof(int)) == -1){
                     SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
@@ -129,6 +123,7 @@ void SerialCommunication::handleError(const QSerialPort::SerialPortError error)
 
 void SerialCommunication::dataRead()
 {
+    // If have a complete line in the buffer, read it.
     if(m_serialPort->canReadLine())
-        writeLog(QString(m_serialPort->readAll()));
+        writeAnswer(QString(m_serialPort->readLine()));
 }
