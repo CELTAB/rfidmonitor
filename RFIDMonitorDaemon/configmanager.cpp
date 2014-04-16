@@ -1,3 +1,7 @@
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+
 #include "configmanager.h"
 
 ConfigManager::ConfigManager(QObject *parent):
@@ -47,9 +51,14 @@ QJsonObject ConfigManager::identification()
 
 void ConfigManager::setIdentification(QJsonObject &json)
 {
+#if QT_VERSION < 0x050200
+    m_systemSettings.setId(json.value("id").toVariant().toInt());
+#else
+    m_systemSettings.setId(json.value("id").toInt());
+#endif // QT_VERSION < 0x050200
+
     m_systemSettings.setMacAddress(json.value("macaddress").toString());
     m_systemSettings.setName(json.value("name").toString());
-    m_systemSettings.setId(json.value("id").toInt());
     if(saveJsonFile())
         qDebug() << "Json save successfully";
 }
@@ -126,17 +135,17 @@ bool ConfigManager::restartNetwork()
     }
 
     static QString interface("auto lo\n"
-                      "iface lo inet loopback\n\n"
-                       "iface eth0 inet dhcp\n\n"
-                      "auto wlan0\n"
-                      "iface wlan0 inet dhcp\n"
-                      "\twpa-essid %1\n"
-                      "\twpa-psk %2\n");
+                             "iface lo inet loopback\n\n"
+                             "iface eth0 inet dhcp\n\n"
+                             "auto wlan0\n"
+                             "iface wlan0 inet dhcp\n"
+                             "\twpa-essid %1\n"
+                             "\twpa-psk %2\n");
 
-//                             "iface eth0 inet static\n"
-//                             "\taddress 192.168.1.5\n"
-//                             "\tnetmask 255.255.255.0\n"
-//                             "\tgateway 192.168.1.254\n"
+    //                             "iface eth0 inet static\n"
+    //                             "\taddress 192.168.1.5\n"
+    //                             "\tnetmask 255.255.255.0\n"
+    //                             "\tgateway 192.168.1.254\n"
 
     m_interfaces.write(interface.arg(m_systemSettings.networkConfiguration().essid()).arg(m_systemSettings.networkConfiguration().password()).toLatin1());
     m_interfaces.close();
@@ -144,5 +153,4 @@ bool ConfigManager::restartNetwork()
     QProcess restartNet;
     restartNet.start("service network-manager restart");
     return restartNet.waitForFinished();
-//    return false;
 }

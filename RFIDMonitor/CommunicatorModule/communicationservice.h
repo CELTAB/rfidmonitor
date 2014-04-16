@@ -26,6 +26,10 @@
 #ifndef COMMUNICATIONSERVICE_H
 #define COMMUNICATIONSERVICE_H
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateTime>
+
 #include <QLocalSocket>
 #include <core/interfaces.h>
 

@@ -29,20 +29,14 @@ public:
     QString jsonDateTime() const;
     void setJsonDateTime(const QString &dateTime);
 
-//    QDateTime dateTime() const;
-//    void setDateTime(const QDateTime &dateTime);
+    QDateTime dateTime() const;
+    void setDateTime(const QDateTime &dateTime);
 
 private:
     QString m_type;
-
-//    QString m_jsonData;
-//    QDateTime m_dateTime;
-
+    QDateTime m_dateTime;
     QJsonObject m_jsonData;
-    QString m_dateTime;
-
 };
-
 }
 
 #endif // NODEJSMESSAGE_H

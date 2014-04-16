@@ -27,6 +27,8 @@
 #define PACKAGERSERVICE_H
 
 #include <QTimer>
+#include <QMutex>
+#include <QMutexLocker>
 
 #include <core/interfaces.h>
 
@@ -44,6 +46,8 @@ public:
 
 private:
     void generatePackets();
+    QMutex m_mutex;
+
 };
 
 #endif // PACKAGERSERVICE_H

@@ -13,17 +13,14 @@ NodeJSMessage::NodeJSMessage()
 void NodeJSMessage::read(const QJsonObject &json)
 {
     m_type = json["type"].toString();
-    m_dateTime = json["datetime"].toString();
+    m_dateTime = QDateTime::fromString(json["datetime"].toString());
     m_jsonData = json["data"].toObject();
 }
 
 void NodeJSMessage::write(QJsonObject &json) const
 {
     json["type"] = m_type;
-    json["datetime"] = m_dateTime;//.toString(Qt::ISODate);
-
-//    QJsonObject jsonData = QJsonDocument::fromJson(m_jsonData.toLatin1()).object();
-//    json["data"] = jsonData;
+    json["datetime"] = m_dateTime.toString(Qt::ISODate);
     json["data"] = m_jsonData;
 }
 
@@ -45,22 +42,13 @@ void NodeJSMessage::setJsonData(const QJsonObject &jsonData)
 {
     m_jsonData = jsonData;
 }
-//QDateTime NodeJSMessage::dateTime() const
-//{
-//    return m_dateTime;
-//}
 
-//void NodeJSMessage::setDateTime(const QDateTime &dateTime)
-//{
-//    m_dateTime = dateTime;
-//}
-
-QString NodeJSMessage::jsonDateTime() const
+QDateTime NodeJSMessage::dateTime() const
 {
     return m_dateTime;
 }
 
-void NodeJSMessage::setJsonDateTime(const QString &dateTime)
+void NodeJSMessage::setDateTime(const QDateTime &dateTime)
 {
     m_dateTime = dateTime;
 }

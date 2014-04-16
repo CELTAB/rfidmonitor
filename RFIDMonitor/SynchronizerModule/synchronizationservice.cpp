@@ -64,7 +64,7 @@ void SynchronizationService::readyRead()
 
                 json::NodeJSMessage answer;
                 answer.setType("DATA");
-                answer.setJsonDateTime(QDateTime::currentDateTime().toString(Qt::ISODate));
+                answer.setDateTime(QDateTime::currentDateTime());
                 answer.setJsonData(QJsonDocument::fromJson(QString(i.value()).toLatin1()).object());
                 QJsonObject jsonAnswer;
                 answer.write(jsonAnswer);
