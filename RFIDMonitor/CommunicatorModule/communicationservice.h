@@ -43,6 +43,7 @@ public:
     void init();
     ServiceType type();
 
+    void sendMessage(QJsonObject data, QString type);
     void sendMessage(QByteArray value);
 
 public slots:

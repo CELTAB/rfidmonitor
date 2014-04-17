@@ -103,11 +103,12 @@ struct RFIDMonitorPrivate
         systemSettings.read(loadDoc.object());
 
         device = systemSettings.device();
+        loadFile.close();
         return true;
     }
 
     bool writeSettings()
-    {
+    {        
         QFile saveFile("rfidmonitor.json");
 
         if (!saveFile.open(QIODevice::WriteOnly)) {
@@ -149,7 +150,11 @@ struct RFIDMonitorPrivate
     void loadModules()
     {
         QDir pluginsDir(qApp->applicationDirPath());
-        pluginsDir.cd("modules");
+        // Verify is the modules directory exists; If doesn't close the appication. Without load modules the application can't work
+        if(!pluginsDir.cd("modules")){
+            Logger::instance()->writeRecord(Logger::severity_level::fatal, moduleName, Q_FUNC_INFO, "Can't find Modules Directory");
+            return;
+        }
 
         foreach (QString fileName, pluginsDir.entryList(QDir::Files)){
             QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
@@ -185,7 +190,6 @@ struct RFIDMonitorPrivate
                 addService(serv);
             }            
         }
-        //
     }
 
     void loadDefaultServices()
@@ -429,16 +433,20 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-    //parse da mensagem para obter um json
-    if(message == "ExitSystem"){
-        qDebug() << "Exit ... !!";
-        qApp->exit(0);
-    }else if(message == "RestartSystem"){
-        qApp->exit(1);
-    }else if(message == "json"){
-        d_ptr->systemSettings.setName("");
-        d_ptr->writeSettings();
-        qApp->exit(1);
+    qDebug() << "Received a message: " << QString(message);
+
+    if(message == "Reload Settings"){
+        d_ptr->readSettings();
     }
+//    if(message == "ExitSystem"){
+//        qDebug() << "Exit ... !!";
+//        qApp->exit(0);
+//    }else if(message == "RestartSystem"){
+//        qApp->exit(1);
+//    }else if(message == "Reload Settings"){
+//        d_ptr->systemSettings.setName("");
+//        d_ptr->writeSettings();
+//        qApp->exit(1);
+//    }
 }
 

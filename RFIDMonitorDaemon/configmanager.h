@@ -18,6 +18,7 @@ class ConfigManager : public QObject
 
 public:
     explicit ConfigManager(QObject *parent = 0);
+    ~ConfigManager();
 
     bool setDateTime(QDateTime datetime);
     QJsonObject currentConfig();

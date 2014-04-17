@@ -14,6 +14,11 @@ ConfigManager::ConfigManager(QObject *parent):
     openJsonFile();
 }
 
+ConfigManager::~ConfigManager()
+{
+    delete &m_systemSettings;
+}
+
 bool ConfigManager::setDateTime(QDateTime datetime)
 {
     bool status = true;
