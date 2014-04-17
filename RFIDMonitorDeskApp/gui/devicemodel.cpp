@@ -8,37 +8,37 @@ DeviceModel::DeviceModel(QObject *parent) :
 {
 }
 
-void DeviceModel::addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort)
+void DeviceModel::addDevice(const QString &name, const QString &macAddress, const QString &ipAddress)
 {
     // Adds the device only if it does not exists yet. If already exists restart the timer.
     if(!m_deviceMap.contains(macAddress)){
         Device *d = new Device;
-        d->daemonPort = daemonPort;
+        d->name = name;
         d->ipAddress = ipAddress;
         d->macAddress = macAddress;
-        m_deviceMap.insert(macAddress,d);
+        m_deviceMap.insert(ipAddress,d);
 
         // When the timeout signal is emited from the timer for this device,
         //calls this lambda function to remove it from the model.
-        connect(&d->timer, &QTimer::timeout, [this,d](){this->removeDevice(d);});
+        //connect(&d->timer, &QTimer::timeout, [this,d](){this->removeDevice(d);});
 
-        int index = m_deviceMap.keys().indexOf(macAddress);
+        int index = m_deviceMap.keys().indexOf(ipAddress);
 
         //Informs the model has changed with a insert.
         beginInsertRows(QModelIndex(), index, index);
         endInsertRows();
     }else{
-        m_deviceMap.value(macAddress)->resetTimer();
+        //m_deviceMap.value(macAddress)->resetTimer();
     }
 }
 
-void DeviceModel::removeDevice(Device *device)
+void DeviceModel::removeDevice(QString ipAddress)
 {
-    int index = m_deviceMap.keys().indexOf(device->macAddress);
+    int index = m_deviceMap.keys().indexOf(ipAddress);
 
     beginRemoveRows(QModelIndex(), index, index);
-
-    m_deviceMap.remove(device->macAddress);
+    Device *device = m_deviceMap.value(ipAddress);
+    m_deviceMap.remove(ipAddress);
     emit deviceRemoved(device->toString());
     delete device;
 
@@ -61,12 +61,12 @@ QVariant DeviceModel::deviceIPAddress(const QModelIndex &index) const
     return m_deviceMap.values().at(index.row())->ipAddress;
 }
 
-QVariant DeviceModel::deviceDaemonPort(const QModelIndex &index) const
+QVariant DeviceModel::deviceName(const QModelIndex &index) const
 {
     if(!index.isValid())
         return QVariant();
 
-    return m_deviceMap.values().at(index.row())->daemonPort;
+    return m_deviceMap.values().at(index.row())->name;
 }
 
 void DeviceModel::clear()

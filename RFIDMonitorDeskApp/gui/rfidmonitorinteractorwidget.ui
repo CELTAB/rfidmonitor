@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>560</width>
-    <height>442</height>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -99,12 +99,12 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_5">
              <property name="text">
-              <string>DB Size</string>
+              <string>Device</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QLineEdit" name="leDbsize"/>
+            <widget class="QLineEdit" name="leDevice"/>
            </item>
           </layout>
          </widget>
@@ -181,6 +181,16 @@
               <item row="4" column="1">
                <widget class="QComboBox" name="cbDefaultCommunicatorService"/>
               </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Packager</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="cbDefaultPackagerService"/>
+              </item>
              </layout>
             </widget>
            </item>
@@ -197,6 +207,9 @@
               <string>Rasp interface</string>
              </property>
              <layout class="QFormLayout" name="formLayout_4">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+              </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_3">
                 <property name="text">
@@ -206,16 +219,6 @@
               </item>
               <item row="0" column="1">
                <widget class="QLineEdit" name="leMac"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>IP</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="leIp"/>
               </item>
              </layout>
             </widget>
@@ -254,6 +257,28 @@
              <property name="title">
               <string>Server</string>
              </property>
+             <layout class="QFormLayout" name="formLayout_5">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Address</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="leServerAddress"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Port</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="leServerPort"/>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>

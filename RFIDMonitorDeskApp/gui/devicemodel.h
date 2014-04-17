@@ -12,9 +12,9 @@ struct Device
 {
     Device()
     {
-        timer.setSingleShot(true); /**< Set the timeout timer to execute only one time. */
-        timer.setInterval(10000); /**< Set the timeout period to 10 seconds. */
-        timer.start(); /**< Start the timeout timer when the object is created here.*/
+        //timer.setSingleShot(true); /**< Set the timeout timer to execute only one time. */
+        //timer.setInterval(10000); /**< Set the timeout period to 10 seconds. */
+        //timer.start(); /**< Start the timeout timer when the object is created here.*/
     }
 
     ~Device()
@@ -25,10 +25,10 @@ struct Device
     /**
      * @brief resetTimer restarts the timer.
      */
-    void resetTimer()
-    {
-        timer.start();
-    }
+//    void resetTimer()
+//    {
+//        timer.start();
+//    }
 
     /**
      * @brief operator == Overload the ==operator to compare with the macAddress value.
@@ -37,7 +37,7 @@ struct Device
      */
     bool operator==(const QString &value) const
     {
-        return macAddress==value;
+        return ipAddress==value;
     }
 
     /**
@@ -46,13 +46,13 @@ struct Device
      */
     QString toString()
     {
-        return QString("MAC: %1 - IP:Port %2:%3").arg(macAddress).arg(ipAddress).arg(daemonPort);
+        return QString("Name: %1 | MAC: %2 | IP: %3").arg(name).arg(macAddress).arg(ipAddress);
     }
 
     QString macAddress;
     QString ipAddress;
-    int daemonPort;
-    QTimer timer;
+    QString name;
+//    QTimer timer;
 };
 
 /**
@@ -67,12 +67,12 @@ public:
     /**
      * @brief reimplemented function from QAbstractListModel.
      */
-    void addDevice(const QString &macAddress, const QString &ipAddress, const int &daemonPort);
+    void addDevice(const QString &name, const QString &macAddress, const QString &ipAddress);
 
     /**
      * @brief reimplemented function from QAbstractListModel.
      */
-    void removeDevice(Device *device);
+    void removeDevice(QString ipAddress);
 
     /**
      * @brief reimplemented function from QAbstractListModel.
@@ -109,7 +109,7 @@ public:
      * @param index refers the requested device index.
      * @return QVariant with daemon port.
      */
-    QVariant deviceDaemonPort(const QModelIndex &index) const;
+    QVariant deviceName(const QModelIndex &index) const;
 
     /**
      * @brief clear remove all devices from the model.

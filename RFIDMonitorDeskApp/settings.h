@@ -20,8 +20,17 @@ public:
                       KRFIDMonitorAnswer
                      };
     enum InteractionType {KReader = 0, KRFIDMonitor};
+    enum ServiceType {
+        KReaderService = 1,
+        KPersister,
+        KExporter,
+        KSynchronizer,
+        KCommunicator,
+        KPackager
+    };
 
     static Settings *instance();
+    static QString translateServiceType(int code);
 
     QVariant setting(const QString &key);
     void setSetting(const QString &key, const QVariant &value);

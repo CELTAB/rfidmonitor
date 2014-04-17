@@ -116,6 +116,13 @@ public slots:
      * @param checked true if must start, and false if must pause.
      */
     void btStartPauseReadingClicked(const bool checked);
+
+    /**
+     * @brief raspDisconnected is a slot called when the rasp is disconnected by the network.
+     *
+     * This will block the window to the user dont try to send new commands.
+     */
+    void raspDisconnected();
 };
 
 #endif // READERINTERACTORWIDGET_H

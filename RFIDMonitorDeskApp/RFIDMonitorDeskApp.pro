@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     persistence.cpp \
     gui/systemmessageswidget.cpp \
     gui/devicemodel.cpp \
-    gui/rictlmb2b30widget.cpp
+    gui/rictlmb2b30widget.cpp \
+    json/rfidmonitorsettings.cpp
 
 HEADERS  += \
     gui/serialconnconfigwidget.h \
@@ -38,7 +39,8 @@ HEADERS  += \
     gui/systemmessageswidget.h \
     gui/mainwindow.h \
     gui/devicemodel.h \
-    gui/rictlmb2b30widget.h
+    gui/rictlmb2b30widget.h \
+    json/rfidmonitorsettings.h
 
 FORMS    += \
     gui/mainwindow.ui \

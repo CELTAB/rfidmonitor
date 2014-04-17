@@ -14,6 +14,26 @@ Settings *Settings::instance()
     return instance;
 }
 
+QString Settings::translateServiceType(int code)
+{
+    switch (code) {
+    case ServiceType::KReaderService:
+        return QString("Reader");
+    case ServiceType::KPersister:
+        return QString("Persister");
+    case ServiceType::KExporter:
+        return QString("Exporter");
+    case ServiceType::KSynchronizer:
+        return QString("Synchronizer");
+    case ServiceType::KCommunicator:
+        return QString("Communicator");
+    case ServiceType::KPackager:
+        return QString("Packager");
+    default:
+        return QString("Unknown");
+    }
+}
+
 QVariant Settings::setting(const QString &key)
 {
     return m_settings.value(key);

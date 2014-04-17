@@ -32,6 +32,10 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
     connect(ui->btLogTo, SIGNAL(clicked()), this, SLOT(btLogToClicked()));
     connect(ui->btClearOutput, SIGNAL(clicked()), this, SLOT(btClearOutputClicked()));
 
+    if(type == Settings::KNetwork){
+        connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(raspDisconnected()));
+    }
+
     // instantiate the RI-CTL-MB2B-30 interactor and add it to the main tab.
     m_mb2b30 = new RICTLMB2B30Widget(m_connectionType, this);
     ui->tabWidget->addTab(m_mb2b30, "RI-CTL-MB2B-30");
@@ -196,4 +200,11 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
         }
     }
 
+}
+
+void ReaderInteractorWidget::raspDisconnected()
+{
+    qDebug() << Q_FUNC_INFO;
+    ui->leCommand->setEnabled(false);
+    ui->btSendCommand->setEnabled(false);
 }
