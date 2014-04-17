@@ -369,7 +369,7 @@ void RFIDMonitorDaemon::routeMessageIpc()
     else{
         qDebug() << "UNKNOWN MESSAGE";
         QJsonObject unknownObj;
-        unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
+        unknownObj.insert("unknownmessage", QJsonValue(nodeMessage.jsonData()));
         unknownObj.insert("errorinfo", QString("Unknown message received"));
 
         ipcSendMessage(buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
