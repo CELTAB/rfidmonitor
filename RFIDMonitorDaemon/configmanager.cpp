@@ -60,7 +60,7 @@ void ConfigManager::setIdentification(QJsonObject &json)
     m_systemSettings.setMacAddress(json.value("macaddress").toString());
     m_systemSettings.setName(json.value("name").toString());
     if(saveJsonFile())
-        qDebug() << "Json save successfully";
+        qDebug() << "New identification saved successfully";
 }
 
 QString ConfigManager::hostName()

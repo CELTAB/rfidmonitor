@@ -122,11 +122,15 @@ void CommunicationService::ipcReadyRead()
     else{
         qDebug() << "Received an UNKNOWN message";
         QJsonDocument rootDoc;
+        QJsonObject unknownObj;
         QJsonObject obj;
+
+        unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
+        unknownObj.insert("errorinfo", QString("Unknown message received"));
 
         obj.insert("type", QString("ACK-UNKNOWN"));
         obj.insert("datetime", QDateTime::currentDateTime().toString(Qt::ISODate));
-        obj.insert("data", QJsonValue(QJsonDocument::fromJson(data).object()));
+        obj.insert("data", unknownObj);
         rootDoc.setObject(obj);
 
         m_localSocket->write(rootDoc.toJson());

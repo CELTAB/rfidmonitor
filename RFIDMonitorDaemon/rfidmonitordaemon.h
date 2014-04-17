@@ -51,13 +51,11 @@ public:
 
 public slots:
     void ipcNewConnection();
-    void ipcReadyRead();
     void ipcSendMessage(const QByteArray &message);
 
     void tcpConnect();
     void tcpConnected();
     void tcpDisconnected();
-    void tcpReadyRead();
     void tcpHandleError(QAbstractSocket::SocketError error);
 
     void tcpSendMessage(QTcpSocket *con, const QByteArray &message);

@@ -31,10 +31,6 @@ public:
     bool setNetConfig(QJsonObject &netJson);
     bool restartNetwork();
 
-signals:
-    void sendTcpMessage(const QByteArray &);
-    void sendIpcMessage(const QByteArray &);
-
 private:
     QFile m_json;
     QFile m_interfaces;
