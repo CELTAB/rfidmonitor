@@ -33,7 +33,7 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
     connect(ui->btClearOutput, SIGNAL(clicked()), this, SLOT(btClearOutputClicked()));
 
     if(type == Settings::KNetwork){
-        connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(raspDisconnected()));
+        connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(connectionFinished()));
     }
 
     // instantiate the RI-CTL-MB2B-30 interactor and add it to the main tab.
@@ -86,6 +86,17 @@ void ReaderInteractorWidget::writeToOutput(const QString &text)
         logStream << text << QString("\r");
         logStream.flush();
     }
+}
+
+void ReaderInteractorWidget::lockForms()
+{
+    ui->leCommand->setEnabled(false);
+    ui->btSendCommand->setEnabled(false);
+    ui->cbInputType->setEnabled(false);
+    ui->btStartPauseReading->setEnabled(false);
+    ui->btLogTo->setEnabled(false);
+    ui->cbLogType->setEnabled(false);
+    ui->btClearOutput->setEnabled(false);
 }
 
 void ReaderInteractorWidget::newAnswerFromSerialComm(const QString answer)
@@ -202,9 +213,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
 
 }
 
-void ReaderInteractorWidget::raspDisconnected()
+void ReaderInteractorWidget::connectionFinished()
 {
-    qDebug() << Q_FUNC_INFO;
-    ui->leCommand->setEnabled(false);
-    ui->btSendCommand->setEnabled(false);
+    lockForms();
 }

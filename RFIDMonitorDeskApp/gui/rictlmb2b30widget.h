@@ -76,6 +76,11 @@ private:
      */
     QRegExpValidator *m_deciValidator;
 
+    /**
+     * @brief lockForms disable all interation methods in this window.
+     */
+    void lockForms();
+
 public slots:
 
     /**
@@ -129,6 +134,13 @@ public slots:
      *
      */
     void incrementIdentification();
+
+    /**
+     * @brief connectionFinished is a slot called when the connection is lost.
+     *
+     * This will block the window to the user dont try to send new commands.
+     */
+    void communicationFinished();
 };
 
 #endif // RICTLMB2B30WIDGET_H

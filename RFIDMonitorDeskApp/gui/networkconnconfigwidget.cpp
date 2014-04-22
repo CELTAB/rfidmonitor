@@ -16,14 +16,12 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
     ui->lvDevicesFound->setModel(m_raspFoundModel);
 
     connect(ui->btRaspSearch, SIGNAL(clicked()), this, SLOT(btRaspSearchClicked()));
-    connect(ui->btStopRaspSearch, SIGNAL(clicked()), this, SLOT(stopSearchingRasp()));
+    connect(ui->btStopRaspSearch, SIGNAL(clicked()), this, SLOT(btStopSearchingRaspClicked()));
     connect(ui->lvDevicesFound, SIGNAL(clicked(QModelIndex)), this, SLOT(listViewClicked(QModelIndex)));
     connect(ui->btConnectToRasp, SIGNAL(clicked()), this, SLOT(btConnectToRaspClicked()));
     connect(NetworkCommunication::instance(), SIGNAL(raspDisconnected(QString)),this,SLOT(raspDisconnected(QString)));
     connect(NetworkCommunication::instance(), SIGNAL(newRaspFound(QVariantMap)), this, SLOT(newRaspFound(QVariantMap)));
-    connect(NetworkCommunication::instance(), SIGNAL(connectionFailed()), this, SLOT(connectionFailed()));
-
-
+    connect(NetworkCommunication::instance(), SIGNAL(connectionEstablished()), this, SLOT(connectionEstablished()));
 }
 
 NetworkConnConfigWidget::~NetworkConnConfigWidget()
@@ -37,6 +35,14 @@ bool NetworkConnConfigWidget::isReaderInteractorSelected()
     return ui->rbReaderInteraction->isChecked();
 }
 
+void NetworkConnConfigWidget::resetForm()
+{
+    ui->btRaspSearch->setEnabled(true);
+    ui->btStopRaspSearch->setEnabled(false);
+    m_raspFoundModel->clear();
+    ui->leDeviceChosen->clear();
+}
+
 void NetworkConnConfigWidget::btRaspSearchClicked()
 {
     ui->btRaspSearch->setEnabled(false);
@@ -44,18 +50,19 @@ void NetworkConnConfigWidget::btRaspSearchClicked()
     NetworkCommunication::instance()->startBroadcast();
 }
 
-void NetworkConnConfigWidget::stopSearchingRasp()
+void NetworkConnConfigWidget::btStopSearchingRaspClicked()
 {   
-    ui->btRaspSearch->setEnabled(true);
-    ui->btStopRaspSearch->setEnabled(false);
     NetworkCommunication::instance()->stopBroadcast();
-    m_raspFoundModel->clear();
-    ui->leDeviceChosen->clear();
+    resetForm();
 }
 
 void NetworkConnConfigWidget::newRaspFound(const QVariantMap raspInfo)
 {
-    m_raspFoundModel->addDevice(raspInfo.value("name").toString(), raspInfo.value("macaddress").toString(), raspInfo.value("ipaddress").toString());
+    m_raspFoundModel->addDevice(
+                raspInfo.value("name").toString(),
+                raspInfo.value("macaddress").toString(),
+                raspInfo.value("ipaddress").toString()
+                );
 }
 
 void NetworkConnConfigWidget::raspDisconnected(const QString ipAddress)
@@ -78,11 +85,10 @@ void NetworkConnConfigWidget::btConnectToRaspClicked()
 
 void NetworkConnConfigWidget::listViewClicked(const QModelIndex index)
 {
-
     ui->leDeviceChosen->setText(index.data(Qt::DisplayRole).toString());
 }
 
-void NetworkConnConfigWidget::connectionFailed()
+void NetworkConnConfigWidget::connectionEstablished()
 {
-    //fazer
+    resetForm();
 }

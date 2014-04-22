@@ -54,9 +54,6 @@ void MainWindow::serialCommunicationReady()
 
 void MainWindow::networkCommunicationReady()
 {
-    m_networkConnConfigWidget->stopSearchingRasp();
-    SystemMessagesWidget::instance()->writeMessage("Successfuly connect to rasp.");
-
     if(m_networkConnConfigWidget->isReaderInteractorSelected()){
         prepareReaderInteractorWidget(Settings::KNetwork);
     }else{

@@ -59,7 +59,7 @@ void NetworkCommunication::handshakeSYN(QTcpSocket *socket, QJsonObject jsonObje
     }
 }
 
-void NetworkCommunication::infoReceived(QJsonObject jsonObject)
+void NetworkCommunication::raspConfigReceived(QJsonObject jsonObject)
 {
     emit currentConfigFromRasp(jsonObject);
 }
@@ -121,7 +121,6 @@ void NetworkCommunication::startBroadcast()
         QList<QNetworkInterface> netInterfaces = QNetworkInterface::allInterfaces();
 
         QHostAddress address;
-        QString mac;
 
         foreach (QNetworkInterface interface, netInterfaces) {
 
@@ -129,18 +128,16 @@ void NetworkCommunication::startBroadcast()
 
             foreach (QHostAddress var, ipAddressesList) {
                 if(!var.isLoopback()){
-                    mac = interface.hardwareAddress();
                     address = var;
                     break;
                 }
             }
             if( ! address.isNull()){
                 m_localAddress = address.toString();
-                m_localMAC = mac;
 
                 m_udpTimer->start();
 
-                SystemMessagesWidget::instance()->writeMessage(QString("Waiting for connections on %1 %2").arg(m_localAddress).arg(m_tcpPort));
+                SystemMessagesWidget::instance()->writeMessage(QString("Waiting for connections on %1:%2").arg(m_localAddress).arg(m_tcpPort));
                 break;
 
             }else{
@@ -160,6 +157,9 @@ void NetworkCommunication::stopBroadcast()
     m_tcpServer->close();
     m_udpTimer->stop();
 
+    /*Close the remaining connections in the map.
+     * If the user selected a host to maintain connection, it was removed from
+     * this map in connectToRasp(), and by this it will not be closed here.*/
     QMapIterator<QString, QTcpSocket *> i(*m_tcpSocketMap);
     while (i.hasNext()) {
         i.next();
@@ -167,7 +167,7 @@ void NetworkCommunication::stopBroadcast()
         i.value()->close();
     }
 
-    SystemMessagesWidget::instance()->writeMessage("Stoped searching for rasps.");
+    SystemMessagesWidget::instance()->writeMessage("Stoped searching for new rasps.");
 }
 
 void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, const QJsonObject &data)
@@ -193,13 +193,21 @@ void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, con
         qDebug() << "Message sent: SIZE: " << packageSize << " DATA: " << package;
 
         if(socket->write(packageSize) == sizeof(quint64)){
-//            socket->flush();
+            //            socket->flush();
             if(socket->write(package) == package.size())
                 socket->flush();
-            else
-                qDebug() << "FAIL";
-        }else
-            qDebug() << "FAIL";
+            else{
+                qDebug() << "FAIL 2";
+                SystemMessagesWidget::instance()->writeMessage("Failed to write bytes to the socket!!!",
+                                                               SystemMessagesWidget::KError,
+                                                               SystemMessagesWidget::KDialogAndLog);
+            }
+        }else{
+            qDebug() << "FAIL 1";
+            SystemMessagesWidget::instance()->writeMessage("Failed to write bytes to the socket!!!",
+                                                           SystemMessagesWidget::KError,
+                                                           SystemMessagesWidget::KDialogAndLog);
+        }
 
     }else{
         qDebug() << "Cannot send data. The socket is closed.";
@@ -211,15 +219,22 @@ void NetworkCommunication::connectToRasp(const QString &ip)
 {
     if(m_tcpSocketMap->contains(ip) && m_tcpSocketMap->value(ip)->isOpen()){
 
-        //elimina outros sockets
-
+        // Holds the connection to the host selected by the user.
         m_tcpSocket = m_tcpSocketMap->value(ip);
+        // And remove it from the map.
         m_tcpSocketMap->remove(ip);
+        // The broadcast will stop, and all remaining connection in the map
+        // will be closed.
         stopBroadcast();
 
+        SystemMessagesWidget::instance()->writeMessage("Successfuly connect to rasp.");
+
+        // Main connection successfully defined.
         emit connectionEstablished();
     }else{
-        emit connectionFailed();
+        SystemMessagesWidget::instance()->writeMessage("Failed to connect to rasp.",
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KDialogAndLog);
     }
 }
 
@@ -243,15 +258,17 @@ void NetworkCommunication::sendNewCommandToReader(const QString &command)
 
 void NetworkCommunication::closeTCPConnection()
 {
+    /* This slot is called when the GUI button "Close Connection" is clicked.
+     * If the connection was current main connection is lost and closed,
+     * the button can still be clicked to close the window, and for this its
+     * needed to check if the connection is still there or not.*/
     if(m_tcpSocket)
         m_tcpSocket->disconnectFromHost();
-    else
-        qDebug() << "Connection already closed.";
 }
 
 void NetworkCommunication::tcpDataAvailable()
 {
-    qDebug() << "new data arrived.";
+    qDebug() << "New data arrived.";
     QTcpSocket *socket = (QTcpSocket *) QObject::sender();
 
     static bool waitingForPackage = false;
@@ -272,7 +289,7 @@ void NetworkCommunication::tcpDataAvailable()
         if(!doc.isNull()){
             QJsonObject rootObj(doc.object());
 
-            qDebug() << "New tcp data: " <<rootObj.toVariantMap();
+            qDebug() << "New valid json object: " << rootObj.toVariantMap();
 
             QString type(rootObj.value("type").toString());
             QJsonObject dataObj = rootObj.value("data").toObject();
@@ -281,7 +298,7 @@ void NetworkCommunication::tcpDataAvailable()
             }else if(type == "ACK"){
                 handshakeACK(socket, dataObj);
             }else if(type == "CONFIG"){
-                infoReceived(dataObj);
+                raspConfigReceived(dataObj);
             }else if(type == "READER-RESPONSE"){
                 answerFromReader(dataObj);
             }else if(type == "ACK-UNKNOWN"){
@@ -295,7 +312,7 @@ void NetworkCommunication::tcpDataAvailable()
         }else{
             qDebug() << "Invalid json.";
             sendAckUnknown(socket, QJsonObject(), "The network package could not be parsed"
-                       " to a QJsonDocument. The json is invalid.");
+                           " to a QJsonDocument. The json is invalid.");
         }
 
         waitingForPackage = false;
@@ -305,30 +322,34 @@ void NetworkCommunication::tcpDataAvailable()
 
 void NetworkCommunication::tcpSocketError(const QAbstractSocket::SocketError socketError)
 {
-    QTcpSocket *socket = (QTcpSocket *) QObject::sender();
-
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
-        SystemMessagesWidget::instance()->writeMessage("The host closed the connection.",
-                                                       SystemMessagesWidget::KError);
+        SystemMessagesWidget::instance()->writeMessage(
+                    "The host closed the connection.",
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndLog);
         break;
     case QAbstractSocket::HostNotFoundError:
-        SystemMessagesWidget::instance()->writeMessage("The host was not found. Please check the "
-                                                       "host name and port settings.",
-                                                       SystemMessagesWidget::KError);
+        SystemMessagesWidget::instance()->writeMessage(
+                    "The host was not found. Please check the "
+                    "host name and port settings.",
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndLog);
         break;
     case QAbstractSocket::ConnectionRefusedError:
-        SystemMessagesWidget::instance()->writeMessage("The connection was refused by the peer. "
-                                                       "Make sure the application on the host is running, "
-                                                       "and check that the host name and port "
-                                                       "settings are correct.",
-                                                       SystemMessagesWidget::KError);
+        SystemMessagesWidget::instance()->writeMessage(
+                    "The connection was refused by the peer. "
+                    "Make sure the application on the host is running, "
+                    "and check that the host name and port "
+                    "settings are correct.",
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndLog);
         break;
     default:
-        if(socket)
-            qDebug() << QString("The following error occurred: %1.").arg(socket->errorString());
-        else
-            qDebug() << "m_tcpSocket does not exists anymore.";
+        SystemMessagesWidget::instance()->writeMessage(
+                    QString("Connection error: %1.").arg(socketError),
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndLog);
     }
     emit connectionFailed();
 }
@@ -367,20 +388,22 @@ void NetworkCommunication::newConnection()
 void NetworkCommunication::tcpDisconnected()
 {
     QTcpSocket *socket = (QTcpSocket *) QObject::sender();
+
     QString ip = socket->peerAddress().toString();
-    if(socket){
-        qDebug() << "Deleting the socket";
-        SystemMessagesWidget::instance()->writeMessage("Disconnected from " + ip);
-        if(m_tcpSocketMap->contains(ip)){
-            emit raspDisconnected(socket->peerAddress().toString());
-            m_tcpSocketMap->remove(socket->peerAddress().toString());
-        }else if(m_tcpSocket){
-            m_tcpSocket = 0;
-        }else{
-            qDebug() << "Timeout..." <<  ip;
-        }
-        socket->deleteLater();
+
+    SystemMessagesWidget::instance()->writeMessage("Disconnected from " + ip);
+
+    if(m_tcpSocketMap->contains(ip)){
+        // Cleanning the connection from the map.
+        emit raspDisconnected(socket->peerAddress().toString());
+        m_tcpSocketMap->remove(socket->peerAddress().toString());
+    }else if(m_tcpSocket){
+        //Disconnected from main current connection.
+        m_tcpSocket = 0;
     }else{
-        qDebug() << "socket does not exists anymore. grr..";
+        //Disconnected by timeout because the connection didnt the handshake.
+        qDebug() << "Timeout..." <<  ip;
     }
+
+    socket->deleteLater();
 }

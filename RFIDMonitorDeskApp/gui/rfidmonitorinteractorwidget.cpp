@@ -14,12 +14,12 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     m_raspSettings(0)
 {
     ui->setupUi(this);
+    m_treeViewModel = new QStandardItemModel(this);
+    ui->treeViewAvailableModules->setModel(m_treeViewModel);
 
     changeFormState(KEmpty);
     ui->leMac->setReadOnly(true);
 
-    connect(NetworkCommunication::instance(), SIGNAL(newRFIDMontiorAnswer(QString)),
-            this, SLOT(newAnswerFromKBlockedRaspArrived(QString)));
     connect(NetworkCommunication::instance(), SIGNAL(connectionFailed()),
             this, SLOT(raspDisconnected()));
     connect(NetworkCommunication::instance(), SIGNAL(currentConfigFromRasp(QJsonObject)),
@@ -27,7 +27,7 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     connect(NetworkCommunication::instance(), SIGNAL(currentConfigStatusFromRasp(QJsonObject)),
             this, SLOT(newConfigStatusFromRasp(QJsonObject)));
     connect(ui->btRetrieveFromRasp, SIGNAL(clicked()),
-            this, SLOT(getConfigFromRaspClicked()));
+            this, SLOT(btRetrieveConfigFromRaspClicked()));
     connect(ui->btSendToRasp, SIGNAL(clicked()),
             this, SLOT(btSendToRaspClicked()));
     connect(ui->btEdit, SIGNAL(clicked()),
@@ -71,8 +71,8 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
 
     //MODULES
 
-    QStandardItemModel *standardModel = new QStandardItemModel ;
-    QStandardItem *rootNode = standardModel->invisibleRootItem();
+
+    QStandardItem *rootNode = m_treeViewModel->invisibleRootItem();
 
     QJsonArray modulesArray = obj.value("modules").toArray();
     for(int i = 0; i < modulesArray.size(); i++){
@@ -140,10 +140,6 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
         ui->cbDefaultPackagerService->setCurrentText(defaultServicesObj.value("packager").toString());
 
     }
-
-    //register the model
-    ui->treeViewAvailableModules->setModel(standardModel);
-    ui->treeViewAvailableModules->expandAll();
 
     //NETWORK
     ui->leMac->setText(obj.value("macaddress").toString());
@@ -250,15 +246,21 @@ void RFIDMonitorInteractorWidget::persistLocalyCurrentConfig(const QString &mac,
 
 void RFIDMonitorInteractorWidget::changeFormState(RFIDMonitorInteractorWidget::FormState state)
 {
+
     switch (state) {
     case KBlocked:
         formEnabled(false);
         break;
-    case KEmpty:
+    case KEmpty: {
         formEnabled(false);
+
+        int rowCount = ui->treeViewAvailableModules->model()->rowCount();
+        if(rowCount > 0)
+            ui->treeViewAvailableModules->model()->removeRows(0, rowCount);
+
         ui->btRetrieveFromRasp->setEnabled(true);
         clearForm();
-        break;
+        } break;
     case KEditing:
         formEnabled(true);
         ui->btRetrieveFromRasp->setEnabled(false);
@@ -277,7 +279,6 @@ void RFIDMonitorInteractorWidget::changeFormState(RFIDMonitorInteractorWidget::F
 void RFIDMonitorInteractorWidget::raspDisconnected()
 {
     changeFormState(KBlocked);
-    //tell to the user rasp has disconnected.
 }
 
 void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(const QJsonObject json)
@@ -286,18 +287,13 @@ void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(const QJsonObject jso
     changeFormState(KWithObject);
 }
 
-void RFIDMonitorInteractorWidget::newAnswerFromRaspArrived(const QString answer)
-{
-    //show somewhere the answer from rasp. Maybe QmessageBox or a status label
-}
-
 void RFIDMonitorInteractorWidget::btSendToRaspClicked()
 {
     sendCurrentConfiguration();
     changeFormState(KBlocked);
 }
 
-void RFIDMonitorInteractorWidget::getConfigFromRaspClicked()
+void RFIDMonitorInteractorWidget::btRetrieveConfigFromRaspClicked()
 {
     NetworkCommunication::instance()->getConfigFromRasp();
 }
@@ -326,5 +322,5 @@ void RFIDMonitorInteractorWidget::btEditClicked()
 
 void RFIDMonitorInteractorWidget::btCancelClicked()
 {
- changeFormState(KEmpty);
+    changeFormState(KEmpty);
 }

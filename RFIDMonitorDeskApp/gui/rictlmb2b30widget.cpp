@@ -33,11 +33,16 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
 
     connect(ui->leIdentification, SIGNAL(textChanged(QString)), this, SLOT(leIdentificationChanged(QString)));
     connect(ui->btWrite, SIGNAL(clicked()), this, SLOT(btWriteClicked()));
-    connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
     connect(&m_timeout, SIGNAL(timeout()), this, SLOT(timeout()));
     connect(ui->rbDecimal, SIGNAL(clicked()), this, SLOT(rbDecimalClicked()));
     connect(ui->rbHexadecimal, SIGNAL(clicked()), this, SLOT(rbHexadecimalClicked()));
     connect(ui->btNextIdentification, SIGNAL(clicked()), this, SLOT(incrementIdentification()));
+
+    if(connType == Settings::KNetwork){
+        connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(communicationFinished()));
+    }else if(connType == Settings::KSerial){
+        connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
+    }
 }
 
 RICTLMB2B30Widget::~RICTLMB2B30Widget()
@@ -53,6 +58,15 @@ void RICTLMB2B30Widget::sendCommand(const QString &command)
     else if(m_connectionType == Settings::KNetwork){
         NetworkCommunication::instance()->sendNewCommandToReader(command);
     }
+}
+
+void RICTLMB2B30Widget::lockForms()
+{
+    ui->btWrite->setEnabled(false);
+    ui->btNextIdentification->setEnabled(false);
+    ui->rbDecimal->setEnabled(false);
+    ui->rbHexadecimal->setEnabled(false);
+    ui->leIdentification->setEnabled(false);
 }
 
 void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
@@ -95,7 +109,9 @@ void RICTLMB2B30Widget::btWriteClicked()
     }
 
     if(ui->leIdentification->text().isEmpty()){
-        SystemMessagesWidget::instance()->writeMessage(tr("The identification must have at least 1 characters."), SystemMessagesWidget::KWarning);
+        SystemMessagesWidget::instance()->writeMessage(tr("The identification must have at least 1 characters."),
+                                                       SystemMessagesWidget::KWarning,
+                                                       SystemMessagesWidget::KOnlyDialog);
         return;
     }
 
@@ -240,4 +256,9 @@ void RICTLMB2B30Widget::incrementIdentification()
                 ui->leIdentification->setText(newIdentification);
         }
     }
+}
+
+void RICTLMB2B30Widget::communicationFinished()
+{
+    lockForms();
 }

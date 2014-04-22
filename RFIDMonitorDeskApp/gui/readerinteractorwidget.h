@@ -70,6 +70,11 @@ private:
      */
     void writeToOutput(const QString &text);
 
+    /**
+     * @brief lockForms disable all interation methods in this window.
+     */
+    void lockForms();
+
 public slots:
 
     /**
@@ -118,11 +123,11 @@ public slots:
     void btStartPauseReadingClicked(const bool checked);
 
     /**
-     * @brief raspDisconnected is a slot called when the rasp is disconnected by the network.
+     * @brief connectionFinished is a slot called when the connection is lost.
      *
      * This will block the window to the user dont try to send new commands.
      */
-    void raspDisconnected();
+    void connectionFinished();
 };
 
 #endif // READERINTERACTORWIDGET_H
