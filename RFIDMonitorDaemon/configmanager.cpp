@@ -49,7 +49,11 @@ void ConfigManager::setIdentification(QJsonObject &json)
 {
     m_systemSettings.setMacAddress(json.value("macaddress").toString());
     m_systemSettings.setName(json.value("name").toString());
+#if QT_VERSION < 0x050200
+    m_systemSettings.setId(json.value("id").toVariant().toInt());
+#else
     m_systemSettings.setId(json.value("id").toInt());
+#endif // QT_VERSION < 0x050200
     if(saveJsonFile())
         qDebug() << "Json save successfully";
 }

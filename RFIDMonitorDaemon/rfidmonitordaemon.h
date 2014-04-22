@@ -31,13 +31,56 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
-
+#include <QFile>
 
 #include "configmanager.h"
 
 class QLocalServer;
 class QTcpSocket;
 class QLocalSocket;
+
+class DaemonLogger
+{
+public:
+    explicit DaemonLogger()
+    {
+        m_daemonLogs.setFileName("daemon_debug.log");
+        if (!m_daemonLogs.open(QIODevice::WriteOnly | QIODevice::Text)){
+
+        }
+    }
+
+    DaemonLogger &operator<<(int message)
+    {
+        #ifdef DEBUG_VERBOSE
+            qDebug() << message;
+        #else
+            QTextStream out(&m_daemonLogs);
+            QString record("99999 % ");
+            QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
+            record.append(currDate + " % " + " % " + QString::number(message) + "\n");
+            out << record;
+        #endif
+        return *this;
+    }
+
+    DaemonLogger &operator<<(const QString & message)
+    {
+        #ifdef DEBUG_VERBOSE
+            qDebug() << message;
+        #else
+            QTextStream out(&m_daemonLogs);
+            QString record("99999 % ");
+            QString currDate = QDateTime::currentDateTime().toString("MM-dd-yyyy_hh:mm:ss");
+            record.append(currDate + " % " + " % " + message + "\n");
+            out << record;
+        #endif
+        return *this;
+    }
+
+private:
+    QFile m_daemonLogs;
+};
 
 class RFIDMonitorDaemon : public QObject
 {
@@ -66,6 +109,9 @@ private:
     QString m_serverName;
     QString m_hostName;
     int m_tcpPort;
+
+    // TEMP Logger
+    DaemonLogger m_daemonLogger;
 
     ConfigManager *m_configManager;
     QJsonDocument buildMessage(QJsonObject dataObj, QString type);
@@ -102,7 +148,7 @@ public slots:
                 qDebug() << QString::fromStdString(std::string("Invalid command \"") + command + std::string("\"\n"));
                 QString random(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
                 emit sendMessage(QByteArray().append(random));
-//                emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
+                //                emit sendMessage(QString::fromStdString(std::string("Random message: ") + command + std::string("\n")));
             }
         }
     }
