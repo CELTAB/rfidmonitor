@@ -18,6 +18,7 @@ class ConfigManager : public QObject
 
 public:
     explicit ConfigManager(QObject *parent = 0);
+    ~ConfigManager();
 
     bool setDateTime(QDateTime datetime);
     QJsonObject currentConfig();
@@ -30,10 +31,6 @@ public:
     QJsonObject netConfig();
     bool setNetConfig(QJsonObject &netJson);
     bool restartNetwork();
-
-signals:
-    void sendTcpMessage(const QByteArray &);
-    void sendIpcMessage(const QByteArray &);
 
 private:
     QFile m_json;

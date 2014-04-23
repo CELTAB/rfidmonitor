@@ -34,6 +34,8 @@ QList<Rfiddata *> PersistenceService::getObjectList(const QString &ColumnObject,
 {
     QMutexLocker locker(&m_mutex);
 
+//    qDebug() << "\nGET OBJECT LIST - 2";
+
     return RfiddataDAO::instance()->getByMatch(ColumnObject, value, parent);
 }
 
@@ -41,12 +43,16 @@ void PersistenceService::insertObjectList(const QList<Rfiddata *> &data)
 {
     QMutexLocker locker(&m_mutex);
 
+//    qDebug() << "\nINSERT OBJECT LIST - 1";
+
     RfiddataDAO::instance()->insertObjectList(data);
 }
 
 void PersistenceService::updateObjectList(const QList<Rfiddata *> &data)
 {
     QMutexLocker locker(&m_mutex);
+
+//    qDebug() << "\nUPDATE OBJECT LIST - 3";
 
     RfiddataDAO::instance()->updateObjectList(data);
 }

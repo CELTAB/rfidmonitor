@@ -28,6 +28,7 @@
 
 #include <logger.h>
 
+#include <json/nodejsmessage.h>
 #include "communicationservice.h"
 
 CommunicationService::CommunicationService(QObject *parent) :
@@ -60,16 +61,29 @@ ServiceType CommunicationService::type()
 
 void CommunicationService::sendMessage(QByteArray value)
 {
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message: %1").arg(QString(value)));
+    //    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message: %1").arg(QString(value)));
     m_localSocket->write(value);
     // WARNING: bool QLocalSocket::flush () using this to force the sending of data
     m_localSocket->flush();
 }
 
+void CommunicationService::sendMessage(QJsonObject data, QString type)
+{
+    QJsonDocument rootDoc;
+    QJsonObject obj;
+
+    obj.insert("type", type);
+    obj.insert("datetime", QDateTime::currentDateTime().toString(Qt::ISODate));
+    obj.insert("data", QJsonValue(data));
+    rootDoc.setObject(obj);
+
+    m_localSocket->write(rootDoc.toJson());
+    m_localSocket->flush();
+}
+
 void CommunicationService::ipcConnected()
 {
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
-    m_localSocket->write(QString("System Started").toLatin1());
+    sendMessage(QJsonObject(), "SYN");
 }
 
 void CommunicationService::ipcDisconnected()
@@ -80,9 +94,41 @@ void CommunicationService::ipcDisconnected()
 void CommunicationService::ipcReadyRead()
 {
     QByteArray data = m_localSocket->readAll();
-    QString message(data);
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Message received: %1").arg(message));
-    emit messageReceived(data);
+
+    json::NodeJSMessage nodeMessage;
+
+    nodeMessage.read(QJsonDocument::fromJson(data).object());
+    QString messageType(nodeMessage.type());
+
+    if(messageType == "ACK-SYN"){
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
+
+    }else if (messageType == "ACK-DATA") {
+
+
+    }else if (messageType == "READER-COMMAND") {
+
+        QJsonObject response(nodeMessage.jsonData());
+        response.insert("response", response.value("command"));
+        response.remove("command");
+
+        sendMessage(response, "READER-RESPONSE");
+
+    }else if (messageType == "RELOAD"){
+        emit messageReceived("Reload Settings");
+
+    }else if (messageType == "ACK-UNKNOWN") {
+        QJsonDocument unknown(nodeMessage.jsonData());
+
+        QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
+    }
+    else{
+        QJsonObject unknownObj;
+
+        unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
+        unknownObj.insert("errorinfo", QString("Could not understand this message"));
+        sendMessage(unknownObj, "ACK-UNKNOWN");
+    }
 }
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)

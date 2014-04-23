@@ -26,6 +26,10 @@
 #ifndef COMMUNICATIONSERVICE_H
 #define COMMUNICATIONSERVICE_H
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateTime>
+
 #include <QLocalSocket>
 #include <core/interfaces.h>
 
@@ -39,6 +43,7 @@ public:
     void init();
     ServiceType type();
 
+    void sendMessage(QJsonObject data, QString type);
     void sendMessage(QByteArray value);
 
 public slots:

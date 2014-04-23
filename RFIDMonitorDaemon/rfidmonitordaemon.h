@@ -32,6 +32,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QUdpSocket>
 
 #include "configmanager.h"
 
@@ -93,19 +94,30 @@ public:
 
 public slots:
     void ipcNewConnection();
-    void ipcReadyRead();
+    void ipcSendMessage(const QByteArray &message);
 
     void tcpConnect();
     void tcpConnected();
     void tcpDisconnected();
-    void tcpReadyRead();
     void tcpHandleError(QAbstractSocket::SocketError error);
 
-    void tcpSendMessage(const QByteArray &message);
+    void tcpSendMessage(QTcpSocket *con, const QByteArray &message);
+
+    void readDatagrams();
+    void routeMessageTcp();
+    void routeMessageIpc();
 
 private:
     QLocalServer *m_localServer;
+    QLocalSocket *ipcConnection;
+
+    // Node.js Server
     QTcpSocket *m_tcpSocket;
+
+    // Desktop Application Only
+    QTcpSocket *m_tcpAppSocket;
+    QUdpSocket *m_udpSocket;
+
     QString m_serverName;
     QString m_hostName;
     int m_tcpPort;
@@ -115,7 +127,6 @@ private:
 
     ConfigManager *m_configManager;
     QJsonDocument buildMessage(QJsonObject dataObj, QString type);
-    void routeMessage(const QByteArray &message);
 };
 
 #include <QCoreApplication>
