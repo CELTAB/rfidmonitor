@@ -32,23 +32,23 @@ void SystemMessagesWidget::writeMessage(const QString &message,
     QMessageBox::Icon icon;
     switch (messageLevel) {
     case KError:
-        messageLevelString = "ERROR";
+        messageLevelString = tr("ERROR");
         icon = QMessageBox::Critical;
         break;
     case KInfo:
-        messageLevelString = "INFORMATIVE";
+        messageLevelString = tr("INFORMATIVE");
         icon = QMessageBox::Information;
         break;
     case KWarning:
-        messageLevelString = "WARNING";
+        messageLevelString = tr("WARNING");
         icon = QMessageBox::Warning;
         break;
     case KFatal:
-        messageLevelString = "FATAL ERROR";
+        messageLevelString = tr("FATAL ERROR");
         icon = QMessageBox::Critical;
         break;
     default:
-        messageLevelString = "UNKNOW MESSAGE LEVEL";
+        messageLevelString = tr("UNKNOW MESSAGE LEVEL");
         icon = QMessageBox::Warning;
         break;
     }

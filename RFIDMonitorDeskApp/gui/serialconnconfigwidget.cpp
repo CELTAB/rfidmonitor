@@ -49,9 +49,9 @@ void SerialConnConfigWidget::connectToDevice()
 
 void SerialConnConfigWidget::populateFields()
 {
-    ui->cbOpenType->addItem("Read/Write", QIODevice::ReadWrite);
-    ui->cbOpenType->addItem("Read Only",QIODevice::ReadOnly);
-    ui->cbOpenType->addItem("Write Only",QIODevice::WriteOnly);
+    ui->cbOpenType->addItem(tr("Read/Write"), QIODevice::ReadWrite);
+    ui->cbOpenType->addItem(tr("Read Only"),QIODevice::ReadOnly);
+    ui->cbOpenType->addItem(tr("Write Only"),QIODevice::WriteOnly);
 
     ui->cbBaudRate->addItem("9600",QSerialPort::Baud9600);
     ui->cbBaudRate->addItem("1200",QSerialPort::Baud1200);

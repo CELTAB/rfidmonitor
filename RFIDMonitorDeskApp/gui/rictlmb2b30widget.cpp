@@ -9,9 +9,9 @@
 RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::RICTLMB2B30Widget),
-    m_connectionType(connType),
     m_waitingForAnswer(false),
-    m_waitingForCheck(false)
+    m_waitingForCheck(false),
+    m_connectionType(connType)
 {
     ui->setupUi(this);
 
@@ -91,7 +91,7 @@ void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
         finalIdentification.append(m_identification);
         m_identification.clear();
         m_identification.append(finalIdentification);
-        ui->labelIdentificationStatus->setText(tr("The identification will be writted in hexadecimal, as: ") + m_identification);
+        ui->labelIdentificationStatus->setText(tr("The identification will be writted in hexadecimal, as: %1").arg(m_identification));
     }else{
         // If the identification field is empty, then clear the field instead of
         // trying to handle it.

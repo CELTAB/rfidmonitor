@@ -10,7 +10,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName("RFIDMonitor Desktop Application");
+    app.setApplicationName("RFIDMonitor Desktop");
 
     //APP TRANSLATION
 

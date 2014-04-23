@@ -137,11 +137,11 @@ void NetworkCommunication::startBroadcast()
 
                 m_udpTimer->start();
 
-                SystemMessagesWidget::instance()->writeMessage(QString("Waiting for connections on %1:%2").arg(m_localAddress).arg(m_tcpPort));
+                SystemMessagesWidget::instance()->writeMessage(QString(tr("Waiting for connections on %1:%2")).arg(m_localAddress).arg(m_tcpPort));
                 break;
 
             }else{
-                SystemMessagesWidget::instance()->writeMessage("Error. cannot find a valid address to start the server.");
+                SystemMessagesWidget::instance()->writeMessage(tr("Error. cannot find a valid address to start the server."));
             }
         }
 
@@ -167,7 +167,7 @@ void NetworkCommunication::stopBroadcast()
         i.value()->close();
     }
 
-    SystemMessagesWidget::instance()->writeMessage("Stoped searching for new rasps.");
+    SystemMessagesWidget::instance()->writeMessage(tr("Stoped searching for new rasps."));
 }
 
 void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, const QJsonObject &data)
@@ -198,13 +198,13 @@ void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, con
                 socket->flush();
             else{
                 qDebug() << "FAIL 2";
-                SystemMessagesWidget::instance()->writeMessage("Failed to write bytes to the socket!!!",
+                SystemMessagesWidget::instance()->writeMessage(tr("Failed to write bytes to the socket!!!"),
                                                                SystemMessagesWidget::KError,
                                                                SystemMessagesWidget::KDialogAndLog);
             }
         }else{
             qDebug() << "FAIL 1";
-            SystemMessagesWidget::instance()->writeMessage("Failed to write bytes to the socket!!!",
+            SystemMessagesWidget::instance()->writeMessage(tr("Failed to write bytes to the socket!!!"),
                                                            SystemMessagesWidget::KError,
                                                            SystemMessagesWidget::KDialogAndLog);
         }
@@ -227,12 +227,12 @@ void NetworkCommunication::connectToRasp(const QString &ip)
         // will be closed.
         stopBroadcast();
 
-        SystemMessagesWidget::instance()->writeMessage("Successfuly connect to rasp.");
+        SystemMessagesWidget::instance()->writeMessage(tr("Successfuly connect to rasp."));
 
         // Main connection successfully defined.
         emit connectionEstablished();
     }else{
-        SystemMessagesWidget::instance()->writeMessage("Failed to connect to rasp.",
+        SystemMessagesWidget::instance()->writeMessage(tr("Failed to connect to rasp."),
                                                        SystemMessagesWidget::KError,
                                                        SystemMessagesWidget::KDialogAndLog);
     }
@@ -325,29 +325,29 @@ void NetworkCommunication::tcpSocketError(const QAbstractSocket::SocketError soc
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
         SystemMessagesWidget::instance()->writeMessage(
-                    "The host closed the connection.",
+                    tr("The host closed the connection."),
                     SystemMessagesWidget::KError,
                     SystemMessagesWidget::KDialogAndLog);
         break;
     case QAbstractSocket::HostNotFoundError:
         SystemMessagesWidget::instance()->writeMessage(
-                    "The host was not found. Please check the "
-                    "host name and port settings.",
+                    tr("The host was not found. Please check the "
+                    "host name and port settings."),
                     SystemMessagesWidget::KError,
                     SystemMessagesWidget::KDialogAndLog);
         break;
     case QAbstractSocket::ConnectionRefusedError:
         SystemMessagesWidget::instance()->writeMessage(
-                    "The connection was refused by the peer. "
+                    tr("The connection was refused by the peer. "
                     "Make sure the application on the host is running, "
                     "and check that the host name and port "
-                    "settings are correct.",
+                    "settings are correct."),
                     SystemMessagesWidget::KError,
                     SystemMessagesWidget::KDialogAndLog);
         break;
     default:
         SystemMessagesWidget::instance()->writeMessage(
-                    QString("Connection error: %1.").arg(socketError),
+                    QString(tr("Connection error: %1.")).arg(socketError),
                     SystemMessagesWidget::KError,
                     SystemMessagesWidget::KDialogAndLog);
     }
@@ -379,7 +379,7 @@ void NetworkCommunication::newConnection()
             socket,
             SLOT(deleteLater()));
 
-    SystemMessagesWidget::instance()->writeMessage("New connection arrived.");
+    SystemMessagesWidget::instance()->writeMessage(tr("New connection arrived."));
 
     timeout->start();
 
@@ -391,7 +391,7 @@ void NetworkCommunication::tcpDisconnected()
 
     QString ip = socket->peerAddress().toString();
 
-    SystemMessagesWidget::instance()->writeMessage("Disconnected from " + ip);
+    SystemMessagesWidget::instance()->writeMessage(tr("Disconnected from %1").arg(ip));
 
     if(m_tcpSocketMap->contains(ip)){
         // Cleanning the connection from the map.

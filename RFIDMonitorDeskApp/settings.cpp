@@ -14,9 +14,9 @@ Settings *Settings::instance()
     return instance;
 }
 
-QString Settings::translateServiceType(int code)
+QString Settings::stringifyServiceType(Settings::ServiceType type)
 {
-    switch (code) {
+    switch (type) {
     case ServiceType::KReaderService:
         return QString("Reader");
     case ServiceType::KPersister:

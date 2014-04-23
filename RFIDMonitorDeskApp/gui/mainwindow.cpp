@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QVBoxLayout *vbLayout = new QVBoxLayout(ui->frMessages);
     ui->frMessages->setLayout(vbLayout);
     vbLayout->addWidget(SystemMessagesWidget::instance());
+
+    ui->gbConnConfig->hide();
 }
 
 MainWindow::~MainWindow()
@@ -88,6 +90,8 @@ void MainWindow::prepareRFIDMonitorInteractorWidget()
 
 void MainWindow::rbSerialClicked()
 {
+    ui->gbConnConfig->show();
+
     // If m_networkConnConfigWidget exists, hide it.
     if(m_networkConnConfigWidget){
         m_networkConnConfigWidget->close();
@@ -104,6 +108,8 @@ void MainWindow::rbSerialClicked()
 
 void MainWindow::rbNetworkClicked()
 {
+    ui->gbConnConfig->show();
+
     // If m_serialConnConfigWidget exists, hide it.
     if(m_serialConnConfigWidget){
         m_serialConnConfigWidget->close();

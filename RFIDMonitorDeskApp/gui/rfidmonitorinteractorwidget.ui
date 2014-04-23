@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>RFIDMonitor Interactor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -66,7 +66,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidgetConfigData">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="tabGeneral">
           <attribute name="title">
@@ -120,7 +120,14 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
-               <widget class="QTreeView" name="treeViewAvailableModules"/>
+               <widget class="QTreeView" name="treeViewAvailableModules">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

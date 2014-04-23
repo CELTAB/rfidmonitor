@@ -21,10 +21,10 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
     ui->cbLogType->setEnabled(true);
     ui->btSendCommand->setEnabled(false);
     ui->leCommand->setEnabled(false);
-    ui->cbLogType->addItem("Append", QIODevice::Append);
-    ui->cbLogType->addItem("Overwrite", QIODevice::WriteOnly);
+    ui->cbLogType->addItem(tr("Append"), QIODevice::Append);
+    ui->cbLogType->addItem(tr("Overwrite"), QIODevice::WriteOnly);
     ui->cbInputType->addItem("ASCII", SerialCommunication::KASCII);
-    ui->cbInputType->addItem("Number", SerialCommunication::KNumber);
+    ui->cbInputType->addItem(tr("Number"), SerialCommunication::KNumber);
 
     connect(ui->btSendCommand, SIGNAL(clicked()), this, SLOT(btSendCommandClicked()));
     connect(ui->leCommand, SIGNAL(returnPressed()), this, SLOT(leCommandReturnPressed()));
@@ -65,7 +65,7 @@ void ReaderInteractorWidget::sendCommand(const QString &command)
     if( ! command.isEmpty()){
 
         ui->leCommand->clear();
-        writeToOutput("Command sent to device: " + command);
+        writeToOutput(tr("Command sent to device: %1").arg(command));
 
         if(m_connectionType == Settings::KSerial){
             SerialCommunication::instance()->sendCommand(command,
@@ -175,7 +175,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
             }
         }
 
-        ui->btStartPauseReading->setText("Pause");
+        ui->btStartPauseReading->setText(tr("Pause"));
         ui->btLogTo->setEnabled(false);
         ui->cbLogType->setEnabled(false);
         ui->btSendCommand->setEnabled(true);
@@ -196,7 +196,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
         if(m_logFile->isOpen())
             m_logFile->close();
 
-        ui->btStartPauseReading->setText("Start");
+        ui->btStartPauseReading->setText(tr("Start"));
         ui->btLogTo->setEnabled(true);
         ui->cbLogType->setEnabled(true);
         ui->btSendCommand->setEnabled(false);

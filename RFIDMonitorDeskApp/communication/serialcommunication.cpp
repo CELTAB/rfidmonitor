@@ -106,7 +106,7 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
             }
         }
 
-        SystemMessagesWidget::instance()->writeMessage(QString(tr("Command sent: '%1'")).arg(command));
+        SystemMessagesWidget::instance()->writeMessage(tr("Command sent: '%1'").arg(command));
         return true;
     }else{
         SystemMessagesWidget::instance()->writeMessage(tr("Cannot send command to device. Device is not writable."));
@@ -117,7 +117,7 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
 void SerialCommunication::handleError(const QSerialPort::SerialPortError error)
 {
     if(error != QSerialPort::NoError){
-        SystemMessagesWidget::instance()->writeMessage(QString(tr("Serial Port Error: %1")).arg(m_serialPort->errorString()));
+        SystemMessagesWidget::instance()->writeMessage(tr("Serial Port Error: %1").arg(m_serialPort->errorString()));
     }
 }
 

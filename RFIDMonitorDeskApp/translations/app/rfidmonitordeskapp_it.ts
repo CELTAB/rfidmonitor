@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="es_ES">
+<TS version="2.1" language="it_IT">
 <context>
     <name>MainWindow</name>
     <message>
@@ -11,7 +11,7 @@
     <message>
         <location filename="../../gui/mainwindow.ui" line="30"/>
         <source>Set up the connection</source>
-        <translation>Configure la conexión</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../gui/mainwindow.ui" line="38"/>
@@ -118,7 +118,7 @@
     <message>
         <location filename="../../gui/networkconnconfigwidget.ui" line="22"/>
         <source>2 - Interact with:</source>
-        <translation>2 - Interactuar con</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../gui/networkconnconfigwidget.ui" line="29"/>
@@ -163,6 +163,11 @@
 </context>
 <context>
     <name>RFIDMonitorInteractorWidget</name>
+    <message>
+        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="14"/>
+        <source>RFIDMonitor Interactor</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="24"/>
         <source>RFIDMonitor Configuration</source>
@@ -274,23 +279,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="271"/>
-        <source>Address</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="281"/>
-        <source>Port</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="236"/>
         <source>Wireless</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="14"/>
-        <source>RFIDMonitor Interactor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -306,6 +296,16 @@
     <message>
         <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="265"/>
         <source>Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="271"/>
+        <source>Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/rfidmonitorinteractorwidget.ui" line="281"/>
+        <source>Port</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -579,18 +579,13 @@
 <context>
     <name>SerialConnConfigWidget</name>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="217"/>
-        <source>Stop Bits:</source>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="14"/>
+        <source>Serial Connection Configuration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="171"/>
-        <source>Baud Rate:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="125"/>
-        <source>Data Bits:</source>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="29"/>
+        <source>Device:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -604,13 +599,18 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="29"/>
-        <source>Device:</source>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="125"/>
+        <source>Data Bits:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="14"/>
-        <source>Serial Connection Configuration</source>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="171"/>
+        <source>Baud Rate:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="217"/>
+        <source>Stop Bits:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

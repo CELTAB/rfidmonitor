@@ -1,6 +1,7 @@
 #include <QTimer>
 #include <QStandardItem>
 #include <QMapIterator>
+#include <QIcon>
 
 #include "networkconnconfigwidget.h"
 #include "ui_networkconnconfigwidget.h"
@@ -11,6 +12,7 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->btStopRaspSearch->setEnabled(false);
+    ui->btRaspSearch->setIcon(QIcon(":/icons/icon-search"));
 
     m_raspFoundModel = new DeviceModel;
     ui->lvDevicesFound->setModel(m_raspFoundModel);

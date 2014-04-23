@@ -16,6 +16,9 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
     ui->setupUi(this);
     m_treeViewModel = new QStandardItemModel(this);
     ui->treeViewAvailableModules->setModel(m_treeViewModel);
+    ui->treeViewAvailableModules->header()->hide();
+    //read-only
+    ui->treeViewAvailableModules->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     changeFormState(KEmpty);
     ui->leMac->setReadOnly(true);
@@ -60,8 +63,8 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
     m_raspSettings = new json::RFIDMonitorSettings;
     m_raspSettings->read(obj);
 
-
     clearForm();
+
     //fills the interface with json data.
 
     //GENERAL
@@ -79,15 +82,15 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
         QJsonObject moduleObj = modulesArray.at(i).toObject();
 
         //MODULE
-        QStandardItem *moduleNameItem = new QStandardItem(QString("Module: ") + moduleObj.value("modulename").toString());
+        QStandardItem *moduleNameItem = new QStandardItem(tr("Module: %1").arg(moduleObj.value("modulename").toString()));
         rootNode->appendRow(moduleNameItem);
 
         //MODULE > VERSION
-        QStandardItem *moduleVersionItem = new QStandardItem(QString("Version: ") + QString::number(moduleObj.value("version").toDouble()));
+        QStandardItem *moduleVersionItem = new QStandardItem(tr("Version: %1").arg(QString::number(moduleObj.value("version").toDouble())));
         moduleNameItem->appendRow(moduleVersionItem);
 
         //MODULE > SERVICES
-        QStandardItem *moduleServicesItem = new QStandardItem("Services:");
+        QStandardItem *moduleServicesItem = new QStandardItem(tr("Services:"));
         moduleNameItem->appendRow(moduleServicesItem);
 
         QJsonArray servicesArray = moduleObj.value("services").toArray();
@@ -95,12 +98,15 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
             //MODULE > SERVICES > SERVICE
             QJsonObject serviceObj = servicesArray.at(j).toObject();
 
-            int serviceCode = serviceObj.value("servicetype").toInt();
+            Settings::ServiceType serviceCode = (Settings::ServiceType) serviceObj.value("servicetype").toInt();
             QString serviceName = serviceObj.value("servicename").toString();
 
             QStandardItem *serviceItem= new QStandardItem(
-                        QString("Name: ") + serviceName +
-                        QString(" | Type: ") + Settings::translateServiceType(serviceCode)
+                        tr("Name: ") +
+                        serviceName +
+                        " | " +
+                        tr("Type: ") +
+                        Settings::instance()->stringifyServiceType(serviceCode)
                         );
             moduleServicesItem->appendRow(serviceItem);
 
@@ -301,13 +307,13 @@ void RFIDMonitorInteractorWidget::btRetrieveConfigFromRaspClicked()
 void RFIDMonitorInteractorWidget::newConfigStatusFromRasp(QJsonObject obj)
 {
     if(obj.value("success").toBool()){
-        SystemMessagesWidget::instance()->writeMessage("Configuration successfuly delivered.",
+        SystemMessagesWidget::instance()->writeMessage(tr("Configuration successfuly delivered."),
                                                        SystemMessagesWidget::KInfo,
                                                        SystemMessagesWidget::KDialogAndLog);
         changeFormState(KWithObject);
     }
     else{
-        SystemMessagesWidget::instance()->writeMessage("Failed to delivery the new configuration.",
+        SystemMessagesWidget::instance()->writeMessage(tr("Failed to delivery the new configuration."),
                                                        SystemMessagesWidget::KError,
                                                        SystemMessagesWidget::KDialogAndLog);
         changeFormState(KEditing);

@@ -55,4 +55,12 @@ FORMS    += \
 QMAKE_CXXFLAGS += -std=c++11
 
 TRANSLATIONS =  translations/app/rfidmonitordeskapp_pt_BR.ts \
-                translations/app/rfidmonitordeskapp_es.ts
+                translations/app/rfidmonitordeskapp_es.ts \
+                translations/app/rfidmonitordeskapp_fr.ts \
+                translations/app/rfidmonitordeskapp_it.ts \
+                translations/app/rfidmonitordeskapp_de.ts \
+                translations/app/rfidmonitordeskapp_gn.ts \
+                translations/app/rfidmonitordeskapp_ar.ts
+
+RESOURCES += \
+    resources.qrc

@@ -30,7 +30,7 @@ public:
     };
 
     static Settings *instance();
-    static QString translateServiceType(int code);
+    QString stringifyServiceType(Settings::ServiceType type);
 
     QVariant setting(const QString &key);
     void setSetting(const QString &key, const QVariant &value);
