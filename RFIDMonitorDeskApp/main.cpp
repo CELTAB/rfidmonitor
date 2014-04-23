@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     if(defaultLanguage.isValid()){ // if the setting exists
 
-        if(defaultLanguage.toString().compare("auto") == 0) //if the value of setting is defined as auto
+        if(defaultLanguage.toString() == "auto") //if the value of setting is defined as auto
             autoLanguageDefined = true; //set to true. Now the app must detect automaticaly the language.
 
     }else{ //if the setting does not exists
@@ -37,22 +37,22 @@ int main(int argc, char *argv[])
     // Translations for Qt
     QTranslator qtTranslator;
     if(autoLanguageDefined){
-        qtTranslator.load("translations/qt/qt_" + QLocale::system().name());
-    }else if( ! qtTranslator.load("translations/qt/qt_" + defaultLanguage.toString()) ){
+        qtTranslator.load(":/translations/qt_" + QLocale::system().name());
+    }else if( ! qtTranslator.load(":/translations/qt_" + defaultLanguage.toString()) ){
         // if fails to load the language defined on settings,
         // now will try to use the language of the system as the last attempt.
-        qtTranslator.load("translations/qt/qt_" + QLocale::system().name());
+        qtTranslator.load(":/translations/qt_" + QLocale::system().name());
     }
     app.installTranslator(&qtTranslator);
 
     // Translations for App
     QTranslator appTranslator;
     if(autoLanguageDefined){
-        appTranslator.load("translations/app/rfidmonitordeskapp_" + QLocale::system().name());
-    }else if( ! appTranslator.load("translations/app/rfidmonitordeskapp_" + defaultLanguage.toString()) ){
+        appTranslator.load(":/translations/rfidmonitordeskapp_" + QLocale::system().name());
+    }else if( ! appTranslator.load(":/translations/rfidmonitordeskapp_" + defaultLanguage.toString()) ){
         // if fails to load the language defined on settings,
         // now will try to use the language of the system as the last attempt.
-        appTranslator.load("translations/app/rfidmonitordeskapp_" + QLocale::system().name());
+        appTranslator.load(":/translations/rfidmonitordeskapp_" + QLocale::system().name());
     }
     app.installTranslator(&appTranslator);
 

@@ -10,7 +10,7 @@
     <message>
         <location filename="../../gui/mainwindow.ui" line="14"/>
         <source>RFIDMonitor Desktop</source>
-        <translation type="unfinished"></translation>
+        <translation>RFIDMonitor Desktop</translation>
     </message>
     <message>
         <location filename="../../gui/mainwindow.ui" line="30"/>
@@ -53,33 +53,33 @@
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="140"/>
         <source>Waiting for connections on %1:%2</source>
-        <translation type="unfinished"></translation>
+        <translation>Aguardando conexões em %1:%2</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="144"/>
         <source>Error. cannot find a valid address to start the server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Erro. Não foi possível encontrar um endereço válido para iniciar o servidor.</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="170"/>
         <source>Stoped searching for new rasps.</source>
-        <translation type="unfinished"></translation>
+        <translation>A procura por novos rasps foi parada.</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="201"/>
         <location filename="../../communication/networkcommunication.cpp" line="207"/>
         <source>Failed to write bytes to the socket!!!</source>
-        <translation type="unfinished"></translation>
+        <translation>Falha ao escrever bytes no socket!!!</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="230"/>
         <source>Successfuly connect to rasp.</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectado ao rasp com sucesso.</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="235"/>
         <source>Failed to connect to rasp.</source>
-        <translation type="unfinished"></translation>
+        <translation>Falha ao conectar ao rasp.</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="328"/>

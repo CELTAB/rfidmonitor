@@ -394,7 +394,7 @@ void NetworkCommunication::tcpDisconnected()
     SystemMessagesWidget::instance()->writeMessage(tr("Disconnected from %1").arg(ip));
 
     if(m_tcpSocketMap->contains(ip)){
-        // Cleanning the connection from the map.
+        // Cleanning the connections from the map.
         emit raspDisconnected(socket->peerAddress().toString());
         m_tcpSocketMap->remove(socket->peerAddress().toString());
     }else if(m_tcpSocket){

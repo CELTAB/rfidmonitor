@@ -2,4 +2,8 @@
     <qresource prefix="/icons">
         <file alias="icon-search">icons/search.png</file>
     </qresource>
+    <qresource prefix="/translations">
+        <file alias="rfidmonitordeskapp_pt_BR.qm">translations/app/rfidmonitordeskapp_pt_BR.qm</file>
+        <file alias="rfidmonitordeskapp_es.qm">translations/app/rfidmonitordeskapp_es.qm</file>
+    </qresource>
 </RCC>
