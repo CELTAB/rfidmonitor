@@ -112,13 +112,20 @@ void RFIDMonitorSettings::read(const QJsonObject &json)
     m_serverPort = json["port"].toInt();
 #endif // QT_VERSION < 0x050200
 
+    /*
+     * A temporary modules list variable is used because when the system is running and an update on the config file is needed the module list becames duplicate.
+     * Now first creates a set of modules and then overwrites the current list.
+     */
+    QList<Module> tempModules;
     QJsonArray modules = json["modules"].toArray();
     for(int i=0; i < modules.size(); i++) {
         QJsonObject obj = modules[i].toObject();
         Module mod;
         mod.read(obj);
-        m_modules.append(mod);
+        tempModules.append(mod);
     }
+    // Overwrite the list of modules
+    m_modules = tempModules;
 
     QJsonObject defaultServices = json["defaultservices"].toObject();
     m_defaultServices.read(defaultServices);

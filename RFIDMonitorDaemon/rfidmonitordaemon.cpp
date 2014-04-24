@@ -257,11 +257,9 @@ void RFIDMonitorDaemon::routeMessageTcp()
                 m_configManager->setIdentification(obj);
             }
 
-//            QDateTime dateTime = nodeMessage.dateTime();
             bool r = m_configManager->setDateTime(nodeMessage.dateTime());
-//            dataObj.insert("message", QString(m_configManager->setDateTime(dateTime)? "Date/Time update successfully" : "Error to update Date/Time"));
             QJsonObject response = m_configManager->identification();
-            response["success"] = QString(r != 0 ? "true" : "false");
+            response["success"] = QJsonValue(r);
 
             tcpSendMessage(connection, buildMessage(response, "ACK").toJson());
 
@@ -289,7 +287,8 @@ void RFIDMonitorDaemon::routeMessageTcp()
 
             QJsonObject newConfig(nodeMessage.jsonData());
             bool message;
-            //        	if(m_configManager->newConfig(newConfig)){
+            if(m_configManager->newConfig(newConfig))
+            {
             // ADICIONAR VERIFICAÇÃO DE REINICIALIZAÇÃO DO MONITOR
             /*
             * Quando um novo arquivo de configuração for recebido e persistido o monitor deve ser reiniciado.
@@ -299,10 +298,10 @@ void RFIDMonitorDaemon::routeMessageTcp()
             * Se o monitor não conseguir iniciar com as novas configurações deve ser resetado para as configurações anteriores.
             * Portanto, deve ser mantido um arquivo de configurações de backup temporario.
             */
-            //           	message = true;
-            //        	} else{
-            message = false;
-            //        	}
+                message = true;
+            }else{
+                message = false;
+            }
             QJsonObject dataObj;
             dataObj.insert("success", QJsonValue(message));
             tcpSendMessage(connection, buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
