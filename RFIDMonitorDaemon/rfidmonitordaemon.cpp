@@ -63,7 +63,7 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
 
     connect(m_tcpSocket, SIGNAL(connected()), SLOT(tcpConnected()));
     connect(m_tcpSocket, SIGNAL(disconnected()), SLOT(tcpDisconnected()));
-    connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(routeMessageTcp()));
+    connect(m_tcpSocket, SIGNAL(readyRead()), SLOT(routeTcpMessage()));
     connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(tcpHandleError(QAbstractSocket::SocketError)));
 
     connect(m_udpSocket, SIGNAL(readyRead()), SLOT(readDatagrams()));
@@ -77,7 +77,7 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
         };
     }));
 
-    connect(m_tcpAppSocket, SIGNAL(readyRead()), SLOT(routeMessageTcp()));
+    connect(m_tcpAppSocket, SIGNAL(readyRead()), SLOT(routeTcpMessage()));
 
     QString socketFile = QString("/tmp/%1").arg(m_serverName);
 
@@ -136,7 +136,7 @@ void RFIDMonitorDaemon::ipcNewConnection()
 #endif
     ipcConnection = m_localServer->nextPendingConnection();
 
-    connect(ipcConnection, SIGNAL(readyRead()), SLOT(routeMessageIpc()));
+    connect(ipcConnection, SIGNAL(readyRead()), SLOT(routeIpcMessage()));
     connect(ipcConnection, &QLocalSocket::disconnected,
             [this]() {
 #ifdef DEBUG_LOGGER
@@ -205,6 +205,10 @@ void RFIDMonitorDaemon::ipcSendMessage(const QByteArray &message)
         ipcConnection->write(message);
 }
 
+/*
+ * Build a message to be sent. Uses the right format defined by protocol
+ * Receive a QJsonObject to be inserted in data field and a message type to insert in the type field
+ */
 QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 {
     QJsonObject rootObj;
@@ -218,7 +222,21 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
     return rootDoc;
 }
 
-void RFIDMonitorDaemon::routeMessageTcp()
+/*
+ * The routeTcpMessage() receives messages from any TCP connection. The Daemon can be connected with server and deskApp at the same time, but it will know which connection received data.
+ * Any message arrive by TCP must to have two parts. The first part defines the data size of the coming package (second part) and must to be an 8 bytes String (always 8 bytes).
+ *
+ * The algoritm works like this:
+ * When some data arrive it verifies (using the hasPackage variable) if is the first part or the second one of the complete message;
+ * If hasPackage is true then is especting the second part of the message, otherwise the dada just arrived is the size information.
+ *
+ * The information of size correspond to the size of the message package. So, when more data arrive it verifies if the size is greater than or equals to the expected size.
+ * If true the message is all here and can go on, otherwise the message is coming and it will wait for more data.
+ *
+ * When all the message arrives it will interpret and route it (by message type) to the right way.
+ *
+ */
+void RFIDMonitorDaemon::routeTcpMessage()
 {
     QTcpSocket *connection = (QTcpSocket *) QObject::sender();
 
@@ -257,9 +275,9 @@ void RFIDMonitorDaemon::routeMessageTcp()
                 m_configManager->setIdentification(obj);
             }
 
-            bool r = m_configManager->setDateTime(nodeMessage.dateTime());
+            bool statusDateTime = m_configManager->setDateTime(nodeMessage.dateTime());
             QJsonObject response = m_configManager->identification();
-            response["success"] = QJsonValue(r);
+            response["success"] = QJsonValue(statusDateTime);
 
             tcpSendMessage(connection, buildMessage(response, "ACK").toJson());
 
@@ -273,6 +291,13 @@ void RFIDMonitorDaemon::routeMessageTcp()
             QJsonObject command(nodeMessage.jsonData());
             //        	m_daemonLogger <<   QString(QJsonDocument(command).toJson());
 
+            /*
+             * When a 'reader command' message is received is because someone is sending a command to the reader. So it needs to send also who is doing this.
+             * To perform this it uses a field called 'sender' that carry the name of who is sending the 'command message'.
+             * And based on that, it will respond to the server connection or to the deskApp connection
+             *
+             * see reoutIcpMessage (messageType == "READER-RESPONSE")
+             */
             if(connection->objectName() == "server")
                 command.insert("sender", QString("server"));
             else
@@ -286,11 +311,11 @@ void RFIDMonitorDaemon::routeMessageTcp()
             m_daemonLogger <<  "NEW-CONFIG Received";
 
             QJsonObject newConfig(nodeMessage.jsonData());
-            bool message;
+            bool ackConf;
             if(m_configManager->newConfig(newConfig))
             {
-            // ADICIONAR VERIFICAÇÃO DE REINICIALIZAÇÃO DO MONITOR
-            /*
+                // ADICIONAR VERIFICAÇÃO DE REINICIALIZAÇÃO DO MONITOR
+                /*
             * Quando um novo arquivo de configuração for recebido e persistido o monitor deve ser reiniciado.
             * Enquanto o aplicativo reiniciar o 'sender' esta esperando por uma configuração.
             * Deve ser enviado uma mensagem de sucesso ou fracasso na inicializaão com as novas configurações.
@@ -298,47 +323,48 @@ void RFIDMonitorDaemon::routeMessageTcp()
             * Se o monitor não conseguir iniciar com as novas configurações deve ser resetado para as configurações anteriores.
             * Portanto, deve ser mantido um arquivo de configurações de backup temporario.
             */
-                message = true;
+                ackConf = true;
             }else{
-                message = false;
+                ackConf = false;
             }
             QJsonObject dataObj;
-            dataObj.insert("success", QJsonValue(message));
+            dataObj.insert("success", QJsonValue(ackConf));
             tcpSendMessage(connection, buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
 
         }else if (messageType == "DATETIME") {
             m_daemonLogger <<  "DATETIME Received";
 
             QJsonObject dataObj;
-            QDateTime dateTime = nodeMessage.dateTime();
-            //    	QDateTime dateTime = QDateTime::fromString(nodeMessage.jsonDateTime(), Qt::ISODate);
-
-            dataObj.insert("message", m_configManager->setDateTime(dateTime)? QString("Date/Time update successfully") : QString("Error to update Date/Time"));
+            dataObj["success"] =  QJsonValue(m_configManager->setDateTime(nodeMessage.dateTime()));//? QString("Date/Time update successfully") : QString("Error to update Date/Time"));
             tcpSendMessage(connection, buildMessage(dataObj, "ACK").toJson());
 
         }else if (messageType == "ACK-DATA") {
-            m_daemonLogger <<  "ACK-DATA Received";
-
+            // A ACK-DATA message means that the server is trying to inform the RFIDMonitor that some data is now synced. So, it just send this message to the RFIDMonitor.
             ipcSendMessage(data);
 
+            // DEBUG PURPOSE -- SHOW THE MD5 DIGGEST
             QJsonObject ackData(nodeMessage.jsonData());
             QString hash = ackData["md5diggest"].toString();
             m_daemonLogger <<  "The package was successfulle synced. PACKAGE HASH: " << hash;
 
         }else if (messageType == "GET-NET-CONFIG") {
-            m_daemonLogger <<  "GET-NET-CONFIG Received";
+            // Only return the network configuration.
             tcpSendMessage(connection, buildMessage(m_configManager->netConfig(), "NET-CONFIG").toJson());
 
         }else if (messageType == "NEW-NET") {
             m_daemonLogger <<  "NEW-NET Received";
+            QJsonObject network = nodeMessage.jsonData();
 
-            QJsonObject netConfig(nodeMessage.jsonData());
-            QString message(m_configManager->setNetConfig(netConfig)? "New network configuration saved successfully" : "Culd not save the new network configuration");
+            // Receive a new configuration for the network (ssid and password).
             QJsonObject dataObj;
-            dataObj.insert("message", message);
+            dataObj.insert("success", QJsonValue(m_configManager->setNetConfig(network)));
+
+            // returns a message ACK-NET to inform the sender that the new configuration was set
             tcpSendMessage(connection, buildMessage(dataObj, "ACK-NET").toJson());
 
-            m_daemonLogger <<  QString(m_configManager->restartNetwork()? "Network restarted" : "Networkt Don't restarted");
+            // Try to restar the network service to already use the new configuration
+            bool resetNet = m_configManager->restartNetwork();
+            m_daemonLogger <<  QString(resetNet? "Network restarted" : "Networkt Don't restarted");
 
         }else if (messageType == "ACK-UNKNOWN") {
             QJsonDocument unknown(nodeMessage.jsonData());
@@ -347,20 +373,29 @@ void RFIDMonitorDaemon::routeMessageTcp()
             m_daemonLogger <<  "ERROR message: " << unknown.object().value("errorinfo").toString();
         }
         else{
+            /* When receives a message that can't be interpreted like any type is an unknown message.
+             * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
+             */
             m_daemonLogger <<  "UNKNOWN MESSAGE";
             QJsonObject unknownObj;
             unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
             unknownObj.insert("errorinfo", QString("Unknown message received"));
-
             tcpSendMessage(connection, buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
         }
 
+        /* when all the process is done, reset the expecting message size to zero and the haspackage to false.
+         * Then when more data arrive it must to be the size information again.
+         */
         packageSize = 0;
         hasPackage = false;
     }
 }
 
-void RFIDMonitorDaemon::routeMessageIpc()
+/*
+ * This function works pretty much like routTcpMessage only that this one interpretes message from RFIDMonitor and don't verify packages size.
+ * it only tries to interpret data just arrived.
+ */
+void RFIDMonitorDaemon::routeIpcMessage()
 {
     QByteArray message = ipcConnection->readAll();
     json::NodeJSMessage nodeMessage;
@@ -383,16 +418,22 @@ void RFIDMonitorDaemon::routeMessageIpc()
         m_daemonLogger <<  "READER-RESPONSE Received";
 #endif
         QJsonObject command(nodeMessage.jsonData());
-#ifdef DEBUG_LOGGER
-        m_daemonLogger <<  QString(QJsonDocument(command).toJson());
-#endif
-
+        /*
+         * When a 'reader response' message is received is because someone sent a 'reader command' message. So it needs to know who did it.
+         * To perform this it uses a field called 'sender' that carry the name of who sent the 'command message'.
+         * And based on that, it will respond to the server connection or to the deskApp connection.
+         *
+         * see reoutTcpMessage (messageType == "READER-COMMAND")
+         */
         if(command.value("sender").toString() == "server")
             tcpSendMessage(m_tcpSocket, message);
         else
             tcpSendMessage(m_tcpAppSocket, message);
 
-    }else if (messageType == "DATA") {
+    }else if (messageType == "DATA"){
+        /*
+         * A Data message means that the RFIDMonitor is trying to sync some data into the server. So, it just send this message to the server.
+         */
 #ifdef DEBUG_LOGGER
         m_daemonLogger <<  "DATA Received\n";
         m_daemonLogger <<  QString(QJsonDocument(nodeMessage.jsonData()).toJson());
@@ -408,6 +449,9 @@ void RFIDMonitorDaemon::routeMessageIpc()
 #endif
     }
     else{
+        /* When receives a message that can't be interpreted like any type is an unknown message.
+         * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
+         */
 #ifdef DEBUG_LOGGER
         m_daemonLogger <<  "UNKNOWN MESSAGE";
 #endif

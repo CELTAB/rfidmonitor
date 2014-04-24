@@ -108,7 +108,7 @@ struct RFIDMonitorPrivate
     }
 
     bool writeSettings()
-    {        
+    {
         QFile saveFile("rfidmonitor.json");
 
         if (!saveFile.open(QIODevice::WriteOnly)) {
@@ -188,7 +188,7 @@ struct RFIDMonitorPrivate
             }
             foreach (Service *serv, mod->services()) {
                 addService(serv);
-            }            
+            }
         }
     }
 
@@ -433,20 +433,20 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-//    qDebug() << "Received a message: " << QString(message);
+    //    qDebug() << "Received a message: " << QString(message);
 
     if(message == "Reload Settings"){
         d_ptr->readSettings();
     }
-//    if(message == "ExitSystem"){
-//        qDebug() << "Exit ... !!";
-//        qApp->exit(0);
-//    }else if(message == "RestartSystem"){
-//        qApp->exit(1);
-//    }else if(message == "Reload Settings"){
-//        d_ptr->systemSettings.setName("");
-//        d_ptr->writeSettings();
-//        qApp->exit(1);
-//    }
+    //    if(message == "ExitSystem"){
+    //        qDebug() << "Exit ... !!";
+    //        qApp->exit(0);
+    //    }else if(message == "RestartSystem"){
+    //        qApp->exit(1);
+    //    }else if(message == "Reload Settings"){
+    //        d_ptr->systemSettings.setName("");
+    //        d_ptr->writeSettings();
+    //        qApp->exit(1);
+    //    }
 }
 
