@@ -1,16 +1,20 @@
 #include <QFileDialog>
 #include <QDir>
 
-#include "readerinteractorwidget.h"
-#include "ui_readerinteractorwidget.h"
+#include "readermanipulatorwidget.h"
+#include "ui_readermanipulatorwidget.h"
 #include "systemmessageswidget.h"
 
-ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType type, QWidget *parent) :
+ReaderManipulatorWidget::ReaderManipulatorWidget(const Settings::ConnectionType type, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ReaderInteractorWidget),
+    ui(new Ui::ReaderManipulatorWidget),
     m_connectionType(type)
 {
     ui->setupUi(this);
+
+    ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-ok"));
+    ui->btClearOutput->setIcon(QIcon(":/icons/icon-clear"));
+    ui->btSendCommand->setIcon(QIcon(":/icons/icon-send"));
 
     // Log file.
     m_logFile = new QFile(this);
@@ -36,21 +40,21 @@ ReaderInteractorWidget::ReaderInteractorWidget(const Settings::ConnectionType ty
         connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(connectionFinished()));
     }
 
-    // instantiate the RI-CTL-MB2B-30 interactor and add it to the main tab.
+    // instantiate the RI-CTL-MB2B-30 Manipulator and add it to the main tab.
     m_mb2b30 = new RICTLMB2B30Widget(m_connectionType, this);
     ui->tabWidget->addTab(m_mb2b30, "RI-CTL-MB2B-30");
 }
 
-ReaderInteractorWidget::~ReaderInteractorWidget()
+ReaderManipulatorWidget::~ReaderManipulatorWidget()
 {
-    //When this interactor is ordered to close, close the log file first.
+    //When this Manipulator is ordered to close, close the log file first.
     if(m_logFile->isOpen())
         m_logFile->close();
 
     delete ui;
 }
 
-void ReaderInteractorWidget::closeConnection()
+void ReaderManipulatorWidget::closeConnection()
 {
     if(m_connectionType == Settings::KSerial){
         SerialCommunication::instance()->disconnectFromDevice();
@@ -60,7 +64,7 @@ void ReaderInteractorWidget::closeConnection()
     }
 }
 
-void ReaderInteractorWidget::sendCommand(const QString &command)
+void ReaderManipulatorWidget::sendCommand(const QString &command)
 {
     if( ! command.isEmpty()){
 
@@ -77,7 +81,7 @@ void ReaderInteractorWidget::sendCommand(const QString &command)
     }
 }
 
-void ReaderInteractorWidget::writeToOutput(const QString &text)
+void ReaderManipulatorWidget::writeToOutput(const QString &text)
 {
     ui->teOutput->append(text);
 
@@ -88,7 +92,7 @@ void ReaderInteractorWidget::writeToOutput(const QString &text)
     }
 }
 
-void ReaderInteractorWidget::lockForms()
+void ReaderManipulatorWidget::lockForms()
 {
     ui->leCommand->setEnabled(false);
     ui->btSendCommand->setEnabled(false);
@@ -99,32 +103,32 @@ void ReaderInteractorWidget::lockForms()
     ui->btClearOutput->setEnabled(false);
 }
 
-void ReaderInteractorWidget::newAnswerFromSerialComm(const QString answer)
+void ReaderManipulatorWidget::newAnswerFromSerialComm(const QString answer)
 {
     writeToOutput(answer);
 }
 
-void ReaderInteractorWidget::newAnswerFromNetworkComm(const QString answer)
+void ReaderManipulatorWidget::newAnswerFromNetworkComm(const QString answer)
 {
     writeToOutput(answer);
 }
 
-void ReaderInteractorWidget::btSendCommandClicked()
+void ReaderManipulatorWidget::btSendCommandClicked()
 {
     sendCommand(ui->leCommand->text());
 }
 
-void ReaderInteractorWidget::leCommandReturnPressed()
+void ReaderManipulatorWidget::leCommandReturnPressed()
 {
     sendCommand(ui->leCommand->text());
 }
 
-void ReaderInteractorWidget::btClearOutputClicked()
+void ReaderManipulatorWidget::btClearOutputClicked()
 {
     ui->teOutput->clear();
 }
 
-void ReaderInteractorWidget::btLogToClicked()
+void ReaderManipulatorWidget::btLogToClicked()
 {
     QString fileName(QFileDialog::getOpenFileName(this, tr("Select log file"), QDir::homePath()));
     if(!fileName.isEmpty()){
@@ -161,10 +165,12 @@ void ReaderInteractorWidget::btLogToClicked()
     }
 }
 
-void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
+void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
 {
     if(checked){
         // Start reading selected.
+
+        ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-cancel"));
 
         // Try to open the log file to use if must use it.
         if(m_useLogFile){
@@ -193,6 +199,8 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
     }else{
         // Pause reading selected.
 
+        ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-ok"));
+
         if(m_logFile->isOpen())
             m_logFile->close();
 
@@ -213,7 +221,7 @@ void ReaderInteractorWidget::btStartPauseReadingClicked(const bool checked)
 
 }
 
-void ReaderInteractorWidget::connectionFinished()
+void ReaderManipulatorWidget::connectionFinished()
 {
     lockForms();
 }

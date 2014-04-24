@@ -10,6 +10,9 @@ SerialConnConfigWidget::SerialConnConfigWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->btRefreshDeviceList->setIcon(QIcon(":/icons/icon-refresh"));
+    ui->btConnect->setIcon(QIcon(":/icons/icon-connect"));
+
     connect(ui->btRefreshDeviceList, &QPushButton::clicked, this, &SerialConnConfigWidget::btRefreshDeviceClicked);
     connect(ui->btConnect, &QPushButton::clicked, this, &SerialConnConfigWidget::btConnectToDeviceClicked);
 

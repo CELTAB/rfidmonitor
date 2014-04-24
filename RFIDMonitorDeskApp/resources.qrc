@@ -1,6 +1,16 @@
 <RCC>
     <qresource prefix="/icons">
-        <file alias="icon-search">icons/search.png</file>
+        <file alias="icon-cancel">icons/cancel_1.png</file>
+        <file alias="icon-clear">icons/clear_1.png</file>
+        <file alias="icon-connect">icons/connect_2.png</file>
+        <file alias="icon-download">icons/download_1.png</file>
+        <file alias="icon-edit">icons/edit_1.png</file>
+        <file alias="icon-ok">icons/ok_2.png</file>
+        <file alias="icon-refresh">icons/refresh_1.png</file>
+        <file alias="icon-search">icons/search_2.png</file>
+        <file alias="icon-send">icons/send_1.png</file>
+        <file alias="icon-signal">icons/signal.png</file>
+        <file alias="icon-plus">icons/plus_1.png</file>
     </qresource>
     <qresource prefix="/translations">
         <file alias="rfidmonitordeskapp_pt_BR.qm">translations/app/rfidmonitordeskapp_pt_BR.qm</file>

@@ -87,7 +87,7 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
     if(m_serialPort->isWritable()){
         if(type == KASCII){
             if (m_serialPort->write(command.toUtf8()) == -1){
-                SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
+                SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."));
                 return false;
             }
         }else if(type == KNumber){
@@ -97,7 +97,7 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
             int parsedValue = command.toInt(&parseOK, 16);
             if(parseOK){
                 if (m_serialPort->write(reinterpret_cast<char*>(&parsedValue), sizeof(int)) == -1){
-                    SystemMessagesWidget::instance()->writeMessage(tr("Error occorred writing to device."));
+                    SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."));
                     return false;
                 }
             }else{

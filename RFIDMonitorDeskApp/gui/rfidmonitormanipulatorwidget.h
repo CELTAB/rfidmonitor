@@ -1,5 +1,5 @@
-#ifndef RFIDMONITORINTERACTORWIDGET_H
-#define RFIDMONITORINTERACTORWIDGET_H
+#ifndef RFIDMONITORMANIPULATORWIDGET_H
+#define RFIDMONITORMANIPULATORWIDGET_H
 
 #include <QWidget>
 #include <QJsonObject>
@@ -8,16 +8,16 @@
 #include "../json/rfidmonitorsettings.h"
 
 namespace Ui {
-class RFIDMonitorInteractorWidget;
+class RFIDMonitorManipulatorWidget;
 }
 
-class RFIDMonitorInteractorWidget : public QWidget
+class RFIDMonitorManipulatorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit RFIDMonitorInteractorWidget(QWidget *parent = 0);
-    ~RFIDMonitorInteractorWidget();
+    explicit RFIDMonitorManipulatorWidget(QWidget *parent = 0);
+    ~RFIDMonitorManipulatorWidget();
 
     /**
      * @brief closeConnection called by the user, through the main window
@@ -42,7 +42,7 @@ public:
     };
 
 private:
-    Ui::RFIDMonitorInteractorWidget *ui;
+    Ui::RFIDMonitorManipulatorWidget *ui;
     QStandardItemModel *m_treeViewModel;
 
     /**
@@ -149,4 +149,4 @@ public slots:
     void btCancelClicked();
 };
 
-#endif // RFIDMONITORINTERACTORWIDGET_H
+#endif // RFIDMONITORMANIPULATORWIDGET_H

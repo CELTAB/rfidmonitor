@@ -2,6 +2,7 @@
 #define SYSTEMMESSAGESWIDGET_H
 
 #include <QWidget>
+#include <QFile>
 
 namespace Ui {
 class SystemMessagesWidget;
@@ -17,8 +18,9 @@ public:
      */
     enum MessageBehavior {
         KOnlyDialog=0, /**< The message will be displayed only in a dialog. */
-        KOnlyLog, /**< The message will be displayed only in text box "System Messages". */
-        KDialogAndLog /**< The message will be displayed in the dialog and also in the text box "System Messages".*/
+        KOnlyTextbox, /**< The message will be displayed only in text box "System Messages". */
+        KDialogAndTextbox, /**< The message will be displayed in the dialog and also in the text box "System Messages".*/
+        KOnlyLogfile /**< The message will be displayed only in the log file.*/
     };
 
     /**
@@ -31,8 +33,9 @@ public:
                     warning icon in the dialog. */
         KError, /**< The message will be displayed with "[ERROR]" prefix in log, and with a
                     critical icon in the dialog. */
-        KFatal /**< The message will be displayed with "[FATAL ERROR]" prefix in log, and with a
+        KFatal, /**< The message will be displayed with "[FATAL ERROR]" prefix in log, and with a
                     critical icon in the dialog. */
+        KDebug /**< To debug purpose.*/
     };
 
     /**
@@ -51,11 +54,23 @@ public:
      */
     void writeMessage(const QString &message,
                       const MessageLevel &messageLevel= KInfo,
-                      const MessageBehavior &messageBehavior = KOnlyLog);
+                      const MessageBehavior &messageBehavior = KOnlyTextbox);
 
 private:
     explicit SystemMessagesWidget(QWidget *parent = 0);
     Ui::SystemMessagesWidget *ui;
+
+    /**
+     * @brief m_logFile holds the instance of the logging file.
+     */
+    QFile *m_logFile;
+
+    /**
+     * @brief prepareLogfile will check the logs dir, and instantiate the QFile.
+     *
+     * The log file name will have the application name + the current time stamp.
+     */
+    void prepareLogfile();
 };
 
 #endif // SYSTEMMESSAGESWIDGET_H

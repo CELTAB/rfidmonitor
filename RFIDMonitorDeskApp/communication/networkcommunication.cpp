@@ -44,7 +44,11 @@ void NetworkCommunication::handshakeACK(QTcpSocket *socket, QJsonObject jsonObje
 
         emit newRaspFound(map);
     }else{
-        qDebug() << "Socket not open.";
+        SystemMessagesWidget::instance()->writeMessage(
+                    tr("Socket is not open."),
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
     }
 
 
@@ -55,7 +59,11 @@ void NetworkCommunication::handshakeSYN(QTcpSocket *socket, QJsonObject jsonObje
     if(socket->isOpen()){
         sendData(socket, "ACK-SYN", jsonObject);
     }else{
-        qDebug() << "Socket not open.";
+        SystemMessagesWidget::instance()->writeMessage(
+                    tr("Socket is not open."),
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
     }
 }
 
@@ -79,9 +87,13 @@ void NetworkCommunication::sendAckUnknown(QTcpSocket *socket, QJsonObject origin
 
 void NetworkCommunication::ackUnknownReceived(QJsonObject jsonObject)
 {
-    qDebug() << "ACK-UNKNOWN RECEIVED.";
-    qDebug() << "Error info: " << jsonObject.value("errorinfo").toString();
-    qDebug() << "From this our message early sent: " << jsonObject.value("unknownmessage").toObject().toVariantMap();
+    SystemMessagesWidget::instance()->writeMessage(
+                tr("ACK-UNKNOWN Received. ERROR INFO [%1] ORIGINAL MESSAGE [%2]")
+                .arg(jsonObject.value("errorinfo").toString())
+                .arg(QString(QJsonDocument(jsonObject.value("unknownmessage").toObject()).toJson())),
+                SystemMessagesWidget::KDebug,
+                SystemMessagesWidget::KOnlyLogfile
+                );
 }
 
 void NetworkCommunication::ackNewConfig(QJsonObject jsonObject)
@@ -91,16 +103,17 @@ void NetworkCommunication::ackNewConfig(QJsonObject jsonObject)
 
 void NetworkCommunication::sendDatagram()
 {
-    QString string("{\"ipaddress\": \"%1\" ,"
+    QString string("{"
+                   " \"ipaddress\": \"%1\" ,"
                    " \"port\" : %2 "
-                   " } ");
+                   "}");
 
     QByteArray datagram(string.arg(m_localAddress).arg(m_tcpPort).toUtf8());
 
     if(m_udpSocket->writeDatagram(datagram.data(), datagram.size(), QHostAddress::Broadcast, m_udpPort) == -1){
         SystemMessagesWidget::instance()->writeMessage("Error: cannot write datagram. Error Message: " + m_udpSocket->errorString(),
                                                        SystemMessagesWidget::KError,
-                                                       SystemMessagesWidget::KDialogAndLog);
+                                                       SystemMessagesWidget::KDialogAndTextbox);
         m_udpTimer->stop();
     }
 }
@@ -146,7 +159,11 @@ void NetworkCommunication::startBroadcast()
         }
 
     }else{
-        qDebug() << "Error. cannot start listening.";
+        SystemMessagesWidget::instance()->writeMessage(
+                    tr("Error. Cannot start searching."),
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
     }
 
 
@@ -167,7 +184,7 @@ void NetworkCommunication::stopBroadcast()
         i.value()->close();
     }
 
-    SystemMessagesWidget::instance()->writeMessage(tr("Stoped searching for new rasps."));
+    SystemMessagesWidget::instance()->writeMessage(tr("Stopped searching for new rasps."));
 }
 
 void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, const QJsonObject &data)
@@ -189,28 +206,37 @@ void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, con
         QString packageSizeStr(QString::number(package.size()));
         packageSize.fill('0', sizeof(quint64) - packageSizeStr.size());
         packageSize.append(packageSizeStr);
-
-        qDebug() << "Message sent: SIZE: " << packageSize << " DATA: " << package;
+        SystemMessagesWidget::instance()->writeMessage(
+                    tr("Message sent -> SIZE [%1] MESSAGE[%2]")
+                    .arg(packageSizeStr)
+                    .arg(QString(package)),
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
 
         if(socket->write(packageSize) == sizeof(quint64)){
             //            socket->flush();
             if(socket->write(package) == package.size())
                 socket->flush();
             else{
-                qDebug() << "FAIL 2";
+
                 SystemMessagesWidget::instance()->writeMessage(tr("Failed to write bytes to the socket!!!"),
                                                                SystemMessagesWidget::KError,
-                                                               SystemMessagesWidget::KDialogAndLog);
+                                                               SystemMessagesWidget::KDialogAndTextbox);
             }
         }else{
-            qDebug() << "FAIL 1";
+
             SystemMessagesWidget::instance()->writeMessage(tr("Failed to write bytes to the socket!!!"),
                                                            SystemMessagesWidget::KError,
-                                                           SystemMessagesWidget::KDialogAndLog);
+                                                           SystemMessagesWidget::KDialogAndTextbox);
         }
 
     }else{
-        qDebug() << "Cannot send data. The socket is closed.";
+        SystemMessagesWidget::instance()->writeMessage(
+                    tr("Cannot send data. The socket is closed."),
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
     }
 
 }
@@ -234,7 +260,7 @@ void NetworkCommunication::connectToRasp(const QString &ip)
     }else{
         SystemMessagesWidget::instance()->writeMessage(tr("Failed to connect to rasp."),
                                                        SystemMessagesWidget::KError,
-                                                       SystemMessagesWidget::KDialogAndLog);
+                                                       SystemMessagesWidget::KDialogAndTextbox);
     }
 }
 
@@ -268,7 +294,11 @@ void NetworkCommunication::closeTCPConnection()
 
 void NetworkCommunication::tcpDataAvailable()
 {
-    qDebug() << "New data arrived.";
+    SystemMessagesWidget::instance()->writeMessage(
+                tr("New data arrived."),
+                SystemMessagesWidget::KDebug,
+                SystemMessagesWidget::KOnlyLogfile
+                );
     QTcpSocket *socket = (QTcpSocket *) QObject::sender();
 
     static bool waitingForPackage = false;
@@ -288,8 +318,12 @@ void NetworkCommunication::tcpDataAvailable()
         QJsonDocument doc(QJsonDocument::fromJson(package));
         if(!doc.isNull()){
             QJsonObject rootObj(doc.object());
-
-            qDebug() << "New valid json object: " << rootObj.toVariantMap();
+            SystemMessagesWidget::instance()->writeMessage(
+                        tr("New valid json object: %1")
+                        .arg(QString(QJsonDocument(rootObj).toJson())),
+                        SystemMessagesWidget::KDebug,
+                        SystemMessagesWidget::KOnlyLogfile
+                        );
 
             QString type(rootObj.value("type").toString());
             QJsonObject dataObj = rootObj.value("data").toObject();
@@ -306,11 +340,19 @@ void NetworkCommunication::tcpDataAvailable()
             }else if(type == "ACK-NEW-CONFIG"){
                 ackNewConfig(dataObj);
             }else{
-                qDebug() << "Data type invalid.";
+                SystemMessagesWidget::instance()->writeMessage(
+                            tr("Data type invalid."),
+                            SystemMessagesWidget::KDebug,
+                            SystemMessagesWidget::KOnlyLogfile
+                            );
                 sendAckUnknown(socket, rootObj, "The 'type' is unknown.");
             }
         }else{
-            qDebug() << "Invalid json.";
+            SystemMessagesWidget::instance()->writeMessage(
+                        tr("Invalid json."),
+                        SystemMessagesWidget::KDebug,
+                        SystemMessagesWidget::KOnlyLogfile
+                        );
             sendAckUnknown(socket, QJsonObject(), "The network package could not be parsed"
                            " to a QJsonDocument. The json is invalid.");
         }
@@ -325,31 +367,31 @@ void NetworkCommunication::tcpSocketError(const QAbstractSocket::SocketError soc
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
         SystemMessagesWidget::instance()->writeMessage(
-                    tr("The host closed the connection."),
+                    tr("The remote device closed the connection."),
                     SystemMessagesWidget::KError,
-                    SystemMessagesWidget::KDialogAndLog);
+                    SystemMessagesWidget::KDialogAndTextbox);
         break;
     case QAbstractSocket::HostNotFoundError:
         SystemMessagesWidget::instance()->writeMessage(
-                    tr("The host was not found. Please check the "
-                    "host name and port settings."),
+                    tr("The remote device was not found. Please check the "
+                    "host address and port settings."),
                     SystemMessagesWidget::KError,
-                    SystemMessagesWidget::KDialogAndLog);
+                    SystemMessagesWidget::KDialogAndTextbox);
         break;
     case QAbstractSocket::ConnectionRefusedError:
         SystemMessagesWidget::instance()->writeMessage(
                     tr("The connection was refused by the peer. "
-                    "Make sure the application on the host is running, "
-                    "and check that the host name and port "
+                    "Make sure the application on the remote device is running, "
+                    "and check that the host address and port "
                     "settings are correct."),
                     SystemMessagesWidget::KError,
-                    SystemMessagesWidget::KDialogAndLog);
+                    SystemMessagesWidget::KDialogAndTextbox);
         break;
     default:
         SystemMessagesWidget::instance()->writeMessage(
                     QString(tr("Connection error: %1.")).arg(socketError),
                     SystemMessagesWidget::KError,
-                    SystemMessagesWidget::KDialogAndLog);
+                    SystemMessagesWidget::KDialogAndTextbox);
     }
     emit connectionFailed();
 }
@@ -402,7 +444,11 @@ void NetworkCommunication::tcpDisconnected()
         m_tcpSocket = 0;
     }else{
         //Disconnected by timeout because the connection didnt the handshake.
-        qDebug() << "Timeout..." <<  ip;
+        SystemMessagesWidget::instance()->writeMessage(
+                    "Timeout..." +  ip,
+                    SystemMessagesWidget::KDebug,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
     }
 
     socket->deleteLater();

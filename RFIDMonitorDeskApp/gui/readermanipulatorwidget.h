@@ -1,5 +1,5 @@
-#ifndef READERINTERACTORWIDGET_H
-#define READERINTERACTORWIDGET_H
+#ifndef READERMANIPULATORWIDGET_H
+#define READERMANIPULATORWIDGET_H
 
 #include <QWidget>
 #include <QFile>
@@ -11,20 +11,20 @@
 #include "rictlmb2b30widget.h"
 
 namespace Ui {
-class ReaderInteractorWidget;
+class ReaderManipulatorWidget;
 }
 
 /**
- * @brief The ReaderInteractorWidget class provides the way to interact with a serial device,
+ * @brief The ReaderManipulatorWidget class provides the way to interact with a serial device,
  * using a Terminal Window or a especific window for a device.
  */
-class ReaderInteractorWidget : public QWidget
+class ReaderManipulatorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ReaderInteractorWidget(const Settings::ConnectionType type, QWidget *parent = 0);
-    ~ReaderInteractorWidget();
+    explicit ReaderManipulatorWidget(const Settings::ConnectionType type, QWidget *parent = 0);
+    ~ReaderManipulatorWidget();
 
     /**
      * @brief closeConnection closes the existing connection (serial or network).
@@ -32,7 +32,7 @@ public:
     void closeConnection();
 
 private:
-    Ui::ReaderInteractorWidget *ui;
+    Ui::ReaderManipulatorWidget *ui;
 
     /**
      * @brief m_connectionType holds the connection type used in this interaction with the reader.
@@ -51,7 +51,7 @@ private:
     bool m_useLogFile;
 
     /**
-     * @brief m_mb2b30 holds the instance of the custom interactor widget for the RI-CTL-MB2B-30 reader.
+     * @brief m_mb2b30 holds the instance of the custom Manipulator widget for the RI-CTL-MB2B-30 reader.
      */
     RICTLMB2B30Widget *m_mb2b30;
 
@@ -130,4 +130,4 @@ public slots:
     void connectionFinished();
 };
 
-#endif // READERINTERACTORWIDGET_H
+#endif // READERMANIPULATORWIDGET_H

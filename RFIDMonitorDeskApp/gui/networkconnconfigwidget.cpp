@@ -13,6 +13,8 @@ NetworkConnConfigWidget::NetworkConnConfigWidget(QWidget *parent) :
     ui->setupUi(this);
     ui->btStopRaspSearch->setEnabled(false);
     ui->btRaspSearch->setIcon(QIcon(":/icons/icon-search"));
+    ui->btStopRaspSearch->setIcon(QIcon(":/icons/icon-cancel"));
+    ui->btConnectToRasp->setIcon(QIcon(":/icons/icon-connect"));
 
     m_raspFoundModel = new DeviceModel;
     ui->lvDevicesFound->setModel(m_raspFoundModel);
@@ -32,7 +34,7 @@ NetworkConnConfigWidget::~NetworkConnConfigWidget()
     delete ui;
 }
 
-bool NetworkConnConfigWidget::isReaderInteractorSelected()
+bool NetworkConnConfigWidget::isReaderManipulatorSelected()
 {
     return ui->rbReaderInteraction->isChecked();
 }

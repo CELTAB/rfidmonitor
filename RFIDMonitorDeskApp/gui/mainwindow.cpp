@@ -15,6 +15,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    SystemMessagesWidget::instance()->writeMessage(
+                tr("System started."),
+                SystemMessagesWidget::KInfo,
+                SystemMessagesWidget::KOnlyLogfile
+                );
+
     // Indexes for tabs.
     tabSetUpConnectionIndex = 0;
     tabConnectionIndex = 1;
@@ -23,9 +29,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_networkConnConfigWidget = 0;
     m_serialConnConfigWidget = 0;
 
-    // Interactor Windows
-    m_readerInteractorWidget = 0;
-    m_rfidmonitorInteractorWidget = 0;
+    // Manipulator Windows
+    m_readerManipulatorWidget = 0;
+    m_rfidmonitorManipulatorWidget = 0;
 
     connect(ui->rbSerial, SIGNAL(clicked()), this, SLOT(rbSerialClicked()));
     connect(ui->rbNetwork, SIGNAL(clicked()), this, SLOT(rbNetworkClicked()));
@@ -46,42 +52,48 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    SystemMessagesWidget::instance()->writeMessage(
+                tr("System closed normaly."),
+                SystemMessagesWidget::KInfo,
+                SystemMessagesWidget::KOnlyLogfile
+                );
 }   
 
 void MainWindow::serialCommunicationReady()
 {
     // A serial communication always is to interact with Reader.
-    prepareReaderInteractorWidget(Settings::KSerial);
+    prepareReaderManipulatorWidget(Settings::KSerial);
 }
 
 void MainWindow::networkCommunicationReady()
 {
-    if(m_networkConnConfigWidget->isReaderInteractorSelected()){
-        prepareReaderInteractorWidget(Settings::KNetwork);
+    if(m_networkConnConfigWidget->isReaderManipulatorSelected()){
+        prepareReaderManipulatorWidget(Settings::KNetwork);
     }else{
-        prepareRFIDMonitorInteractorWidget();
+        prepareRFIDMonitorManipulatorWidget();
     }
 }
 
-void MainWindow::prepareReaderInteractorWidget(const Settings::ConnectionType &connectionType)
+void MainWindow::prepareReaderManipulatorWidget(const Settings::ConnectionType &connectionType)
 {
-    if(! m_readerInteractorWidget)
-        m_readerInteractorWidget = new ReaderInteractorWidget(connectionType,this);
+    if(! m_readerManipulatorWidget)
+        m_readerManipulatorWidget = new ReaderManipulatorWidget(connectionType,this);
 
-    ui->tabConnection->layout()->addWidget(m_readerInteractorWidget);
-    m_readerInteractorWidget->show();
+    ui->tabConnection->layout()->addWidget(m_readerManipulatorWidget);
+    m_readerManipulatorWidget->show();
 
     ui->tabMain->setTabEnabled(tabConnectionIndex, true);
     ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, false);
 }
 
-void MainWindow::prepareRFIDMonitorInteractorWidget()
+void MainWindow::prepareRFIDMonitorManipulatorWidget()
 {
-    if(! m_rfidmonitorInteractorWidget)
-        m_rfidmonitorInteractorWidget = new RFIDMonitorInteractorWidget(this);
+    if(! m_rfidmonitorManipulatorWidget)
+        m_rfidmonitorManipulatorWidget = new RFIDMonitorManipulatorWidget(this);
 
-    ui->tabConnection->layout()->addWidget(m_rfidmonitorInteractorWidget);
-    m_rfidmonitorInteractorWidget->show();
+    ui->tabConnection->layout()->addWidget(m_rfidmonitorManipulatorWidget);
+    m_rfidmonitorManipulatorWidget->show();
 
     // Change the enabled tab to Connection tab.
     ui->tabMain->setTabEnabled(tabConnectionIndex, true);
@@ -130,17 +142,17 @@ void MainWindow::btCloseConnectionClicked()
     ui->tabMain->setTabEnabled(tabConnectionIndex, false);
     ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, true);
 
-    if(m_rfidmonitorInteractorWidget){
-        // If the m_rfidmonitorInteractorWidget is open, hide it, close its connection, mark to delete and clean the pointer.
-        m_rfidmonitorInteractorWidget->close();
-        m_rfidmonitorInteractorWidget->closeConnection();
-        m_rfidmonitorInteractorWidget->deleteLater();
-        m_rfidmonitorInteractorWidget = 0;
-    } else if(m_readerInteractorWidget){
-        // If the m_readerInteractorWidget is open, hide it, close its connection, mark to delete and clean the pointer.
-        m_readerInteractorWidget->close();
-        m_readerInteractorWidget->closeConnection();
-        m_readerInteractorWidget->deleteLater();
-        m_readerInteractorWidget = 0;
+    if(m_rfidmonitorManipulatorWidget){
+        // If the m_rfidmonitorManipulatorWidget is open, hide it, close its connection, mark to delete and clean the pointer.
+        m_rfidmonitorManipulatorWidget->close();
+        m_rfidmonitorManipulatorWidget->closeConnection();
+        m_rfidmonitorManipulatorWidget->deleteLater();
+        m_rfidmonitorManipulatorWidget = 0;
+    } else if(m_readerManipulatorWidget){
+        // If the m_readerManipulatorWidget is open, hide it, close its connection, mark to delete and clean the pointer.
+        m_readerManipulatorWidget->close();
+        m_readerManipulatorWidget->closeConnection();
+        m_readerManipulatorWidget->deleteLater();
+        m_readerManipulatorWidget = 0;
     }
 }

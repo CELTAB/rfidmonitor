@@ -3,17 +3,24 @@
 #include <QDebug>
 #include <QJsonArray>
 
-#include "rfidmonitorinteractorwidget.h"
-#include "ui_rfidmonitorinteractorwidget.h"
+#include "rfidmonitormanipulatorwidget.h"
+#include "ui_rfidmonitormanipulatorwidget.h"
 #include "communication/networkcommunication.h"
 #include "systemmessageswidget.h"
 
-RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
+RFIDMonitorManipulatorWidget::RFIDMonitorManipulatorWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::RFIDMonitorInteractorWidget),
+    ui(new Ui::RFIDMonitorManipulatorWidget),
     m_raspSettings(0)
 {
     ui->setupUi(this);
+
+    ui->btEdit->setIcon(QIcon(":/icons/icon-edit"));
+    ui->btCancel->setIcon(QIcon(":/icons/icon-cancel"));
+    ui->btRetrieveFromRasp->setIcon(QIcon(":/icons/icon-download"));
+    ui->btSearchInHistory->setIcon(QIcon(":/icons/icon-search"));
+    ui->btSendToRasp->setIcon(QIcon(":/icons/icon-ok"));
+
     m_treeViewModel = new QStandardItemModel(this);
     ui->treeViewAvailableModules->setModel(m_treeViewModel);
     ui->treeViewAvailableModules->header()->hide();
@@ -39,7 +46,7 @@ RFIDMonitorInteractorWidget::RFIDMonitorInteractorWidget(QWidget *parent) :
             this, SLOT(btCancelClicked()));
 }
 
-RFIDMonitorInteractorWidget::~RFIDMonitorInteractorWidget()
+RFIDMonitorManipulatorWidget::~RFIDMonitorManipulatorWidget()
 {
     delete ui;
 
@@ -47,13 +54,13 @@ RFIDMonitorInteractorWidget::~RFIDMonitorInteractorWidget()
         delete m_raspSettings;
 }
 
-void RFIDMonitorInteractorWidget::closeConnection()
+void RFIDMonitorManipulatorWidget::closeConnection()
 {
     changeFormState(KBlocked);
     NetworkCommunication::instance()->closeTCPConnection();
 }
 
-void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &obj)
+void RFIDMonitorManipulatorWidget::loadConfigurationFromJson(const QJsonObject &obj)
 {
     if(m_raspSettings){
         delete m_raspSettings;
@@ -130,7 +137,11 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
                 ui->cbDefaultPackagerService->addItem(serviceName);
                 break;
             default:
-                qDebug() << "Unknown Service to populate in combobox.";
+                SystemMessagesWidget::instance()->writeMessage(
+                            tr("Unknown Service to populate in cbDefaultPackagerService."),
+                            SystemMessagesWidget::KDebug,
+                            SystemMessagesWidget::KOnlyLogfile
+                            );
             }
 
         }
@@ -159,7 +170,7 @@ void RFIDMonitorInteractorWidget::loadConfigurationFromJson(const QJsonObject &o
 
 }
 
-void RFIDMonitorInteractorWidget::clearForm()
+void RFIDMonitorManipulatorWidget::clearForm()
 {
     //clear all fields
     ui->leName->clear();
@@ -178,7 +189,7 @@ void RFIDMonitorInteractorWidget::clearForm()
     ui->leServerPort->clear();
 }
 
-void RFIDMonitorInteractorWidget::formEnabled(bool enabled)
+void RFIDMonitorManipulatorWidget::formEnabled(bool enabled)
 {
     //lock the form waiting for some answer or procedure ends.
     ui->btSendToRasp->setEnabled(enabled);
@@ -202,7 +213,7 @@ void RFIDMonitorInteractorWidget::formEnabled(bool enabled)
     ui->leServerPort->setEnabled(enabled);
 }
 
-void RFIDMonitorInteractorWidget::sendCurrentConfiguration()
+void RFIDMonitorManipulatorWidget::sendCurrentConfiguration()
 {
     //GENERAL
 
@@ -241,16 +252,20 @@ void RFIDMonitorInteractorWidget::sendCurrentConfiguration()
     m_raspSettings->write(objToSend);
     NetworkCommunication::instance()->sendNewConfigToRasp(objToSend);
 
-
-    qDebug() << " need to persistLocalyCurrentConfig(mac, json)";
+    SystemMessagesWidget::instance()->writeMessage(
+                "need to persistLocalyCurrentConfig(mac, json)",
+                SystemMessagesWidget::KDebug,
+                SystemMessagesWidget::KOnlyLogfile
+                );
+    qDebug() << " ";
 }
 
-void RFIDMonitorInteractorWidget::persistLocalyCurrentConfig(const QString &mac, const QByteArray &json)
+void RFIDMonitorManipulatorWidget::persistLocalyCurrentConfig(const QString &mac, const QByteArray &json)
 {
     //persist on sqlite the current configuration sent to have a history of it.
 }
 
-void RFIDMonitorInteractorWidget::changeFormState(RFIDMonitorInteractorWidget::FormState state)
+void RFIDMonitorManipulatorWidget::changeFormState(RFIDMonitorManipulatorWidget::FormState state)
 {
 
     switch (state) {
@@ -282,51 +297,51 @@ void RFIDMonitorInteractorWidget::changeFormState(RFIDMonitorInteractorWidget::F
     }
 }
 
-void RFIDMonitorInteractorWidget::raspDisconnected()
+void RFIDMonitorManipulatorWidget::raspDisconnected()
 {
     changeFormState(KBlocked);
 }
 
-void RFIDMonitorInteractorWidget::newConfigFromRaspArrived(const QJsonObject json)
+void RFIDMonitorManipulatorWidget::newConfigFromRaspArrived(const QJsonObject json)
 {
     loadConfigurationFromJson(json);
     changeFormState(KWithObject);
 }
 
-void RFIDMonitorInteractorWidget::btSendToRaspClicked()
+void RFIDMonitorManipulatorWidget::btSendToRaspClicked()
 {
     sendCurrentConfiguration();
     changeFormState(KBlocked);
 }
 
-void RFIDMonitorInteractorWidget::btRetrieveConfigFromRaspClicked()
+void RFIDMonitorManipulatorWidget::btRetrieveConfigFromRaspClicked()
 {
     NetworkCommunication::instance()->getConfigFromRasp();
 }
 
-void RFIDMonitorInteractorWidget::newConfigStatusFromRasp(QJsonObject obj)
+void RFIDMonitorManipulatorWidget::newConfigStatusFromRasp(QJsonObject obj)
 {
     if(obj.value("success").toBool()){
         SystemMessagesWidget::instance()->writeMessage(tr("Configuration successfuly delivered."),
                                                        SystemMessagesWidget::KInfo,
-                                                       SystemMessagesWidget::KDialogAndLog);
+                                                       SystemMessagesWidget::KDialogAndTextbox);
         changeFormState(KWithObject);
     }
     else{
         SystemMessagesWidget::instance()->writeMessage(tr("Failed to delivery the new configuration."),
                                                        SystemMessagesWidget::KError,
-                                                       SystemMessagesWidget::KDialogAndLog);
+                                                       SystemMessagesWidget::KDialogAndTextbox);
         changeFormState(KEditing);
     }
 }
 
-void RFIDMonitorInteractorWidget::btEditClicked()
+void RFIDMonitorManipulatorWidget::btEditClicked()
 {
     changeFormState(KEditing);
 
 }
 
-void RFIDMonitorInteractorWidget::btCancelClicked()
+void RFIDMonitorManipulatorWidget::btCancelClicked()
 {
     changeFormState(KEmpty);
 }

@@ -23,12 +23,12 @@ public:
     ~NetworkConnConfigWidget();
 
     /**
-     * @brief isReaderInteractorSelected return if the reader interaction
+     * @brief isReaderManipulatorSelected return if the reader interaction
      * was selected or not.
      *
-     * @return true if reader interactor is selected, and false otherwise.
+     * @return true if reader Manipulator is selected, and false otherwise.
      */
-    bool isReaderInteractorSelected();
+    bool isReaderManipulatorSelected();
 
 private:
     Ui::NetworkConnConfigWidget *ui;

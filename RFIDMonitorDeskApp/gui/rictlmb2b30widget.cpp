@@ -15,6 +15,9 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
 {
     ui->setupUi(this);
 
+    ui->btWrite->setIcon(QIcon(":/icons/icon-signal"));
+    ui->btNextIdentification->setIcon(QIcon(":/icons/icon-plus"));
+
     // Set up the interval time of the timeout to 1 second.
     m_timeout.setInterval(1000);
     // Define the timer to execute only one time.
@@ -242,7 +245,11 @@ void RICTLMB2B30Widget::incrementIdentification()
                 else
                     ui->leIdentification->setText(newIdentification);
             }else{
-                qDebug() << QString(tr("Failed to parse Hexadecimal to Decimal."));
+                SystemMessagesWidget::instance()->writeMessage(
+                            tr("Failed to parse Hexadecimal to Decimal."),
+                            SystemMessagesWidget::KDebug,
+                            SystemMessagesWidget::KOnlyLogfile
+                            );
             }
         }else if(ui->rbDecimal->isChecked()){
             quint64 val = ui->leIdentification->text().toULongLong();

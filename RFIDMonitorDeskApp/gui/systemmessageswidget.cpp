@@ -1,5 +1,8 @@
 #include <QTime>
 #include <QMessageBox>
+#include <QTextStream>
+#include <QDir>
+#include <QDebug>
 
 #include "systemmessageswidget.h"
 #include "ui_systemmessageswidget.h"
@@ -17,11 +20,38 @@ SystemMessagesWidget::SystemMessagesWidget(QWidget *parent) :
     ui(new Ui::SystemMessagesWidget)
 {
     ui->setupUi(this);
+
+    prepareLogfile();
+}
+
+void SystemMessagesWidget::prepareLogfile()
+{
+    m_logFile = 0;
+    bool logDirIsOk = true;
+
+    QString logsDir(QApplication::applicationDirPath() + "/logs/");
+    if( ! QDir(logsDir).exists()){
+        logDirIsOk = QDir().mkdir(logsDir);
+    }
+    if(logDirIsOk){
+        m_logFile = new QFile(
+                    QApplication::applicationDirPath() +
+                    QString("/logs/%1_%2.log")
+                    .arg(QApplication::applicationName())
+                    .arg(QTime::currentTime().toString())
+                    );
+        if( ! m_logFile->open(QIODevice::ReadWrite | QIODevice::Text)){
+            m_logFile->deleteLater();
+            m_logFile = 0;
+        }
+    }
 }
 
 SystemMessagesWidget::~SystemMessagesWidget()
 {
     delete ui;
+    if(m_logFile && m_logFile->isOpen())
+        m_logFile->close();
 }
 
 void SystemMessagesWidget::writeMessage(const QString &message,
@@ -47,29 +77,50 @@ void SystemMessagesWidget::writeMessage(const QString &message,
         messageLevelString = tr("FATAL ERROR");
         icon = QMessageBox::Critical;
         break;
+    case KDebug:
+        messageLevelString = tr("DEBUG");
+        break;
     default:
         messageLevelString = tr("UNKNOW MESSAGE LEVEL");
         icon = QMessageBox::Warning;
         break;
     }
 
-    if(messageBehavior == KOnlyLog || messageBehavior == KDialogAndLog){
+    QString formatedMessage("["
+                            + QTime::currentTime().toString()
+                            + "]-["
+                            + messageLevelString
+                            + "] : "
+                            + message);
 
-        ui->teMessages->append(QString("["
-                                       + QTime::currentTime().toString()
-                                       + "]-["
-                                       + messageLevelString
-                                       + "] : "
-                                       + message));
+    // Always write the message in the log file.
+    if(m_logFile){
+
+        qDebug() << formatedMessage;
+
+        QTextStream stream(m_logFile);
+        stream << formatedMessage << "\n";
+        stream.flush();
+    }else{
+        qDebug() << "Cannot use the log file.";
     }
-    if(messageBehavior == KOnlyDialog || messageBehavior == KDialogAndLog){
-        QMessageBox *box = new QMessageBox(this);
-        box->setAttribute( Qt::WA_DeleteOnClose );
-        box->setStandardButtons( QMessageBox::Ok );
-        box->setWindowTitle(messageLevelString);
-        box->setText(message);
-        box->setIcon(icon);
-        box->setModal(true);
-        box->show();
+
+    // If is needed to write the message in another way than log file, check which and display.
+    if( messageBehavior != KOnlyLogfile){
+
+        if(messageBehavior == KOnlyTextbox || messageBehavior == KDialogAndTextbox){
+
+            ui->teMessages->append(formatedMessage);
+        }
+        if(messageBehavior == KOnlyDialog || messageBehavior == KDialogAndTextbox){
+            QMessageBox *box = new QMessageBox(this);
+            box->setAttribute( Qt::WA_DeleteOnClose );
+            box->setStandardButtons( QMessageBox::Ok );
+            box->setWindowTitle(messageLevelString);
+            box->setText(message);
+            box->setIcon(icon);
+            box->setModal(true);
+            box->show();
+        }
     }
 }

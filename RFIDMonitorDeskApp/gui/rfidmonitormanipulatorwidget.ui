@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RFIDMonitorInteractorWidget</class>
- <widget class="QWidget" name="RFIDMonitorInteractorWidget">
+ <class>RFIDMonitorManipulatorWidget</class>
+ <widget class="QWidget" name="RFIDMonitorManipulatorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>RFIDMonitor Interactor</string>
+   <string>RFIDMonitor Manipulator</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -66,7 +66,7 @@
        <item>
         <widget class="QTabWidget" name="tabWidgetConfigData">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="tabGeneral">
           <attribute name="title">

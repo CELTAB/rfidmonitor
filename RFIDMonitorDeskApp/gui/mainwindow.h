@@ -5,8 +5,8 @@
 
 #include "gui/serialconnconfigwidget.h"
 #include "gui/networkconnconfigwidget.h"
-#include "gui/readerinteractorwidget.h"
-#include "gui/rfidmonitorinteractorwidget.h"
+#include "gui/readermanipulatorwidget.h"
+#include "gui/rfidmonitormanipulatorwidget.h"
 #include "settings.h"
 
 namespace Ui {
@@ -38,28 +38,28 @@ private:
     NetworkConnConfigWidget *m_networkConnConfigWidget;
 
     /**
-     * @brief m_readerInteractorWidget holds the window instance of the reader interactor.
+     * @brief m_readerManipulatorWidget holds the window instance of the reader Manipulator.
      */
-    ReaderInteractorWidget *m_readerInteractorWidget;
+    ReaderManipulatorWidget *m_readerManipulatorWidget;
 
     /**
-     * @brief m_rfidmonitorInteractorWidget holds the window instance of the RFIDMonitor interactor.
+     * @brief m_rfidmonitorManipulatorWidget holds the window instance of the RFIDMonitor Manipulator.
      */
-    RFIDMonitorInteractorWidget *m_rfidmonitorInteractorWidget;
+    RFIDMonitorManipulatorWidget *m_rfidmonitorManipulatorWidget;
 
     /**
-     * @brief prepareReaderInteractorWidget is a function called when the connection (network or serial) is ready,
+     * @brief prepareReaderManipulatorWidget is a function called when the connection (network or serial) is ready,
      * and the user wants to interact with the reader.
      *
      * @param connectionType inform the function which connection (KNetwork or KSerial) will be used in the interaction.
      */
-    void prepareReaderInteractorWidget(const Settings::ConnectionType &connectionType);
+    void prepareReaderManipulatorWidget(const Settings::ConnectionType &connectionType);
 
     /**
-     * @brief prepareRFIDMonitorInteractorWidget is a function called when the network connection is ready and the
+     * @brief prepareRFIDMonitorManipulatorWidget is a function called when the network connection is ready and the
      * user wants to interact with the RFIDMonitor.
      */
-    void prepareRFIDMonitorInteractorWidget();
+    void prepareRFIDMonitorManipulatorWidget();
 
     /**
      * @brief tabSetUpConnectionIndex holds the index of SetUpConnection tab for simple use in the code.

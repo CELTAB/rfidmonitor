@@ -17,22 +17,20 @@ SOURCES += main.cpp\
     gui/serialconnconfigwidget.cpp \
     communication/serialcommunication.cpp \
     communication/networkcommunication.cpp \
-    gui/readerinteractorwidget.cpp \
-    gui/rfidmonitorinteractorwidget.cpp \
     gui/networkconnconfigwidget.cpp \
     settings.cpp \
     persistence.cpp \
     gui/systemmessageswidget.cpp \
     gui/devicemodel.cpp \
     gui/rictlmb2b30widget.cpp \
-    json/rfidmonitorsettings.cpp
+    json/rfidmonitorsettings.cpp \
+    gui/readermanipulatorwidget.cpp \
+    gui/rfidmonitormanipulatorwidget.cpp
 
 HEADERS  += \
     gui/serialconnconfigwidget.h \
     communication/serialcommunication.h \
     communication/networkcommunication.h \
-    gui/readerinteractorwidget.h \
-    gui/rfidmonitorinteractorwidget.h \
     gui/networkconnconfigwidget.h \
     settings.h \
     persistence.h \
@@ -40,16 +38,18 @@ HEADERS  += \
     gui/mainwindow.h \
     gui/devicemodel.h \
     gui/rictlmb2b30widget.h \
-    json/rfidmonitorsettings.h
+    json/rfidmonitorsettings.h \
+    gui/readermanipulatorwidget.h \
+    gui/rfidmonitormanipulatorwidget.h
 
 FORMS    += \
     gui/mainwindow.ui \
     gui/serialconnconfigwidget.ui \
-    gui/readerinteractorwidget.ui \
-    gui/rfidmonitorinteractorwidget.ui \
     gui/networkconnconfigwidget.ui \
     gui/systemmessageswidget.ui \
-    gui/rictlmb2b30widget.ui
+    gui/rictlmb2b30widget.ui \
+    gui/rfidmonitormanipulatorwidget.ui \
+    gui/readermanipulatorwidget.ui
 
 
 QMAKE_CXXFLAGS += -std=c++11
