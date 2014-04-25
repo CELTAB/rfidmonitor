@@ -29,16 +29,19 @@ void SystemMessagesWidget::prepareLogfile()
     m_logFile = 0;
     bool logDirIsOk = true;
 
-    QString logsDir(QApplication::applicationDirPath() + "/logs/");
+    QString logsDir(QApplication::applicationDirPath() +
+                    QDir::separator() +
+                    "logs" +
+                    QDir::separator());
     if( ! QDir(logsDir).exists()){
         logDirIsOk = QDir().mkdir(logsDir);
     }
     if(logDirIsOk){
         m_logFile = new QFile(
-                    QApplication::applicationDirPath() +
-                    QString("/logs/%1_%2.log")
-                    .arg(QApplication::applicationName())
-                    .arg(QTime::currentTime().toString())
+                    logsDir +
+                    QString("%1_%2.log")
+                        .arg(QApplication::applicationName())
+                        .arg(QTime::currentTime().toString())
                     );
         if( ! m_logFile->open(QIODevice::ReadWrite | QIODevice::Text)){
             m_logFile->deleteLater();

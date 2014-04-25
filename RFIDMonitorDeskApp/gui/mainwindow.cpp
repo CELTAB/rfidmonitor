@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     SystemMessagesWidget::instance()->writeMessage(
                 tr("System started."),
-                SystemMessagesWidget::KInfo,
+                SystemMessagesWidget::KDebug,
                 SystemMessagesWidget::KOnlyLogfile
                 );
 
@@ -55,7 +55,7 @@ MainWindow::~MainWindow()
 
     SystemMessagesWidget::instance()->writeMessage(
                 tr("System closed normaly."),
-                SystemMessagesWidget::KInfo,
+                SystemMessagesWidget::KDebug,
                 SystemMessagesWidget::KOnlyLogfile
                 );
 }   

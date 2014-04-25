@@ -111,7 +111,7 @@ void NetworkCommunication::sendDatagram()
     QByteArray datagram(string.arg(m_localAddress).arg(m_tcpPort).toUtf8());
 
     if(m_udpSocket->writeDatagram(datagram.data(), datagram.size(), QHostAddress::Broadcast, m_udpPort) == -1){
-        SystemMessagesWidget::instance()->writeMessage("Error: cannot write datagram. Error Message: " + m_udpSocket->errorString(),
+        SystemMessagesWidget::instance()->writeMessage("Cannot write datagram. Message: " + m_udpSocket->errorString(),
                                                        SystemMessagesWidget::KError,
                                                        SystemMessagesWidget::KDialogAndTextbox);
         m_udpTimer->stop();
@@ -154,15 +154,17 @@ void NetworkCommunication::startBroadcast()
                 break;
 
             }else{
-                SystemMessagesWidget::instance()->writeMessage(tr("Error. cannot find a valid address to start the server."));
+                SystemMessagesWidget::instance()->writeMessage(tr("Cannot find a valid address to start the server."),
+                                                               SystemMessagesWidget::KError,
+                                                               SystemMessagesWidget::KDialogAndTextbox);
             }
         }
 
     }else{
         SystemMessagesWidget::instance()->writeMessage(
-                    tr("Error. Cannot start searching."),
-                    SystemMessagesWidget::KDebug,
-                    SystemMessagesWidget::KOnlyLogfile
+                    tr("Cannot start searching."),
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndTextbox
                     );
     }
 
@@ -234,8 +236,8 @@ void NetworkCommunication::sendData(QTcpSocket *socket, const QString &type, con
     }else{
         SystemMessagesWidget::instance()->writeMessage(
                     tr("Cannot send data. The socket is closed."),
-                    SystemMessagesWidget::KDebug,
-                    SystemMessagesWidget::KOnlyLogfile
+                    SystemMessagesWidget::KError,
+                    SystemMessagesWidget::KDialogAndTextbox
                     );
     }
 
@@ -253,7 +255,7 @@ void NetworkCommunication::connectToRasp(const QString &ip)
         // will be closed.
         stopBroadcast();
 
-        SystemMessagesWidget::instance()->writeMessage(tr("Successfuly connect to rasp."));
+        SystemMessagesWidget::instance()->writeMessage(tr("Successfully connect to rasp."));
 
         // Main connection successfully defined.
         emit connectionEstablished();
@@ -349,8 +351,8 @@ void NetworkCommunication::tcpDataAvailable()
             }
         }else{
             SystemMessagesWidget::instance()->writeMessage(
-                        tr("Invalid json."),
-                        SystemMessagesWidget::KDebug,
+                        tr("Invalid json. DATA [%1]").arg(QString(package)),
+                        SystemMessagesWidget::KError,
                         SystemMessagesWidget::KOnlyLogfile
                         );
             sendAckUnknown(socket, QJsonObject(), "The network package could not be parsed"
@@ -421,7 +423,9 @@ void NetworkCommunication::newConnection()
             socket,
             SLOT(deleteLater()));
 
-    SystemMessagesWidget::instance()->writeMessage(tr("New connection arrived."));
+    SystemMessagesWidget::instance()->writeMessage(tr("New connection arrived."),
+                                                   SystemMessagesWidget::KDebug,
+                                                   SystemMessagesWidget::KOnlyLogfile);
 
     timeout->start();
 
@@ -445,7 +449,7 @@ void NetworkCommunication::tcpDisconnected()
     }else{
         //Disconnected by timeout because the connection didnt the handshake.
         SystemMessagesWidget::instance()->writeMessage(
-                    "Timeout..." +  ip,
+                    tr("The device of IP %1 didn't handshake, so the connection is now closed."),
                     SystemMessagesWidget::KDebug,
                     SystemMessagesWidget::KOnlyLogfile
                     );

@@ -237,7 +237,7 @@ signals:
 
     /**
      * @brief connectionEstablished emmited when the procedure to holds a main connection
-     * to the host selected by the user, is successfuly done.
+     * to the host selected by the user, is successfully done.
      */
     void connectionEstablished();
 

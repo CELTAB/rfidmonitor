@@ -114,7 +114,7 @@ public slots:
      * configuration sent to it.
      *
      * This will change the form to state KWithObject if the setting
-     * the new configuration was successfuly
+     * the new configuration was successfully
      *
      * @param obj is the status answer in json format, that show the success
      * or the failure of defining the new configuration.

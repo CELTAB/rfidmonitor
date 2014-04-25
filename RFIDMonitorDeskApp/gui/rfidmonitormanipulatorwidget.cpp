@@ -322,7 +322,7 @@ void RFIDMonitorManipulatorWidget::btRetrieveConfigFromRaspClicked()
 void RFIDMonitorManipulatorWidget::newConfigStatusFromRasp(QJsonObject obj)
 {
     if(obj.value("success").toBool()){
-        SystemMessagesWidget::instance()->writeMessage(tr("Configuration successfuly delivered."),
+        SystemMessagesWidget::instance()->writeMessage(tr("Configuration successfully delivered."),
                                                        SystemMessagesWidget::KInfo,
                                                        SystemMessagesWidget::KDialogAndTextbox);
         changeFormState(KWithObject);

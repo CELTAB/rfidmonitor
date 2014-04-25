@@ -29,6 +29,13 @@ QStringList SerialCommunication::availablePorts()
     foreach (QSerialPortInfo spi, QSerialPortInfo::availablePorts()) {
         deviceList.append(spi.portName());
     }
+
+    SystemMessagesWidget::instance()->writeMessage(
+                tr("Device list refreshed."),
+                SystemMessagesWidget::KDebug,
+                SystemMessagesWidget::KOnlyLogfile
+                );
+
     return deviceList;
 }
 
@@ -55,7 +62,7 @@ bool SerialCommunication::connectToDevice(const QString &device,
                 m_serialPort->setDataBits(dataBits);
                 m_serialPort->setStopBits(stopBits);
                 m_serialPort->setParity(parity);
-                SystemMessagesWidget::instance()->writeMessage(tr("Successfuly connected to device."));
+                SystemMessagesWidget::instance()->writeMessage(tr("Successfully connected to device."));
                 return true;
             }else{
                 SystemMessagesWidget::instance()->writeMessage(tr("Cannot connect to device."));
@@ -77,17 +84,24 @@ void SerialCommunication::disconnectFromDevice()
         m_serialPort->close();
         SystemMessagesWidget::instance()->writeMessage(tr("Disconnected from device."));
     }else{
-        SystemMessagesWidget::instance()->writeMessage(tr("INTERNAL ERROR: Can't disconnect from device because it is not connected."));
+        SystemMessagesWidget::instance()->writeMessage(tr("INTERNAL ERROR: Can't disconnect from device because it is not connected."),
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KOnlyLogfile);
     }
 
 }
 
 bool SerialCommunication::sendCommand(const QString &command, const SerialCommunication::CommandType &type)
 {
+    SystemMessagesWidget::instance()->writeMessage(tr("Command to be sent: [%1] Type: [%2]").arg(command).arg(type),
+                                                   SystemMessagesWidget::KDebug,
+                                                   SystemMessagesWidget::KOnlyLogfile);
     if(m_serialPort->isWritable()){
         if(type == KASCII){
             if (m_serialPort->write(command.toUtf8()) == -1){
-                SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."));
+                SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."),
+                                                               SystemMessagesWidget::KError,
+                                                               SystemMessagesWidget::KDialogAndTextbox);
                 return false;
             }
         }else if(type == KNumber){
@@ -97,19 +111,27 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
             int parsedValue = command.toInt(&parseOK, 16);
             if(parseOK){
                 if (m_serialPort->write(reinterpret_cast<char*>(&parsedValue), sizeof(int)) == -1){
-                    SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."));
+                    SystemMessagesWidget::instance()->writeMessage(tr("Error occurred writing to device."),
+                                                                   SystemMessagesWidget::KError,
+                                                                   SystemMessagesWidget::KDialogAndTextbox);
                     return false;
                 }
             }else{
-                SystemMessagesWidget::instance()->writeMessage(tr("Could not convert the command to number."));
+                SystemMessagesWidget::instance()->writeMessage(tr("Could not convert the command [%1] to number.").arg(command),
+                                                               SystemMessagesWidget::KError,
+                                                               SystemMessagesWidget::KDialogAndTextbox);
                 return false;
             }
         }
 
-        SystemMessagesWidget::instance()->writeMessage(tr("Command sent: '%1'").arg(command));
+        SystemMessagesWidget::instance()->writeMessage(tr("Command sent: '%1'").arg(command),
+                                                       SystemMessagesWidget::KDebug,
+                                                       SystemMessagesWidget::KOnlyLogfile);
         return true;
     }else{
-        SystemMessagesWidget::instance()->writeMessage(tr("Cannot send command to device. Device is not writable."));
+        SystemMessagesWidget::instance()->writeMessage(tr("Cannot send command to device. Device is not writable."),
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KDialogAndTextbox);
         return false;
     }
 }
@@ -117,7 +139,9 @@ bool SerialCommunication::sendCommand(const QString &command, const SerialCommun
 void SerialCommunication::handleError(const QSerialPort::SerialPortError error)
 {
     if(error != QSerialPort::NoError){
-        SystemMessagesWidget::instance()->writeMessage(tr("Serial Port Error: %1").arg(m_serialPort->errorString()));
+        SystemMessagesWidget::instance()->writeMessage(tr("Serial Port Error: %1").arg(m_serialPort->errorString()),
+                                                       SystemMessagesWidget::KError,
+                                                       SystemMessagesWidget::KDialogAndTextbox);
     }
 }
 

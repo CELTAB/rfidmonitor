@@ -107,7 +107,9 @@ void RICTLMB2B30Widget::btWriteClicked()
     ui->labelRectangleStatus->close();
 
     if((!ui->rbDecimal->isChecked() && !ui->rbHexadecimal->isChecked())){
-        SystemMessagesWidget::instance()->writeMessage(tr("Please, select the identification type."), SystemMessagesWidget::KWarning);
+        SystemMessagesWidget::instance()->writeMessage(tr("Please, select the identification type."),
+                                                       SystemMessagesWidget::KWarning,
+                                                       SystemMessagesWidget::KDialogAndTextbox);
         return;
     }
 
@@ -176,16 +178,22 @@ void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
         }else if(answer.contains(QString("P1")))
             /* The answer "P1" from the reader means: The identification received from the
              * transponder is different to the identification transmitted. */
-            SystemMessagesWidget::instance()->writeMessage(tr("Reader said: P1"), SystemMessagesWidget::KError);
+            SystemMessagesWidget::instance()->writeMessage(tr("Try again. The identification received from the"
+                                                              " transponder is different to the identification"
+                                                              " transmitted. Reader said: P1"),
+                                                           SystemMessagesWidget::KError);
         else if(answer.contains(QString("P12"))){
             /* The answer "P12" from the reader means: the reader could not understand the transponder.
              * Probably because the reader is trying to handle a different kind of transponder, in the
              * wrong K1 mode. So it is needed to change the mode to K0 for a 64-bits transponder. */
             SystemMessagesWidget::instance()->writeMessage(tr("The reader is operatin in K1 mode. Change it to K0! Reader said: P12"), SystemMessagesWidget::KError);
         }else if(answer.contains(QString("P2"))){
-            /* The answer "P2" from the reader means: The TIRIS reader did not receive any
+            /* The answer "P2" from the reader means: The reader did not receive any
              * identification from the transponder for comparison. */
-            SystemMessagesWidget::instance()->writeMessage(tr("Reader said: P2"), SystemMessagesWidget::KError);
+            SystemMessagesWidget::instance()->writeMessage(tr("Try again. The reader did not receive any"
+                                                              " identification from the transponder for comparison."
+                                                              " Reader said: P2"),
+                                                           SystemMessagesWidget::KError);
         }
         ui->btWrite->setEnabled(true);
     }
@@ -247,7 +255,7 @@ void RICTLMB2B30Widget::incrementIdentification()
             }else{
                 SystemMessagesWidget::instance()->writeMessage(
                             tr("Failed to parse Hexadecimal to Decimal."),
-                            SystemMessagesWidget::KDebug,
+                            SystemMessagesWidget::KError,
                             SystemMessagesWidget::KOnlyLogfile
                             );
             }

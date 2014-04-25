@@ -59,7 +59,7 @@ public slots:
 
     /**
      * @brief newRaspFound called when the NetworkCommunication says there is a new
-     * rasp successfuly connected.
+     * rasp successfully connected.
      *
      * This function takes the data of the new device, and add it to the device model.
      *
@@ -90,7 +90,7 @@ public slots:
 
     /**
      * @brief connectionEstablished called when NetworkCommunication says the new current
-     * main connection is successfuly defined.
+     * main connection is successfully defined.
      */
     void connectionEstablished();
 

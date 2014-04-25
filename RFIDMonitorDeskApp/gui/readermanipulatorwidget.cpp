@@ -69,11 +69,14 @@ void ReaderManipulatorWidget::sendCommand(const QString &command)
     if( ! command.isEmpty()){
 
         ui->leCommand->clear();
-        writeToOutput(tr("Command sent to device: %1").arg(command));
 
         if(m_connectionType == Settings::KSerial){
-            SerialCommunication::instance()->sendCommand(command,
-                                                         (SerialCommunication::CommandType) ui->cbInputType->currentData().toInt());
+            if(SerialCommunication::instance()->sendCommand(
+                        command,
+                        (SerialCommunication::CommandType) ui->cbInputType->currentData().toInt())
+              )
+                    writeToOutput(tr("Command sent to device: %1").arg(command));
+
         }
         else if(m_connectionType == Settings::KNetwork){
             NetworkCommunication::instance()->sendNewCommandToReader(command);

@@ -12,23 +12,13 @@ struct Device
 {
     Device()
     {
-        //timer.setSingleShot(true); /**< Set the timeout timer to execute only one time. */
-        //timer.setInterval(10000); /**< Set the timeout period to 10 seconds. */
-        //timer.start(); /**< Start the timeout timer when the object is created here.*/
+
     }
 
     ~Device()
     {
 
     }
-
-    /**
-     * @brief resetTimer restarts the timer.
-     */
-//    void resetTimer()
-//    {
-//        timer.start();
-//    }
 
     /**
      * @brief operator == Overload the ==operator to compare with the macAddress value.
@@ -52,7 +42,6 @@ struct Device
     QString macAddress;
     QString ipAddress;
     QString name;
-//    QTimer timer;
 };
 
 /**
