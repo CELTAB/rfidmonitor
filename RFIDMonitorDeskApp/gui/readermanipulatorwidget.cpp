@@ -15,6 +15,7 @@ ReaderManipulatorWidget::ReaderManipulatorWidget(const Settings::ConnectionType 
     ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-ok"));
     ui->btClearOutput->setIcon(QIcon(":/icons/icon-clear"));
     ui->btSendCommand->setIcon(QIcon(":/icons/icon-send"));
+    ui->btLogTo->setIcon(QIcon(":/icons/icon-search"));
 
     // Log file.
     m_logFile = new QFile(this);

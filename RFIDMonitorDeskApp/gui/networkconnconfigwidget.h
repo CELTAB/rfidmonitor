@@ -102,6 +102,10 @@ signals:
      * @param interactionType says which interation type to use: Reader or RFIDMonitor.
      */
     void networkCommunicationReady(Settings::InteractionType interactionType);
+
+    // QWidget interface
+protected:
+    void resizeEvent(QResizeEvent *event);
 };
 
 #endif // NETWORKCONNCONFIGWIDGET_H

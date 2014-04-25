@@ -15,11 +15,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->setWindowFlags(windowFlags() &~ Qt::WindowMaximizeButtonHint);
+
+
     SystemMessagesWidget::instance()->writeMessage(
                 tr("System started."),
                 SystemMessagesWidget::KDebug,
                 SystemMessagesWidget::KOnlyLogfile
                 );
+
+    ui->btCloseConnection->setIcon(QIcon(":/icons/icon-cancel"));
 
     // Indexes for tabs.
     tabSetUpConnectionIndex = 0;

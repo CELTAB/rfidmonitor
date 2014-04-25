@@ -94,7 +94,7 @@ void RICTLMB2B30Widget::leIdentificationChanged(QString newText)
         finalIdentification.append(m_identification);
         m_identification.clear();
         m_identification.append(finalIdentification);
-        ui->labelIdentificationStatus->setText(tr("The identification will be writted in hexadecimal, as: %1").arg(m_identification));
+        ui->labelIdentificationStatus->setText(tr("Hexadecimal identification %1.").arg(m_identification));
     }else{
         // If the identification field is empty, then clear the field instead of
         // trying to handle it.
@@ -169,7 +169,7 @@ void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
             m_waitingForCheck = false;
 
             // Print a cool message to the user.
-            QString message(tr("New identification defined successfully"));
+            QString message(tr("Successfully written."));
             SystemMessagesWidget::instance()->writeMessage(message, SystemMessagesWidget::KInfo);
             ui->labelRectangleStatus->setText(message);
             ui->labelRectangleStatus->setStyleSheet("QLabel { background-color : green;}");
@@ -204,7 +204,7 @@ void RICTLMB2B30Widget::timeout()
     // The answer from the reader did not come, or the checking for new code failed.
     m_waitingForAnswer = false;
     ui->btWrite->setEnabled(true);
-    ui->labelRectangleStatus->setText(tr("Failed to define new identification."));
+    ui->labelRectangleStatus->setText(tr("Failed to write."));
     ui->labelRectangleStatus->setStyleSheet("QLabel { background-color : red;}");
     ui->labelRectangleStatus->show();
 }

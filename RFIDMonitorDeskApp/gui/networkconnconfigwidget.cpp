@@ -96,3 +96,16 @@ void NetworkConnConfigWidget::connectionEstablished()
 {
     resetForm();
 }
+
+void NetworkConnConfigWidget::resizeEvent(QResizeEvent *event)
+{
+    //Analize both buttons and set the size from the bigger to
+    // the smaller.
+    if(ui->btRaspSearch->width() > ui->btStopRaspSearch->width())
+        ui->btStopRaspSearch->setMinimumWidth(ui->btRaspSearch->width());
+    else
+        ui->btRaspSearch->setMinimumWidth(ui->btStopRaspSearch->width());
+
+
+    QWidget::resizeEvent(event);
+}

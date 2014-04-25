@@ -9,47 +9,43 @@
         <translation>RFIDMonitor Desktop</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="30"/>
-        <source>Set up the connection</source>
-        <translation>Configure a conexão</translation>
-    </message>
-    <message>
-        <location filename="../../gui/mainwindow.ui" line="38"/>
+        <location filename="../../gui/mainwindow.ui" line="50"/>
         <source>1- Select the connection type:</source>
         <translation>1 - Selecione o tipo da conexão:</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="45"/>
+        <location filename="../../gui/mainwindow.ui" line="57"/>
         <source>Network</source>
         <translation>Rede</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="52"/>
+        <location filename="../../gui/mainwindow.ui" line="67"/>
         <source>Serial</source>
         <translation>Serial</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="80"/>
+        <location filename="../../gui/mainwindow.ui" line="36"/>
+        <location filename="../../gui/mainwindow.ui" line="101"/>
         <source>Connection Configuration</source>
         <translation>Configuração da Conexão</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="102"/>
+        <location filename="../../gui/mainwindow.ui" line="123"/>
         <source>Connection</source>
         <translation>Conexão</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="123"/>
+        <location filename="../../gui/mainwindow.ui" line="171"/>
         <source>Close Connection</source>
         <translation>Fechar Conexão</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.cpp" line="19"/>
+        <location filename="../../gui/mainwindow.cpp" line="22"/>
         <source>System started.</source>
         <translation>Sistema iniciado.</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.cpp" line="57"/>
+        <location filename="../../gui/mainwindow.cpp" line="62"/>
         <source>System closed normaly.</source>
         <translation>Sistema encerrado normalmente.</translation>
     </message>
@@ -177,47 +173,47 @@
         <translation>Configuração de Conexão de Rede</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="22"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="28"/>
         <source>2 - Interact with:</source>
         <translation>2 - Interagir com:</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="29"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="35"/>
         <source>Reader</source>
         <translation>Reader</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="39"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="45"/>
         <source>RFIDMonitor</source>
         <translation>RFIDMonitor</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="68"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="73"/>
         <source>3 - Search available devices on the network</source>
-        <translation>Procure dispositivos disponíveis na rede</translation>
+        <translation>3 - Procure dispositivos disponíveis na rede</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="76"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="93"/>
         <source>Search</source>
         <translation>Procurar</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="83"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="112"/>
         <source>Stop Search</source>
         <translation>Parar procura</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="92"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="127"/>
         <source>Devices Found</source>
         <translation>Dispositivos encontrados</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="117"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="164"/>
         <source>Device Chosen:</source>
         <translation>Dispositivo escolhido:</translation>
     </message>
     <message>
-        <location filename="../../gui/networkconnconfigwidget.ui" line="145"/>
+        <location filename="../../gui/networkconnconfigwidget.ui" line="219"/>
         <source>Connect</source>
         <translation>Conectar</translation>
     </message>
@@ -424,12 +420,12 @@
         <translation>Tipo da identificação:</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.ui" line="39"/>
+        <location filename="../../gui/rictlmb2b30widget.ui" line="41"/>
         <source>Hexadecimal</source>
         <translation>Hexadecimal</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.ui" line="49"/>
+        <location filename="../../gui/rictlmb2b30widget.ui" line="51"/>
         <source>Decimal</source>
         <translation>Decimal</translation>
     </message>
@@ -439,19 +435,14 @@
         <translation>Identificação:</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.ui" line="90"/>
+        <location filename="../../gui/rictlmb2b30widget.ui" line="92"/>
         <source>Next</source>
         <translation>Próximo</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.ui" line="119"/>
-        <source>Write in the Transponder</source>
-        <translation>Escrever no Transponder</translation>
-    </message>
-    <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="97"/>
-        <source>The identification will be writted in hexadecimal, as: %1</source>
-        <translation>A identificação será escrita em hexadecimal, como: %1</translation>
+        <location filename="../../gui/rictlmb2b30widget.ui" line="105"/>
+        <source>Write</source>
+        <translation>Escrever</translation>
     </message>
     <message>
         <location filename="../../gui/rictlmb2b30widget.cpp" line="110"/>
@@ -464,9 +455,14 @@
         <translation>A identificação deve ter ao menos 1 caracter.</translation>
     </message>
     <message>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="97"/>
+        <source>Hexadecimal identification %1.</source>
+        <translation>Identificação hexadecimal %1.</translation>
+    </message>
+    <message>
         <location filename="../../gui/rictlmb2b30widget.cpp" line="172"/>
-        <source>New identification defined successfully</source>
-        <translation>A nova identificação foi definida com sucesso</translation>
+        <source>Successfully written.</source>
+        <translation>Escrito com sucesso.</translation>
     </message>
     <message>
         <location filename="../../gui/rictlmb2b30widget.cpp" line="181"/>
@@ -485,8 +481,8 @@
     </message>
     <message>
         <location filename="../../gui/rictlmb2b30widget.cpp" line="207"/>
-        <source>Failed to define new identification.</source>
-        <translation>A definição da nova identificação falhou.</translation>
+        <source>Failed to write.</source>
+        <translation>Falha ao escrever.</translation>
     </message>
     <message>
         <location filename="../../gui/rictlmb2b30widget.cpp" line="257"/>
@@ -502,83 +498,83 @@
         <translation>Manipulador do Reader</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="30"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="45"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="36"/>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="210"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="66"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="211"/>
         <source>Start</source>
         <translation>Iniciar</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="48"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="93"/>
+        <source>Log to file:</source>
+        <translation>Arquivo de log:</translation>
+    </message>
+    <message>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="209"/>
         <source>Input</source>
         <translation>Entrada</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="61"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="229"/>
         <source>Send</source>
         <translation>Enviar</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="72"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="153"/>
         <source>Output</source>
         <translation>Saída</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="92"/>
+        <location filename="../../gui/readermanipulatorwidget.ui" line="173"/>
         <source>Clear Output</source>
         <translation>Limpar saída</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.ui" line="106"/>
-        <source>Log to:</source>
-        <translation>Fazer log para:</translation>
-    </message>
-    <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="28"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="29"/>
         <source>Append</source>
         <translation>Concatenar</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="29"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="30"/>
         <source>Overwrite</source>
         <translation>Sobrescrever</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="31"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="32"/>
         <source>Number</source>
         <translation>Número</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="78"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="79"/>
         <source>Command sent to device: %1</source>
         <translation>Comando enviado ao dispositivo: %1</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="136"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="137"/>
         <source>Select log file</source>
         <translation>Selecionar arquivo de log</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="152"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="153"/>
         <source>The selected log file is good.</source>
         <translation>O arquivo de log selecionado está ok.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="158"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="159"/>
         <source>Cannot use the selected log file. It is not writable</source>
         <translation>Não é possível usar o arquivo de log selecionado. Ele não pode ser escrito.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="182"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="183"/>
         <source>Problem with the log file. It is not writable anymore, and is not going to be used.</source>
         <translation>Problema com o arquivo de log. Ele não pode mais ser escrito, e não será usado.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="187"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="188"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
@@ -655,32 +651,32 @@
 <context>
     <name>SerialConnConfigWidget</name>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="217"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="216"/>
         <source>Stop Bits:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="171"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="170"/>
         <source>Baud Rate:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="125"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="124"/>
         <source>Data Bits:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="54"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="53"/>
         <source>Refresh</source>
         <translation>Atualizar</translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="82"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="81"/>
         <source>Open Type:</source>
-        <translation>Tipo de abertura:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="29"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="28"/>
         <source>Device:</source>
         <translation>Dispositivo:</translation>
     </message>
@@ -690,12 +686,12 @@
         <translation>Configuração de Conexão Serial</translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="263"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="262"/>
         <source>Parity:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="310"/>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="325"/>
         <source>Connect</source>
         <translation>Conectar</translation>
     </message>
@@ -728,32 +724,32 @@
         <translation>Informações do Sistema</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="68"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="66"/>
         <source>ERROR</source>
         <translation>ERRO</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="72"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="70"/>
         <source>INFORMATIVE</source>
         <translation>INFORMATIVO</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="76"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="74"/>
         <source>WARNING</source>
         <translation>ALERTA</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="80"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="78"/>
         <source>FATAL ERROR</source>
         <translation>ERRO FATAL</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="84"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="82"/>
         <source>DEBUG</source>
         <translation>DEPURAÇÃO</translation>
     </message>
     <message>
-        <location filename="../../gui/systemmessageswidget.cpp" line="87"/>
+        <location filename="../../gui/systemmessageswidget.cpp" line="85"/>
         <source>UNKNOW MESSAGE LEVEL</source>
         <translation>NÍVEL DE MENSAGEM DESCONHECIDO</translation>
     </message>
