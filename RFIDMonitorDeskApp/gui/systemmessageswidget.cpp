@@ -1,4 +1,4 @@
-#include <QTime>
+#include <QDateTime>
 #include <QMessageBox>
 #include <QTextStream>
 #include <QDir>
@@ -28,22 +28,20 @@ void SystemMessagesWidget::prepareLogfile()
 {
     m_logFile = 0;
     bool logDirIsOk = true;
-
-    QString logsDir(QApplication::applicationDirPath() +
-                    QDir::separator() +
-                    "logs" +
-                    QDir::separator());
-    if( ! QDir(logsDir).exists()){
-        logDirIsOk = QDir().mkdir(logsDir);
+    if( ! QDir::current().exists("logs/")){
+        logDirIsOk = QDir::current().mkdir("logs/");
     }
+
     if(logDirIsOk){
         m_logFile = new QFile(
-                    logsDir +
-                    QString("%1_%2.log")
+                    QDir::current().absolutePath()   +
+                    QString("/logs/%1_%2.log")
                         .arg(QApplication::applicationName())
-                        .arg(QTime::currentTime().toString())
+                        .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss"))
                     );
+
         if( ! m_logFile->open(QIODevice::ReadWrite | QIODevice::Text)){
+            qDebug() << "here";
             m_logFile->deleteLater();
             m_logFile = 0;
         }
