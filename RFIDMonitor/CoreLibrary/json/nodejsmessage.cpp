@@ -13,7 +13,7 @@ NodeJSMessage::NodeJSMessage()
 void NodeJSMessage::read(const QJsonObject &json)
 {
     m_type = json["type"].toString();
-    m_dateTime = QDateTime::fromString(json["datetime"].toString());
+    m_dateTime = QDateTime::fromString(json["datetime"].toString(), Qt::ISODate);
     m_jsonData = json["data"].toObject();
 }
 

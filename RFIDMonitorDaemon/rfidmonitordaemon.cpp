@@ -139,6 +139,7 @@ void RFIDMonitorDaemon::ipcNewConnection()
     connect(ipcConnection, SIGNAL(readyRead()), SLOT(routeIpcMessage()));
     connect(ipcConnection, &QLocalSocket::disconnected,
             [this]() {
+        ipcConnection = 0;
 #ifdef DEBUG_LOGGER
         m_daemonLogger <<  "Client Disconnected";
 #endif
@@ -194,7 +195,7 @@ void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &messag
         con->flush();
     } else {
 #ifdef DEBUG_LOGGER
-        m_daemonLogger <<  "Doesn't work mada faka";
+        m_daemonLogger <<  "There is no connection";
 #endif
     }
 }
@@ -265,6 +266,8 @@ void RFIDMonitorDaemon::routeTcpMessage()
         nodeMessage.read(QJsonDocument::fromJson(data).object());
         QString messageType(nodeMessage.type());
 
+        qDebug() << "Message Received: " << QString(data);
+
         m_daemonLogger << QString("Node.js Message: %1").arg(QString(data));
 
         if(messageType == "ACK-SYN"){
@@ -274,6 +277,8 @@ void RFIDMonitorDaemon::routeTcpMessage()
             if(!obj.isEmpty()){
                 m_configManager->setIdentification(obj);
             }
+
+            qDebug() << "DateTime: " << nodeMessage.dateTime().toString(Qt::ISODate);
 
             bool statusDateTime = m_configManager->setDateTime(nodeMessage.dateTime());
             QJsonObject response = m_configManager->identification();

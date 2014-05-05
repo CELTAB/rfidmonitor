@@ -32,6 +32,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QSerialPort>
+#include <QTimer>
 
 #include <algorithm>
 #include <core/interfaces.h>
@@ -57,6 +58,8 @@ private:
     QTextStream m_outReceived;
     QTextStream m_outCaptured;
     QSerialPort *m_serial;
+
+    QMap<qlonglong, QTimer*> m_map;
 
 public slots:
     void readData();

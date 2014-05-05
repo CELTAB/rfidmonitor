@@ -26,8 +26,10 @@ bool ConfigManager::setDateTime(QDateTime datetime)
     QString dateCommand("date -s ");
     dateCommand.append(datetime.toString(Qt::ISODate));
 
+    qDebug() << "DateTime: " << datetime.toString(Qt::ISODate);
+
     //        date -s 2014-04-10T09:23:28
-    // qDebug() << "Define new date/time on rapi to: " << dateCommand;
+     qDebug() << "Define new date/time on rapi to: " << dateCommand;
     //        Change Date/Time on Raspi.
     QProcess p;
     p.start(dateCommand);

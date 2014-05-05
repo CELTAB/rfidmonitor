@@ -46,7 +46,7 @@ public:
     explicit DaemonLogger()
     {
         m_daemonLogs.setFileName("daemon_debug.log");
-        if (!m_daemonLogs.open(QIODevice::WriteOnly | QIODevice::Text)){
+        if (!m_daemonLogs.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
 
         }
     }

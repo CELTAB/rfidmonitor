@@ -136,32 +136,55 @@ void Reader_RFM008B::readData()
                 qlonglong applicationcode = match.captured(1).toLongLong();
                 qlonglong identificationcode = match.captured(3).toLongLong();
 
-                data->setApplicationcode(applicationcode);
-                data->setIdentificationcode(identificationcode);
-                data->setDatetime(QDateTime::currentDateTime());
-                data->setSync(Rfiddata::KNotSynced);
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "READ", QString("Readed: %1").arg(identificationcode));
 
-                QList<Rfiddata*> list;
-                list.append(data);
-                try {
-                    PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
-                    Q_ASSERT(persister);
-                    SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
-                    Q_ASSERT(synchronizer);
+                if(!m_map.contains(identificationcode)){
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "HERE", QString("Readed: %1").arg(identificationcode));
+
+                    QTimer *timer = new QTimer;
+//                    timer->setSingleShot(true);
+                    timer->setInterval(1000);
+                    timer->start();
+                    connect(timer, &QTimer::timeout,
+                            [&]()
+                    {
+                        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "REMOVED", QString("Removed: %1").arg(identificationcode));
+                        m_map.remove(identificationcode);
+                        timer->stop();
+                        delete timer;
+                    });
+                    m_map.insert(identificationcode, timer);
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "INSERT", QString("Inserted: %1").arg(identificationcode));
+
+                    data->setApplicationcode(applicationcode);
+                    data->setIdentificationcode(identificationcode);
+                    data->setDatetime(QDateTime::currentDateTime());
+                    data->setSync(Rfiddata::KNotSynced);
+
+                    QList<Rfiddata*> list;
+                    list.append(data);
+                    try {
+                        PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
+                        Q_ASSERT(persister);
+                        SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
+                        Q_ASSERT(synchronizer);
 
 #ifdef CPP_11_ASYNC
-                /*C++11 std::async Version*/
-                    std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
-                    std::async(std::launch::async, persistence, list);
-                    std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
-                    std::async(std::launch::async, synchronize);
+                        /*C++11 std::async Version*/
+                        std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
+                        std::async(std::launch::async, persistence, list);
+                        std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
+                        std::async(std::launch::async, synchronize);
 #else
-                /*Qt Concurrent Version*/
-                    QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
-                    QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
+                        /*Qt Concurrent Version*/
+                        QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
+                        QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
 #endif
-                } catch (std::exception &e) {
-                    Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
+                    } catch (std::exception &e) {
+                        Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
+                    }
+                }else{
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "IGNORED", QString("Ignored: %1").arg(identificationcode));
                 }
             }
         }
