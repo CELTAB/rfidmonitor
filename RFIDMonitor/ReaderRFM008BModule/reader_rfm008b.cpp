@@ -136,25 +136,26 @@ void Reader_RFM008B::readData()
                 qlonglong applicationcode = match.captured(1).toLongLong();
                 qlonglong identificationcode = match.captured(3).toLongLong();
 
-                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "READ", QString("Readed: %1").arg(identificationcode));
-
+                /*
+                 * Filter by time. If more than one transponder was read in a time interval only one of them will be persisted.
+                 * A QMap is used to verify if each new data that had arrived was already read in this interval.
+                 */
                 if(!m_map.contains(identificationcode)){
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "HERE", QString("Readed: %1").arg(identificationcode));
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "READ", QString("Readed: %1").arg(identificationcode));
 
                     QTimer *timer = new QTimer;
-//                    timer->setSingleShot(true);
+                    timer->setSingleShot(true);
                     timer->setInterval(1000);
-                    timer->start();
                     connect(timer, &QTimer::timeout,
-                            [&]()
+                            [=, this]()
                     {
                         Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "REMOVED", QString("Removed: %1").arg(identificationcode));
-                        m_map.remove(identificationcode);
-                        timer->stop();
-                        delete timer;
+                        this->m_map.remove(identificationcode);
+                        timer->deleteLater();
                     });
-                    m_map.insert(identificationcode, timer);
                     Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "INSERT", QString("Inserted: %1").arg(identificationcode));
+                    m_map.insert(identificationcode, timer);
+                    timer->start();
 
                     data->setApplicationcode(applicationcode);
                     data->setIdentificationcode(identificationcode);
