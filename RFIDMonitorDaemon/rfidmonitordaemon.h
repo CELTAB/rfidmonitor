@@ -28,6 +28,7 @@
 
 #include <QObject>
 #include <QAbstractSocket>
+#include <QLocalSocket>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -138,6 +139,8 @@ public slots:
      */
     void tcpHandleError(QAbstractSocket::SocketError error);
 
+    void icpHandleError(QLocalSocket::LocalSocketError error);
+
     /**
      * @brief tcpSendMessage send messages to the tcp socket received by parameter. Receives the tcp socket because can send message to more then one tcp connection
      *
@@ -166,6 +169,8 @@ public slots:
     void routeIpcMessage();
 
 private:
+    bool isConnected;
+
     QLocalServer *m_localServer;
     QLocalSocket *ipcConnection;
 

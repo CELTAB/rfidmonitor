@@ -35,6 +35,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QJsonArray>
 
 #include <coremodule.h>
 #include <logger.h>
@@ -44,6 +45,7 @@
 #include "applicationsettings.h"
 #include "rfidmonitor.h"
 #include "json/rfidmonitorsettings.h"
+#include "json/nodejsmessage.h"
 
 
 struct RFIDMonitorPrivate
@@ -80,6 +82,7 @@ struct RFIDMonitorPrivate
     QThread *syncronizationThread;
 
     bool stop;
+    bool connected;
     QMutex mutex;
 
     QString moduleName;
@@ -327,9 +330,13 @@ RFIDMonitor::~RFIDMonitor()
     delete d_ptr;
 }
 
+bool RFIDMonitor::isconnected(){
+    return d_ptr->connected;
+}
 
 void RFIDMonitor::start(const QCoreApplication &app)
 {
+    d_ptr->connected = false;
     d_ptr->readSettings();
     d_ptr->loadModules();
     d_ptr->loadDefaultServices();
@@ -433,20 +440,38 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-    //    qDebug() << "Received a message: " << QString(message);
-
-    if(message == "Reload Settings"){
+    if(message == "ReloadSettings"){
+        // Configuration file was changed, thus must to reload
         d_ptr->readSettings();
+    }else if(message == "SYNC"){
+        d_ptr->connected = true;
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "SYNC MESSAGE RECEIVED... !!");
+        // The daemon is now connected with server, send the not-synced data
+        d_ptr->defaultSynchronization->readyRead();
+    }else if(message == "QUIT"){
+        // Stop all services and quit system. Used to restart application, but first must to close properly
+
+        // NEED IMPLEMENTATION;
+    }else if(message == "wakeup"){
+//        d_ptr->connected = true;
+//        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
+    }else if(message == "sleep"){
+        d_ptr->connected = false;
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "SLEEP OK");
+    }else{
+        QJsonObject obj = QJsonDocument::fromJson(message).object();
+        json::NodeJSMessage nodeJSMessage;
+        nodeJSMessage.read(obj);
+
+        QJsonArray hashArray = nodeJSMessage.jsonData()["md5diggest"].toArray();
+        QList<QString> hashList;
+        for(int i = 0 ; i<hashArray.size(); i++){
+            hashList.append(hashArray[i].toString());
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, hashArray[i].toString());
+        }
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
+        d_ptr->defaultPackager->update(hashList);
     }
-    //    if(message == "ExitSystem"){
-    //        qDebug() << "Exit ... !!";
-    //        qApp->exit(0);
-    //    }else if(message == "RestartSystem"){
-    //        qApp->exit(1);
-    //    }else if(message == "Reload Settings"){
-    //        d_ptr->systemSettings.setName("");
-    //        d_ptr->writeSettings();
-    //        qApp->exit(1);
-    //    }
 }
 

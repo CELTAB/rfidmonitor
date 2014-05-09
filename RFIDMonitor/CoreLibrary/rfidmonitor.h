@@ -52,6 +52,12 @@ public:
     ~RFIDMonitor();
     
     /*!
+     * \brief isconnected returns true if there's connection with a server. False otherwaise.
+     * The status is defined by message received from RFIDMonitorDaemon
+     */
+    bool isconnected();
+
+    /*!
      * \brief start loads the modules of the system, initialize them and then calls the main service.
      * \param app is used to get the parameters of the application
      */

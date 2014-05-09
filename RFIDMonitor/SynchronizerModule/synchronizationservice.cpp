@@ -55,37 +55,45 @@ void SynchronizationService::readyRead()
         communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
     }
     if(packager /*&& !m_timer.remainingTime()*/) {
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "Sending packets...");
-        QMap<QString, QByteArray> allData = packager->getAll();
 
-        if(communitacion) {
-            QMap<QString, QByteArray>::iterator i;
-            for(i = allData.begin(); i != allData.end(); ++i){
+        packager->generatePackets();
 
-                json::NodeJSMessage answer;
-                answer.setType("DATA");
-                answer.setDateTime(QDateTime::currentDateTime());
-                answer.setJsonData(QJsonDocument::fromJson(QString(i.value()).toLatin1()).object());
-                QJsonObject jsonAnswer;
-                answer.write(jsonAnswer);
+        if(RFIDMonitor::instance()->isconnected()){
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "Sending packets...");
+            QMap<QString, QByteArray> allData = packager->getAll();
 
-                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size()));
+            if(communitacion) {
+                QMap<QString, QByteArray>::iterator i;
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packets to send: %1").arg(allData.size()));
+                for(i = allData.begin(); i != allData.end(); ++i){
+
+                    json::NodeJSMessage answer;
+                    answer.setType("DATA");
+                    answer.setDateTime(QDateTime::currentDateTime());
+                    answer.setJsonData(QJsonDocument::fromJson(QString(i.value()).toLatin1()).object());
+                    QJsonObject jsonAnswer;
+                    answer.write(jsonAnswer);
+
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size()));
 
 #ifdef DEBUG_VERBOSE
-                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QJsonDocument(jsonAnswer).toJson());
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QJsonDocument(jsonAnswer).toJson());
 #endif
 
 #ifdef CPP_11_ASYNC
-                /*C++11 std::async Version*/
-                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
-                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+                    /*C++11 std::async Version*/
+                    std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+                    std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
 #else
-                /*Qt Concurrent Version*/
-                QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
+                    /*Qt Concurrent Version*/
+                    QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
 #endif
+                }
+            }else{
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
             }
         }else{
-            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("There isn't connection with a server"));
         }
         m_timer.start();
     }

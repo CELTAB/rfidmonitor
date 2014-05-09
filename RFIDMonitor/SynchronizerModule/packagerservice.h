@@ -43,9 +43,10 @@ public:
     ServiceType type();
 
     QMap<QString, QByteArray> getAll();
+    void update(const QList<QString> &list);
+    void generatePackets();
 
 private:
-    void generatePackets();
     QMutex m_mutex;
 
 };

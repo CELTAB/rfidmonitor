@@ -78,7 +78,7 @@ ServiceType PackagerService::type()
 
 QMap<QString, QByteArray> PackagerService::getAll()
 {
-    generatePackets();
+//    generatePackets();
 
     QList<Packet *> packetList = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
 
@@ -94,6 +94,23 @@ QMap<QString, QByteArray> PackagerService::getAll()
     }
 
     return packets;
+}
+
+void PackagerService::update(const QList<QString> &list)
+{
+    foreach (QString hash, list) {
+        QList<Packet *> packetList = PacketDAO::instance()->getByMatch("md5hash", hash);
+        QList<int> idList;
+        foreach (Packet *packet, packetList) {
+            QJsonObject obj = QJsonDocument::fromJson(packet->jsonData().toByteArray()).object();
+            json::SynchronizationPacket syncPacket;
+            syncPacket.read(obj);
+            foreach (const json::Data &data, syncPacket.dataContent().data()) {
+                idList.append(data.id());
+            }
+            PacketDAO::instance()->deleteRFIDDataList(packet->md5hash().toString(),idList);
+        }
+    }
 }
 
 void PackagerService::generatePackets()
@@ -145,9 +162,8 @@ void PackagerService::generatePackets()
         synPacket.write(packet);
         // The packet must be sent as a bytearray and the packet itself is identified by an md5 hash
         QByteArray document = QJsonDocument(packet).toJson();
-        QByteArray packetHash = QCryptographicHash::hash(document, QCryptographicHash::Md5).toHex();
 
-        package.insert(QString(packetHash), document);
+        package.insert(QString(hash), document);
     }
 
     persistence->updateObjectList(data);

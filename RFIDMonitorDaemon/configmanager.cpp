@@ -2,12 +2,13 @@
 #include <QJsonArray>
 #include <QJsonValue>
 
+#include <QNetworkInterface>
+
 #include "configmanager.h"
 
 ConfigManager::ConfigManager(QObject *parent):
     QObject(parent)
 {
-    //    m_systemSettings = new json::RFIDMonitorSettings();
 
     m_json.setFileName("rfidmonitor.json");
     m_interfaces.setFileName("networkInterfaces");
@@ -35,7 +36,6 @@ bool ConfigManager::setDateTime(QDateTime datetime)
 
 QJsonObject ConfigManager::currentConfig()
 {
-    // qDebug() << "Getting the current configuration";
     QJsonObject currentConfig;
     m_systemSettings.write(currentConfig);
     return currentConfig;
@@ -91,6 +91,7 @@ void ConfigManager::openJsonFile()
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
 
     m_systemSettings.read(loadDoc.object());
+//    m_systemSettings.setMacAddress(QNetworkInterface().hardwareAddress());
     m_json.close();
 }
 

@@ -31,6 +31,8 @@ public:
     bool updateObjectList(const QList<Packet *> &list);
     bool deleteObjectList(const QList<Packet *> &list);
 
+    bool deleteRFIDDataList(const QString &packetHash, const QList<int> &idList);
+
 private:
     QSqlDatabase m_db;
 };

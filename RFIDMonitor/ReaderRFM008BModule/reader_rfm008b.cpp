@@ -141,7 +141,6 @@ void Reader_RFM008B::readData()
                  * A QMap is used to verify if each new data that had arrived was already read in this interval.
                  */
                 if(!m_map.contains(identificationcode)){
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "READ", QString("Readed: %1").arg(identificationcode));
 
                     QTimer *timer = new QTimer;
                     timer->setSingleShot(true);
@@ -149,11 +148,9 @@ void Reader_RFM008B::readData()
                     connect(timer, &QTimer::timeout,
                             [=, this]()
                     {
-                        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "REMOVED", QString("Removed: %1").arg(identificationcode));
                         this->m_map.remove(identificationcode);
                         timer->deleteLater();
                     });
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "INSERT", QString("Inserted: %1").arg(identificationcode));
                     m_map.insert(identificationcode, timer);
                     timer->start();
 
@@ -184,8 +181,6 @@ void Reader_RFM008B::readData()
                     } catch (std::exception &e) {
                         Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
                     }
-                }else{
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, "IGNORED", QString("Ignored: %1").arg(identificationcode));
                 }
             }
         }

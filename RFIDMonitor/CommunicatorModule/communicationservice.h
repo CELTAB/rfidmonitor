@@ -26,12 +26,17 @@
 #ifndef COMMUNICATIONSERVICE_H
 #define COMMUNICATIONSERVICE_H
 
+#include <QtConcurrent/QtConcurrent>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
 
 #include <QLocalSocket>
 #include <core/interfaces.h>
+
+#include <logger.h>
+#include <object/rfiddata.h>
+#include <rfidmonitor.h>
 
 class CommunicationService : public CommunicationInterface
 {
@@ -53,6 +58,7 @@ public slots:
     void ipcHandleError(QLocalSocket::LocalSocketError);
 
 private:
+    QString m_module;
     QLocalSocket *m_localSocket;
 };
 

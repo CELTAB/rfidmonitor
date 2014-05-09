@@ -239,6 +239,36 @@ bool PacketDAO::deleteObjectList(const QList<Packet *> &list)
     }
 }
 
+bool PacketDAO::deleteRFIDDataList(const QString &packetHash, const QList<int> &idList)
+{
+    // Start new transaction.
+    m_db.transaction();
+
+    try{
+        SqlQuery query(&m_db);
+        query.prepare("delete from packet where md5hash = :md5hash");
+        query.bindValue(":md5hash", packetHash);
+        query.exec();
+
+        foreach (int id, idList) {
+            SqlQuery query(&m_db);
+            query.prepare("delete from rfiddata where id = :id");
+            query.bindValue(":id", id);
+            query.exec();
+        }
+
+        // Commit and terminate the transaction.
+        m_db.commit();
+        return true;
+
+    }catch(SqlException &ex){
+        Logger::instance()->writeRecord(Logger::severity_level::critical, "SynchronizationModule", Q_FUNC_INFO, QString("Transaction Error: %1").arg(ex.errorText()));
+        //If is there any exception caught, do rollback and close the transaction, aborting the insertion.
+        m_db.rollback();
+        return false;
+    }
+}
+
 /*!
  * \brief PacketDAO::getById Offers the way to get one object from database by it's id.
  * \param id is the database id of the object.

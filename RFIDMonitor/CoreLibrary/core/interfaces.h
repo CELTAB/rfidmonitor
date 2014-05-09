@@ -97,6 +97,8 @@ public:
      * \return
      */
     virtual QMap<QString, QByteArray> getAll() = 0;
+    virtual void update(const QList<QString> &) = 0;
+    virtual void generatePackets() = 0;
 
 public slots:
 

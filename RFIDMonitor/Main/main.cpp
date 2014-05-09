@@ -34,15 +34,8 @@
 
 int main(int argc, char *argv[])
 {
-    int returnV = 1;
+    QCoreApplication a(argc, argv);
+    RFIDMonitor::instance()->start(a);
 
-    while(returnV){
-
-        QCoreApplication a(argc, argv);
-        RFIDMonitor::instance()->start(a);
-
-        returnV = a.exec();
-    }
-
-    return returnV;
+    return a.exec();
 }

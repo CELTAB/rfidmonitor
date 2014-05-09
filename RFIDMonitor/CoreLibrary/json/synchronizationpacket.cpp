@@ -310,13 +310,13 @@ void SynchronizationCheck::setPackets(const QList<Packet> &packets)
 
 void SynchronizationCheck::read(const QJsonObject &json)
 {
-#if QT_VERSION < 0x050200
-    m_id = json["id"].toVariant().toInt();
-#else
-    m_id = json["id"].toInt();
-#endif // QT_VERSION < 0x050200
-    m_name = json["name"].toString();
-    m_macAddress = json["macaddress"].toString();
+//#if QT_VERSION < 0x050200
+//    m_id = json["id"].toVariant().toInt();
+//#else
+//    m_id = json["id"].toInt();
+//#endif // QT_VERSION < 0x050200
+//    m_name = json["name"].toString();
+//    m_macAddress = json["macaddress"].toString();
     QJsonArray packets = json["packets"].toArray();
     for(int i=0; i < packets.size(); i++){
         QJsonObject obj = packets[i].toObject();

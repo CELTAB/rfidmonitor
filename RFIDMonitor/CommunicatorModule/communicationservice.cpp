@@ -35,6 +35,7 @@ CommunicationService::CommunicationService(QObject *parent) :
     CommunicationInterface(parent),
     m_localSocket(0)
 {
+    m_module = "ComunicatorModule";
     m_localSocket = new QLocalSocket(this);
 
     connect(m_localSocket, SIGNAL(connected()), SLOT(ipcConnected()));
@@ -59,14 +60,16 @@ ServiceType CommunicationService::type()
     return ServiceType::KCommunicator;
 }
 
+// Send a message directly without care about the content. Defined by interface.
 void CommunicationService::sendMessage(QByteArray value)
 {
-    //    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message: %1").arg(QString(value)));
     m_localSocket->write(value);
     // WARNING: bool QLocalSocket::flush () using this to force the sending of data
     m_localSocket->flush();
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message Sent: %1").arg(QString(value)));
 }
 
+// Build a message before send it. Receive the data and the message type and built the massage in protocol definition
 void CommunicationService::sendMessage(QJsonObject data, QString type)
 {
     QJsonDocument rootDoc;
@@ -101,26 +104,42 @@ void CommunicationService::ipcReadyRead()
     QString messageType(nodeMessage.type());
 
     if(messageType == "ACK-SYN"){
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
 
     }else if (messageType == "ACK-DATA") {
 
+        // Remove the data just synced of database. Use the md5Diggest to know what remove.
+        emit messageReceived(data);
+        //        QJsonObject ackData(nodeMessage.jsonData());
+        //        QString hash = ackData["md5diggest"].toString();
+        //        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("md5diggest: %1").arg(hash));
 
-    }else if (messageType == "READER-COMMAND") {
+    } else if (messageType == "WAKE-UP"){
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("WAKE-UP MESSAGE"));
+        emit messageReceived(QByteArray("wakeup"));
+
+    } else if (messageType == "SLEEP"){
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("SLEEP MESSAGE"));
+        emit messageReceived(QByteArray("sleep"));
+
+    } else if (messageType == "READER-COMMAND") {
 
         QJsonObject response(nodeMessage.jsonData());
         response.insert("response", response.value("command"));
         response.remove("command");
-
         sendMessage(response, "READER-RESPONSE");
 
     }else if (messageType == "RELOAD"){
-        emit messageReceived("Reload Settings");
+
+        emit messageReceived("ReloadSettings");
 
     }else if (messageType == "ACK-UNKNOWN") {
         QJsonDocument unknown(nodeMessage.jsonData());
-
         QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
+    }else if (messageType == "SYNC") {
+        // comand to sync not-synced data.
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "SYNC MESSAGE... !!");
+        emit messageReceived(QByteArray("SYNC"));
     }
     else{
         QJsonObject unknownObj;
@@ -133,5 +152,5 @@ void CommunicationService::ipcReadyRead()
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)
 {
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Error: %1 - %2").arg(m_localSocket->error()).arg(m_localSocket->errorString()));
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Error: %1 - %2").arg(m_localSocket->error()).arg(m_localSocket->errorString()));
 }
