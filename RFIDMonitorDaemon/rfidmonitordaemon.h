@@ -180,8 +180,8 @@ private:
     QLocalServer *m_localServer;
     QLocalSocket *ipcConnection;
 
-    QProcess *m_process;
-    QTimer *m_restoreTimer;
+    QProcess m_process;
+    QTimer m_restoreTimer;
 
     // Node.js Server
     QTcpSocket *m_tcpSocket;

@@ -59,9 +59,9 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
 
     m_serverName = "RFIDMonitorDaemon";
 
-    m_restoreTimer = new QTimer;
-    m_restoreTimer->setInterval(10000);
-    connect(m_restoreTimer, &QTimer::timeout, [&](){
+//    m_restoreTimer = new QTimer;
+    m_restoreTimer.setInterval(10000);
+    connect(&m_restoreTimer, &QTimer::timeout, [&](){
         m_configManager->restoreConfig();
         initMonitor();
     });
@@ -250,9 +250,9 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 
 void RFIDMonitorDaemon::initMonitor()
 {
-    m_process = new QProcess(this);
-    m_process->start("./RFIDMonitor");
-    connect(this, &RFIDMonitorDaemon::destroyed, m_process, &QProcess::kill);
+//    m_process = new QProcess(this);
+    m_process.start("./RFIDMonitor");
+    connect(this, &RFIDMonitorDaemon::destroyed, &m_process, &QProcess::kill);
     connect(this, &RFIDMonitorDaemon::restartMonitor, [&]()
     {
         // Stop the RFIDMonitor
@@ -263,7 +263,7 @@ void RFIDMonitorDaemon::initMonitor()
         m_daemonLogger <<  "RESTARTING MONITOR";
 #endif
     });
-    m_restoreTimer->start();
+    m_restoreTimer.start();
 }
 
 /*
@@ -461,7 +461,7 @@ void RFIDMonitorDaemon::routeIpcMessage()
 #endif
         ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
 
-        m_restoreTimer->stop();
+        m_restoreTimer.stop();
         if(m_tcpAppSocket->isValid()){
             tcpSendMessage(m_tcpAppSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
         }
