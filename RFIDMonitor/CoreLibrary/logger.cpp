@@ -25,11 +25,11 @@ Logger::Logger(QObject *parent):
 #endif
 
     m_file.setFileName("RFID_log.log");
-    if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text)){
+    if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
 
     }
     m_debugFile.setFileName("RFID_log_debug.log");
-    if (!m_debugFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+    if (!m_debugFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
 
     }
 }

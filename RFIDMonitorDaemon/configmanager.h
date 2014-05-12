@@ -31,6 +31,7 @@ public:
     QJsonObject netConfig();
     bool setNetConfig(QJsonObject &netJson);
     bool restartNetwork();
+    void restoreConfig();
 
 private:
     QFile m_json;
@@ -39,6 +40,7 @@ private:
     int m_hostPort;
 
     json::RFIDMonitorSettings m_systemSettings;
+    json::RFIDMonitorSettings m_backupSettings;
     void openJsonFile();
     bool saveJsonFile();
 

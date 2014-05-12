@@ -114,16 +114,18 @@ void CommunicationService::ipcReadyRead()
         //        QString hash = ackData["md5diggest"].toString();
         //        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("md5diggest: %1").arg(hash));
 
-    } else if (messageType == "WAKE-UP"){
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("WAKE-UP MESSAGE"));
-        emit messageReceived(QByteArray("wakeup"));
+    } else if (messageType == "STOP"){
+        // Stop all services and close system.
+        emit messageReceived(QByteArray("stop"));
 
     } else if (messageType == "SLEEP"){
+        // lost connection with server. Don't send records.
         Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("SLEEP MESSAGE"));
         emit messageReceived(QByteArray("sleep"));
 
     } else if (messageType == "READER-COMMAND") {
 
+        // Only retun the comand. NOT IMPLEMENTED.
         QJsonObject response(nodeMessage.jsonData());
         response.insert("response", response.value("command"));
         response.remove("command");
@@ -131,11 +133,13 @@ void CommunicationService::ipcReadyRead()
 
     }else if (messageType == "RELOAD"){
 
+        // NOT USEFULL YET
         emit messageReceived("ReloadSettings");
 
     }else if (messageType == "ACK-UNKNOWN") {
         QJsonDocument unknown(nodeMessage.jsonData());
         QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Unknown Message: %1").arg(dataObj.value("type").toString()));
     }else if (messageType == "SYNC") {
         // comand to sync not-synced data.
         Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "SYNC MESSAGE... !!");

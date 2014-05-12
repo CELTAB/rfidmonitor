@@ -443,19 +443,21 @@ void RFIDMonitor::newMessage(QByteArray message)
     if(message == "ReloadSettings"){
         // Configuration file was changed, thus must to reload
         d_ptr->readSettings();
+
     }else if(message == "SYNC"){
         d_ptr->connected = true;
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "SYNC MESSAGE RECEIVED... !!");
         // The daemon is now connected with server, send the not-synced data
         d_ptr->defaultSynchronization->readyRead();
-    }else if(message == "QUIT"){
-        // Stop all services and quit system. Used to restart application, but first must to close properly
+    }else if(message == "stop"){
 
-        // NEED IMPLEMENTATION;
-    }else if(message == "wakeup"){
-//        d_ptr->connected = true;
-//        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
+        // Stop all services and quit system. Used to restart application, but first must to close properly
+        d_ptr->defaultExport->stopUSBExport();
+        d_ptr->defaultReading->stop();
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "STOPING SERVICES - CLOSE");
+        QCoreApplication::quit();
+
     }else if(message == "sleep"){
         d_ptr->connected = false;
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "SLEEP OK");

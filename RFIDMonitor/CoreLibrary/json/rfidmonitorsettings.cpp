@@ -18,6 +18,7 @@ void RFIDMonitorSettings::setId(int id)
 {
     m_id = id;
 }
+
 QString RFIDMonitorSettings::name() const
 {
     return m_name;

@@ -60,7 +60,7 @@ void ConfigManager::setIdentification(QJsonObject &json)
     m_systemSettings.setId(json.value("id").toInt());
 #endif // QT_VERSION < 0x050200
 
-    m_systemSettings.setMacAddress(json.value("macaddress").toString());
+//    m_systemSettings.setMacAddress(json.value("macaddress").toString());
     m_systemSettings.setName(json.value("name").toString());
 #if QT_VERSION < 0x050200
     m_systemSettings.setId(json.value("id").toVariant().toInt());
@@ -91,7 +91,8 @@ void ConfigManager::openJsonFile()
     QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
 
     m_systemSettings.read(loadDoc.object());
-//    m_systemSettings.setMacAddress(QNetworkInterface().hardwareAddress());
+    m_systemSettings.setMacAddress(QNetworkInterface().allInterfaces().at(1).hardwareAddress());
+    m_backupSettings = m_systemSettings;
     m_json.close();
 }
 
@@ -115,6 +116,12 @@ bool ConfigManager::newConfig(QJsonObject &json)
 {
     m_systemSettings.read(json);
     return saveJsonFile();
+}
+
+void ConfigManager::restoreConfig()
+{
+    m_systemSettings = m_backupSettings;
+    saveJsonFile();
 }
 
 QJsonObject ConfigManager::netConfig()
@@ -160,6 +167,6 @@ bool ConfigManager::restartNetwork()
     m_interfaces.close();
 
     QProcess restartNet;
-    restartNet.start("service network-manager restart");
+    restartNet.start("service networking restart");
     return restartNet.waitForFinished();
 }
