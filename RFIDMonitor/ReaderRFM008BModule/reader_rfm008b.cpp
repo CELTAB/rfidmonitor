@@ -112,14 +112,14 @@ void Reader_RFM008B::write(QString command)
 void Reader_RFM008B::readData()
 {
     if(m_serial->canReadLine()){
-        QByteArray buffer = m_serial->readAll();
-        QRegExp regex;
-        regex.setPattern("(L(\\d{2})?W)\\s([0-9a-fA-F]{4})\\s([0-9a-fA-F]{16})");
-
-        QString data(buffer);
-        data.remove(QRegExp("[\\n\\t\\r]"));
-
         if(!allLines){
+
+            QByteArray buffer = m_serial->readAll();
+            QRegExp regex;
+            regex.setPattern("(L(\\d{2})?W)\\s([0-9a-fA-F]{4})\\s([0-9a-fA-F]{16})");
+
+            QString data(buffer);
+            data.remove(QRegExp("[\\n\\t\\r]"));
 
             //        if(m_outReceived.device()){
             //            m_outReceived << data;
@@ -205,6 +205,13 @@ void Reader_RFM008B::readData()
                 }
             }
         }else{
+            QByteArray buffer = m_serial->readLine();
+            QString data(buffer);
+            data.remove(QRegExp("[\\n\\t\\r]"));
+
+            if(data == "LI")
+                return;
+
             json::NodeJSMessage answer;
             answer.setType("READER-RESPONSE");
 
