@@ -157,7 +157,7 @@
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="440"/>
         <source>Disconnected from %1</source>
-        <translation>Disconectado de %1.</translation>
+        <translation>Desconectado de %1.</translation>
     </message>
     <message>
         <location filename="../../communication/networkcommunication.cpp" line="452"/>

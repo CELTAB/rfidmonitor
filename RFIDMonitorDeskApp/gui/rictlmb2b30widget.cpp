@@ -1,4 +1,5 @@
 #include <QDebug>
+#include <QThread>
 
 #include "rictlmb2b30widget.h"
 #include "ui_rictlmb2b30widget.h"
@@ -125,19 +126,37 @@ void RICTLMB2B30Widget::btWriteClicked()
     // Mark the processing to check for a answers on reading.
     m_waitingForAnswer = true;
 
+
+    QTimer timer;
+    timer.setSingleShot(true);
+    timer.start(500);
+    while(timer.remainingTime() > 0)
+        ;
+
+    sendCommand("L");
+    timer.start(500);
+    while(timer.remainingTime() > 0)
+        ;
+
+    sendCommand("K0");
+    timer.start(500);
+    while(timer.remainingTime() > 0)
+        ;
+
+    sendCommand("P" + m_identification);
     /* Send the "L" command to the reader. This ensure that the reader operates in Line Mode.
      * It is needed to keep the reader responding for reads, to check the command responses
      * and the identification codes from transponder, automatically. */
-    sendCommand("L");
+//     sendCommand("L");
 
     /* Send the "K0" command to the reader. This ensure that the reader understant it is working
      * with a 64-bits transponder, a K0. If the reader is not set with K0, it will not understand
      * the commands and will not answer, correctly. */
-    sendCommand("K0");
+//        sendCommand("K0");
 
     /* Send the "P" + identification code to the reader. This is the way to define a new code
      * to the trasponder. */
-    sendCommand("P" + m_identification);
+//    sendCommand("P" + m_identification);
 
     // Start the timeout to wait for a response. If the timer ends, define as failed.
     m_timeout.start();
