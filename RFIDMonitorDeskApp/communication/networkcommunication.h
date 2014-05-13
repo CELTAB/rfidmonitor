@@ -167,6 +167,8 @@ public:
      */
     void closeTCPConnection();
 
+    void sendFullRead(bool full);
+
 private slots:
     /**
      * @brief tcpDataAvailable receives notification from QTcpSocket that exists new
