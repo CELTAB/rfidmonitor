@@ -105,8 +105,13 @@ void CommunicationService::ipcReadyRead()
 
     if(messageType == "ACK-SYN"){
         Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
+    }
+    else{
+        emit messageReceived(data);
+    }
 
-    }else if (messageType == "ACK-DATA") {
+    /*
+    else if (messageType == "ACK-DATA") {
 
         // Remove the data just synced of database. Use the md5Diggest to know what remove.
         emit messageReceived(data);
@@ -116,7 +121,7 @@ void CommunicationService::ipcReadyRead()
 
     } else if (messageType == "STOP"){
         // Stop all services and close system.
-        emit messageReceived(QByteArray("stop"));
+        emit messageReceived(data);
 
     } else if (messageType == "SLEEP"){
         // lost connection with server. Don't send records.
@@ -152,6 +157,7 @@ void CommunicationService::ipcReadyRead()
         unknownObj.insert("errorinfo", QString("Could not understand this message"));
         sendMessage(unknownObj, "ACK-UNKNOWN");
     }
+    */
 }
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)

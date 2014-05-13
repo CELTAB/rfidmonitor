@@ -51,6 +51,10 @@
 #include <rfidmonitor.h>
 
 
+#include <json/nodejsmessage.h>
+#include <json/synchronizationpacket.h>
+
+
 QFile file("rfidmonitor.txt");
 QFile fileCaptured("rfidmonitor_captured.txt");
 
@@ -61,10 +65,12 @@ Reader_RFM008B::Reader_RFM008B(QObject *parent) :
     m_module = "ReadingModule";
     m_serial = new QSerialPort(this);
 
-    if (file.open(QFile::WriteOnly | QFile::Append)){
+    allLines = false;
+
+    if (file.open(QFile::WriteOnly)){
         m_outReceived.setDevice(&file);
     }
-    if (fileCaptured.open(QFile::WriteOnly | QFile::Append)){
+    if (fileCaptured.open(QFile::WriteOnly)){
         m_outCaptured.setDevice(&fileCaptured);
     }
 }
@@ -91,6 +97,18 @@ ServiceType Reader_RFM008B::type()
     return ServiceType::KReader;
 }
 
+void Reader_RFM008B::fullRead(bool fr)
+{
+    allLines = fr;
+}
+
+void Reader_RFM008B::write(QString command)
+{
+    if(m_serial->isOpen()){
+        m_serial->write(command.toLocal8Bit());
+    }
+}
+
 void Reader_RFM008B::readData()
 {
     if(m_serial->canReadLine()){
@@ -99,90 +117,119 @@ void Reader_RFM008B::readData()
         regex.setPattern("(L(\\d{2})?W)\\s([0-9a-fA-F]{4})\\s([0-9a-fA-F]{16})");
 
         QString data(buffer);
-
-        if(m_outReceived.device()){
-            m_outReceived << data;
-            m_outReceived.flush();
-        }
-
         data.remove(QRegExp("[\\n\\t\\r]"));
 
-        int pos = regex.indexIn(data);
-        if(pos != -1){
-            // The first string in the list is the entire matched string.
-            // Each subsequent list element contains a string that matched a
-            // (capturing) subexpression of the regexp.
-            QStringList matches = regex.capturedTexts();
+        if(!allLines){
 
-            // crear RFIDData
-            QRegularExpression regexCode;
-            regexCode.setPattern("([0-9a-fA-F]{4})(\\s)([0-9a-fA-F]{16})");
-            QRegularExpressionMatch match = regexCode.match(matches.at(0));
+            //        if(m_outReceived.device()){
+            //            m_outReceived << data;
+            //            m_outReceived.flush();
+            //        }
 
-            if(m_outCaptured.device()){
-                m_outCaptured << matches.at(0);
-                m_outCaptured.flush();
-            }
 
-            if(match.hasMatch()) {
-                Rfiddata *data = new Rfiddata(this);
+            int pos = regex.indexIn(data);
+            if(pos != -1){
+                // The first string in the list is the entire matched string.
+                // Each subsequent list element contains a string that matched a
+                // (capturing) subexpression of the regexp.
+                QStringList matches = regex.capturedTexts();
 
-                int idPontoColeta = 1;
-                data->setIdpontocoleta(idPontoColeta);
+                // crear RFIDData
+                QRegularExpression regexCode;
+                regexCode.setPattern("([0-9a-fA-F]{4})(\\s)([0-9a-fA-F]{16})");
+                QRegularExpressionMatch match = regexCode.match(matches.at(0));
 
-                int idAntena = 1;
-                data->setIdantena(idAntena);
+                //            if(m_outCaptured.device()){
+                //                m_outCaptured << matches.at(0);
+                //                m_outCaptured.flush();
+                //            }
 
-                qlonglong applicationcode = match.captured(1).toLongLong();
-                qlonglong identificationcode = match.captured(3).toLongLong();
+                if(match.hasMatch()) {
+                    Rfiddata *data = new Rfiddata(this);
 
-                /*
+                    int idPontoColeta = 1;
+                    data->setIdpontocoleta(idPontoColeta);
+
+                    int idAntena = 1;
+                    data->setIdantena(idAntena);
+
+                    qlonglong applicationcode = match.captured(1).toLongLong();
+                    qlonglong identificationcode = match.captured(3).toLongLong();
+
+                    /*
                  * Filter by time. If more than one transponder was read in a time interval only one of them will be persisted.
                  * A QMap is used to verify if each new data that had arrived was already read in this interval.
                  */
-                if(!m_map.contains(identificationcode)){
+                    if(!m_map.contains(identificationcode)){
 
-                    QTimer *timer = new QTimer;
-                    timer->setSingleShot(true);
-                    timer->setInterval(1000);
-                    connect(timer, &QTimer::timeout,
-                            [=, this]()
-                    {
-                        this->m_map.remove(identificationcode);
-                        timer->deleteLater();
-                    });
-                    m_map.insert(identificationcode, timer);
-                    timer->start();
+                        QTimer *timer = new QTimer;
+                        timer->setSingleShot(true);
+                        timer->setInterval(1000);
+                        connect(timer, &QTimer::timeout,
+                                [=, this]()
+                        {
+                            this->m_map.remove(identificationcode);
+                            timer->deleteLater();
+                        });
+                        m_map.insert(identificationcode, timer);
+                        timer->start();
 
-                    data->setApplicationcode(applicationcode);
-                    data->setIdentificationcode(identificationcode);
-                    data->setDatetime(QDateTime::currentDateTime());
-                    data->setSync(Rfiddata::KNotSynced);
+                        data->setApplicationcode(applicationcode);
+                        data->setIdentificationcode(identificationcode);
+                        data->setDatetime(QDateTime::currentDateTime());
+                        data->setSync(Rfiddata::KNotSynced);
 
-                    QList<Rfiddata*> list;
-                    list.append(data);
-                    try {
-                        PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
-                        Q_ASSERT(persister);
-                        SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
-                        Q_ASSERT(synchronizer);
+                        QList<Rfiddata*> list;
+                        list.append(data);
+                        try {
+                            PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
+                            Q_ASSERT(persister);
+                            SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
+                            Q_ASSERT(synchronizer);
 
 #ifdef CPP_11_ASYNC
-                        /*C++11 std::async Version*/
-                        std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
-                        std::async(std::launch::async, persistence, list);
-                        std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
-                        std::async(std::launch::async, synchronize);
+                            /*C++11 std::async Version*/
+                            std::function<void(const QList<Rfiddata *>&)> persistence = std::bind(&PersistenceInterface::insertObjectList, persister, std::placeholders::_1);
+                            std::async(std::launch::async, persistence, list);
+                            std::function<void()> synchronize = std::bind(&SynchronizationInterface::readyRead, synchronizer);
+                            std::async(std::launch::async, synchronize);
 #else
-                        /*Qt Concurrent Version*/
-                        QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
-                        QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
+                            /*Qt Concurrent Version*/
+                            QtConcurrent::run(persister, &PersistenceInterface::insertObjectList, list);
+                            QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
 #endif
-                    } catch (std::exception &e) {
-                        Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
+                        } catch (std::exception &e) {
+                            Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
+                        }
                     }
                 }
             }
+        }else{
+            json::NodeJSMessage answer;
+            answer.setType("READER-RESPONSE");
+
+            QJsonObject dataObj;
+            dataObj.insert("sender", QString("app"));
+            dataObj.insert("response", data);
+            dataObj.insert("reader", QString("A1"));
+
+            answer.setDateTime(QDateTime::currentDateTime());
+            answer.setJsonData(dataObj);
+            QJsonObject jsonAnswer;
+            answer.write(jsonAnswer);
+
+
+            static CommunicationInterface *communitacion = 0;
+            communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
+
+#ifdef CPP_11_ASYNC
+            /*C++11 std::async Version*/
+            std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+            std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+#else
+            /*Qt Concurrent Version*/
+            QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
+#endif
         }
     }
 }

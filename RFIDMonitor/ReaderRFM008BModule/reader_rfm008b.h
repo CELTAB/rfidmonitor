@@ -53,7 +53,12 @@ public:
     void init();
     ServiceType type();
 
+    void fullRead(bool fr);
+    void write(QString command);
+
 private:
+    bool allLines;
+
     QString m_module;
     QTextStream m_outReceived;
     QTextStream m_outCaptured;
@@ -71,7 +76,6 @@ public slots:
 
 signals:
     void rfidReaded(Rfiddata *data);
-
 };
 
 #endif // READER_RFM008B_H

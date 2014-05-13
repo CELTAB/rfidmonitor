@@ -59,9 +59,9 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
 
     m_serverName = "RFIDMonitorDaemon";
 
-//    m_restoreTimer = new QTimer;
+    //    m_restoreTimer = new QTimer;
     m_restoreTimer.setInterval(10000);
-    connect(&m_restoreTimer, &QTimer::timeout, [&](){
+    connect(&m_restoreTimer, &QTimer::timeout, [=](){
         m_configManager->restoreConfig();
         initMonitor();
     });
@@ -157,9 +157,9 @@ void RFIDMonitorDaemon::ipcNewConnection()
 void RFIDMonitorDaemon::tcpConnect()
 {
     m_tcpSocket->connectToHost(m_hostName, m_tcpPort);
-//#ifdef DEBUG_LOGGER
-//    m_daemonLogger <<  QString("Traying to connect to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
-//#endif
+    //#ifdef DEBUG_LOGGER
+    //    m_daemonLogger <<  QString("Traying to connect to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
+    //#endif
 }
 
 void RFIDMonitorDaemon::tcpConnected()
@@ -173,8 +173,11 @@ void RFIDMonitorDaemon::tcpConnected()
 void RFIDMonitorDaemon::tcpDisconnected()
 {
     if(isConnected){
+        QJsonObject obj;
+        obj.insert("full", QJsonValue(false));
         // Inform RFIDMonitor that the server is no more connected
         ipcSendMessage(buildMessage(QJsonObject(), "SLEEP").toJson());
+        ipcSendMessage(buildMessage(obj, "FULL-READ").toJson());
         isConnected = false;
     }
     // Try to reconnect the server after 5 seconds
@@ -250,8 +253,10 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 
 void RFIDMonitorDaemon::initMonitor()
 {
-//    m_process = new QProcess(this);
     m_process.start("./RFIDMonitor");
+
+    qDebug() << "Process Started, PID: " << m_process.pid();
+
     connect(this, &RFIDMonitorDaemon::destroyed, &m_process, &QProcess::kill);
     connect(this, &RFIDMonitorDaemon::restartMonitor, [&]()
     {
@@ -366,7 +371,7 @@ void RFIDMonitorDaemon::routeTcpMessage()
                 // Send a message to stop the RFIDMonitor
                 emit restartMonitor();
 
-            /*
+                /*
             * ADICIONAR VERIFICAÇÃO DE REINICIALIZAÇÃO DO MONITOR
             * Quando um novo arquivo de configuração for recebido e persistido o monitor deve ser reiniciado.
             * Enquanto o aplicativo reiniciar o 'sender' esta esperando por uma configuração.
@@ -420,6 +425,11 @@ void RFIDMonitorDaemon::routeTcpMessage()
             m_daemonLogger <<  "The server don't understand the message type: " << oldMessage.value("type").toString();
             m_daemonLogger <<  "ERROR message: " << unknown.object().value("errorinfo").toString();
         }
+
+        else if (messageType == "FULL-READ"){
+            ipcSendMessage(data);
+        }
+
         else{
             /* When receives a message that can't be interpreted like any type is an unknown message.
              * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
@@ -456,12 +466,12 @@ void RFIDMonitorDaemon::routeIpcMessage()
 #endif
 
     if(messageType == "SYN"){
+        m_restoreTimer.stop();
 #ifdef DEBUG_LOGGER
         m_daemonLogger <<  "SYN Message received from MONITOR";
 #endif
         ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
 
-        m_restoreTimer.stop();
         if(m_tcpAppSocket->isValid()){
             tcpSendMessage(m_tcpAppSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
         }
@@ -497,7 +507,12 @@ void RFIDMonitorDaemon::routeIpcMessage()
         // Only a node.js server receives DATA messages.
         tcpSendMessage(m_tcpSocket, message);
 
-    }else if (messageType == "ACK-UNKNOWN") {
+    }else if (messageType == "STOPPED"){
+        qDebug() << "STOPPED";
+        m_process.kill();
+        qDebug() << "Process Killed, PID: " << m_process.pid();
+    }
+    else if (messageType == "ACK-UNKNOWN") {
         QJsonDocument unknown(nodeMessage.jsonData());
         QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
 #ifdef DEBUG_LOGGER

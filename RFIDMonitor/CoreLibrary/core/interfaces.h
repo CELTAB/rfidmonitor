@@ -50,6 +50,9 @@ public slots:
      * \brief this slot is designed to stop the reading from the serial port.
      */
     virtual void stop() = 0;
+
+    virtual void fullRead(bool) = 0;
+    virtual void write(QString) = 0;
 };
 
 

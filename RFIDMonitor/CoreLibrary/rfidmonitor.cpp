@@ -440,32 +440,48 @@ void RFIDMonitor::stop()
 
 void RFIDMonitor::newMessage(QByteArray message)
 {
-    if(message == "ReloadSettings"){
-        // Configuration file was changed, thus must to reload
-        d_ptr->readSettings();
 
-    }else if(message == "SYNC"){
+    QJsonObject obj = QJsonDocument::fromJson(message).object();
+    json::NodeJSMessage nodeJSMessage;
+    nodeJSMessage.read(obj);
+
+    if(nodeJSMessage.type() == "SYNC"){
         d_ptr->connected = true;
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
         // The daemon is now connected with server, send the not-synced data
         d_ptr->defaultSynchronization->readyRead();
-    }else if(message == "stop"){
+    }else if(nodeJSMessage.type() == "STOP"){
 
         // Stop all services and quit system. Used to restart application, but first must to close properly
         d_ptr->defaultExport->stopUSBExport();
         d_ptr->defaultReading->stop();
 
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "STOPING SERVICES - CLOSE");
+
+        QJsonDocument json;
+        QJsonObject dObj;
+        dObj.insert("type", QString("STOPPED"));
+        dObj.insert("data", QJsonValue());
+        dObj.insert("datetime", QString(QDateTime::currentDateTime().toString(Qt::ISODate)));
+        json.setObject(dObj);
+
+        d_ptr->defaultCommunication->sendMessage(json.toJson());
         QCoreApplication::quit();
 
-    }else if(message == "sleep"){
+    }else if(nodeJSMessage.type() == "SLEEP"){
         d_ptr->connected = false;
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "SLEEP OK");
-    }else{
-        QJsonObject obj = QJsonDocument::fromJson(message).object();
-        json::NodeJSMessage nodeJSMessage;
-        nodeJSMessage.read(obj);
 
+    }else if(nodeJSMessage.type() == "FULL-READ"){
+
+        d_ptr->defaultReading->fullRead(nodeJSMessage.jsonData().value("full").toBool());
+
+    }else if(nodeJSMessage.type() == "READER-COMMAND"){
+
+        QString command = nodeJSMessage.jsonData().value("command").toString();
+        d_ptr->defaultReading->write(command);
+
+    }else if(nodeJSMessage.type() == "ACK-DATA"){
         QJsonArray hashArray = nodeJSMessage.jsonData()["md5diggest"].toArray();
         QList<QString> hashList;
         for(int i = 0 ; i<hashArray.size(); i++){
@@ -474,6 +490,9 @@ void RFIDMonitor::newMessage(QByteArray message)
         }
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
         d_ptr->defaultPackager->update(hashList);
+    }
+    else{
+
     }
 }
 
