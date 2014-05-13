@@ -36,11 +36,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Manipulator Windows
     m_readerManipulatorWidget = 0;
-    m_rfidmonitorManipulatorWidget = 0;
+    m_rfidmonitorManipulatorWidget = 0;    
 
     connect(ui->rbSerial, SIGNAL(clicked()), this, SLOT(rbSerialClicked()));
     connect(ui->rbNetwork, SIGNAL(clicked()), this, SLOT(rbNetworkClicked()));
     connect(ui->btCloseConnection, SIGNAL(clicked()), this, SLOT(btCloseConnectionClicked()));
+
+    connect(ui->rbNetwork, SIGNAL(clicked(bool)), ui->gbConnConfig, SLOT(setVisible(bool)));
+
+    ui->rbNetwork->setChecked(true);
+    rbNetworkClicked();
 
     // Set the SetUpConnection tab as enabled and the Connection tab not enabled.
     ui->tabMain->setTabEnabled(tabSetUpConnectionIndex, true);
@@ -50,8 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QVBoxLayout *vbLayout = new QVBoxLayout(ui->frMessages);
     ui->frMessages->setLayout(vbLayout);
     vbLayout->addWidget(SystemMessagesWidget::instance());
-
-    ui->gbConnConfig->hide();
 }
 
 MainWindow::~MainWindow()
@@ -107,8 +110,6 @@ void MainWindow::prepareRFIDMonitorManipulatorWidget()
 
 void MainWindow::rbSerialClicked()
 {
-    ui->gbConnConfig->show();
-
     // If m_networkConnConfigWidget exists, hide it.
     if(m_networkConnConfigWidget){
         m_networkConnConfigWidget->close();
@@ -125,8 +126,6 @@ void MainWindow::rbSerialClicked()
 
 void MainWindow::rbNetworkClicked()
 {
-    ui->gbConnConfig->show();
-
     // If m_serialConnConfigWidget exists, hide it.
     if(m_serialConnConfigWidget){
         m_serialConnConfigWidget->close();

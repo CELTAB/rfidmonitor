@@ -102,7 +102,7 @@ public slots:
      * @brief newAnswerFromSerialComm is a slot that receives new answers from the device.
      * @param answer is the answer in string format.
      */
-    void newAnswerFromSerialComm(QString answer);
+    void newAnswerFromReader(QString answer);
 
     /**
      * @brief timeout is a slot that call procedures after a timeout occurs.

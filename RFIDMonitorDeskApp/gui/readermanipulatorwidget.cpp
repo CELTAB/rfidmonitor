@@ -174,7 +174,7 @@ void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
     if(checked){
         // Start reading selected.
 
-        NetworkCommunication::instance()->sendFullRead(true);
+
 
         ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-cancel"));
 
@@ -199,12 +199,13 @@ void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
             connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
         }
         else if(m_connectionType == Settings::KNetwork){
+            NetworkCommunication::instance()->sendFullRead(true);
             connect(NetworkCommunication::instance(), SIGNAL(newReaderAnswer(QString)), this, SLOT(newAnswerFromNetworkComm(QString)));
         }
 
     }else{
         // Pause reading selected.
-        NetworkCommunication::instance()->sendFullRead(false);
+
 
         ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-ok"));
 
@@ -222,6 +223,7 @@ void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
             disconnect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
         }
         else if(m_connectionType == Settings::KNetwork){
+            NetworkCommunication::instance()->sendFullRead(false);
             disconnect(NetworkCommunication::instance(), SIGNAL(newReaderAnswer(QString)), this, SLOT(newAnswerFromNetworkComm(QString)));
         }
     }

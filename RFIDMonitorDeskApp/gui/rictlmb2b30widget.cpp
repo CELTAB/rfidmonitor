@@ -1,5 +1,8 @@
 #include <QDebug>
-#include <QThread>
+#include <QDateTime>
+#include <QJsonDocument>
+#include <QCoreApplication>
+
 
 #include "rictlmb2b30widget.h"
 #include "ui_rictlmb2b30widget.h"
@@ -19,8 +22,14 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
     ui->btWrite->setIcon(QIcon(":/icons/icon-signal"));
     ui->btNextIdentification->setIcon(QIcon(":/icons/icon-plus"));
 
-    // Set up the interval time of the timeout to 1 second.
-    m_timeout.setInterval(1000);
+    // Set up the interval time of the timeout.
+    if(m_connectionType == Settings::KSerial){
+        // 1 sec because serial is faster than network.
+        m_timeout.setInterval(1000);
+    }else {
+        m_timeout.setInterval(1000*10);
+    }
+
     // Define the timer to execute only one time.
     m_timeout.setSingleShot(true);
 
@@ -44,8 +53,9 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
 
     if(connType == Settings::KNetwork){
         connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(communicationFinished()));
+        connect(NetworkCommunication::instance(), SIGNAL(newReaderAnswer(QString)), this, SLOT(newAnswerFromReader(QString)));
     }else if(connType == Settings::KSerial){
-        connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromSerialComm(QString)));
+        connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromReader(QString)));
     }
 }
 
@@ -126,46 +136,56 @@ void RICTLMB2B30Widget::btWriteClicked()
     // Mark the processing to check for a answers on reading.
     m_waitingForAnswer = true;
 
+    if(m_connectionType == Settings::KNetwork){
+        int interval = 500;
+        QTimer timer;
+        timer.setSingleShot(true);
 
-    QTimer timer;
-    timer.setSingleShot(true);
-    timer.start(500);
-    while(timer.remainingTime() > 0)
-        ;
+        NetworkCommunication::instance()->sendFullRead(true);
 
-    sendCommand("L");
-    timer.start(500);
-    while(timer.remainingTime() > 0)
-        ;
+        timer.start(interval);
+        while(timer.remainingTime() > 0)
+            ;
 
-    sendCommand("K0");
-    timer.start(500);
-    while(timer.remainingTime() > 0)
-        ;
+        sendCommand("L");
 
-    sendCommand("P" + m_identification);
-    /* Send the "L" command to the reader. This ensure that the reader operates in Line Mode.
-     * It is needed to keep the reader responding for reads, to check the command responses
-     * and the identification codes from transponder, automatically. */
-//     sendCommand("L");
+        timer.start(interval);
+        while(timer.remainingTime() > 0)
+            ;
 
-    /* Send the "K0" command to the reader. This ensure that the reader understant it is working
-     * with a 64-bits transponder, a K0. If the reader is not set with K0, it will not understand
-     * the commands and will not answer, correctly. */
-//        sendCommand("K0");
+        sendCommand("K0");
 
-    /* Send the "P" + identification code to the reader. This is the way to define a new code
-     * to the trasponder. */
-//    sendCommand("P" + m_identification);
+        timer.start(interval);
+        while(timer.remainingTime() > 0)
+            ;
 
+        sendCommand("P" + m_identification);
+
+    }else{
+        /* Send the "L" command to the reader. This ensure that the reader operates in Line Mode.
+         * It is needed to keep the reader responding for reads, to check the command responses
+         * and the identification codes from transponder, automatically. */
+        sendCommand("L");
+
+        /* Send the "K0" command to the reader. This ensure that the reader understant it is working
+         * with a 64-bits transponder, a K0. If the reader is not set with K0, it will not understand
+         * the commands and will not answer, correctly. */
+        sendCommand("K0");
+
+        /* Send the "P" + identification code to the reader. This is the way to define a new code
+         * to the trasponder. */
+        sendCommand("P" + m_identification);
+    }
     // Start the timeout to wait for a response. If the timer ends, define as failed.
     m_timeout.start();
 }
 
-void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
+void RICTLMB2B30Widget::newAnswerFromReader(QString answer)
 {
     // Only check anything if is waiting for a answer, after sending a command.
     if(m_waitingForAnswer){
+        bool parseOk;
+        QString decimalValue = QString::number(m_identification.toULongLong(&parseOk,16));
         if(answer.contains(QString("P0"))){
             // The answer "P0" from the reader means the new code is successfully defined.
 
@@ -177,13 +197,12 @@ void RICTLMB2B30Widget::newAnswerFromSerialComm(QString answer)
              * the defined one. */
             m_waitingForCheck = true;
 
-        }else if(m_waitingForCheck && answer.contains(m_identification)){
+        }else if(m_waitingForCheck && answer.contains(decimalValue)){
             /* If need to check the code, and it is inside the answer, means it was
              * really defined in the transponder. Now its consired success. */
 
             // Cancel the timeout.
             m_timeout.stop();
-
             // Does not wait for check anymore.
             m_waitingForCheck = false;
 
