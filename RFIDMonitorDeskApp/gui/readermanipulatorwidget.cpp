@@ -174,6 +174,8 @@ void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
     if(checked){
         // Start reading selected.
 
+        NetworkCommunication::instance()->sendFullRead(true);
+
         ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-cancel"));
 
         // Try to open the log file to use if must use it.
@@ -202,6 +204,7 @@ void ReaderManipulatorWidget::btStartPauseReadingClicked(const bool checked)
 
     }else{
         // Pause reading selected.
+        NetworkCommunication::instance()->sendFullRead(false);
 
         ui->btStartPauseReading->setIcon(QIcon(":/icons/icon-ok"));
 

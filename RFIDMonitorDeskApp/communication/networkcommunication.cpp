@@ -74,7 +74,8 @@ void NetworkCommunication::raspConfigReceived(QJsonObject jsonObject)
 
 void NetworkCommunication::answerFromReader(QJsonObject dataObj)
 {
-    emit newReaderAnswer(dataObj.value("response").toString());
+    QString response(dataObj.value("response").toString());
+    emit newReaderAnswer(response);
 }
 
 void NetworkCommunication::sendAckUnknown(QTcpSocket *socket, QJsonObject originalMessage, QString errorInfo)
@@ -294,13 +295,21 @@ void NetworkCommunication::closeTCPConnection()
         m_tcpSocket->disconnectFromHost();
 }
 
+void NetworkCommunication::sendFullRead(bool full)
+{
+    QJsonObject dataObj;
+    dataObj.insert("full", QJsonValue(full));
+
+    sendData(m_tcpSocket, "FULL-READ", dataObj);
+}
+
 void NetworkCommunication::tcpDataAvailable()
 {
-    SystemMessagesWidget::instance()->writeMessage(
-                tr("New data arrived."),
-                SystemMessagesWidget::KDebug,
-                SystemMessagesWidget::KOnlyLogfile
-                );
+//    SystemMessagesWidget::instance()->writeMessage(
+//                tr("New data arrived."),
+//                SystemMessagesWidget::KDebug,
+//                SystemMessagesWidget::KOnlyLogfile
+//                );
     QTcpSocket *socket = (QTcpSocket *) QObject::sender();
 
     static bool waitingForPackage = false;
@@ -320,12 +329,12 @@ void NetworkCommunication::tcpDataAvailable()
         QJsonDocument doc(QJsonDocument::fromJson(package));
         if(!doc.isNull()){
             QJsonObject rootObj(doc.object());
-            SystemMessagesWidget::instance()->writeMessage(
-                        tr("New valid json object: %1")
-                        .arg(QString(QJsonDocument(rootObj).toJson())),
-                        SystemMessagesWidget::KDebug,
-                        SystemMessagesWidget::KOnlyLogfile
-                        );
+//            SystemMessagesWidget::instance()->writeMessage(
+//                        tr("New valid json object: %1")
+//                        .arg(QString(QJsonDocument(rootObj).toJson())),
+//                        SystemMessagesWidget::KDebug,
+//                        SystemMessagesWidget::KOnlyLogfile
+//                        );
 
             QString type(rootObj.value("type").toString());
             QJsonObject dataObj = rootObj.value("data").toObject();
@@ -341,6 +350,12 @@ void NetworkCommunication::tcpDataAvailable()
                 ackUnknownReceived(dataObj);
             }else if(type == "ACK-NEW-CONFIG"){
                 ackNewConfig(dataObj);
+            }else if(type == "MONITOR-INIT"){
+                SystemMessagesWidget::instance()->writeMessage(
+                            tr("Monitor Restarted successfully."),
+                            SystemMessagesWidget::KInfo,
+                            SystemMessagesWidget::KOnlyTextbox
+                            );
             }else{
                 SystemMessagesWidget::instance()->writeMessage(
                             tr("Data type invalid."),
