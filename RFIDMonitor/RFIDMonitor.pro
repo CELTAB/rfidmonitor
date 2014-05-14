@@ -3,9 +3,9 @@ TEMPLATE = subdirs
 SUBDIRS += \
     CoreLibrary \
     ReaderRFM008BModule \
+    ReaderMRI2000Module \
     PersisterModule \
     ExporterModule \
-#    MainServiceModule \
     Main \
     CommunicatorModule \
     SynchronizerModule
