@@ -14,10 +14,10 @@ INCLUDEPATH += ../CoreLibrary
 
 HEADERS += \
     readingmodule.h \
-    datareader.h
+    reader_mri2000.h
 SOURCES += \
     readingmodule.cpp \
-    datareader.cpp
+    reader_mri2000.cpp
 
 OTHER_FILES += ReadingModule_MRI2000.json
 

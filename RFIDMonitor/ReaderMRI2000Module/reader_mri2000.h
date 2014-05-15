@@ -25,8 +25,8 @@
 **
 ****************************************************************************/
 
-#ifndef DATAREADER_H
-#define DATAREADER_H
+#ifndef READER_MRI2000_H
+#define READER_MRI2000_H
 
 #include <QObject>
 #include <QFile>
@@ -34,34 +34,40 @@
 #include <QSerialPort>
 
 #include <algorithm>
+#include <core/interfaces.h>
 
 class Rfiddata;
 class DeviceThread;
-class QTextStream;
 
-class DataReader : public QObject
+class Reader_MRI2000 : public ReadingInterface
 {
     Q_OBJECT
     
 public:
-    explicit DataReader(QObject *parent = 0);
-    ~DataReader();
+    explicit Reader_MRI2000(QObject *parent = 0);
+    ~Reader_MRI2000();
 
-    bool startReading(const QString &device);
+    QString serviceName() const;
+    void init();
+    ServiceType type();
+
+    void fullRead(bool fr);
+    void write(QString command);
+
 private:
+    bool allLines;
     QString m_module;
     QSerialPort *m_serial;
-
-//    QTextStream m_outHardCapture;
-//    QTextStream m_outMatchedCapture;
 
 public slots:
     void readData();
     void handleError(QSerialPort::SerialPortError error);
 
+    void start();
+    void stop();
+
 signals:
     void rfidReaded(Rfiddata *data);
-
 };
 
-#endif // DATAREADER_H
+#endif // READER_MRI2000_H

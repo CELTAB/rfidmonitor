@@ -25,22 +25,10 @@
 **
 ****************************************************************************/
 
-#include <servicemanager.h>
+#include <rfidmonitor.h>
 
 #include "readingmodule.h"
-#include "datareader.h"
-
-static DataReader *reader = 0;
-
-void start_reading(const QString &device)
-{
-    if(!reader){
-        reader = new DataReader();
-    }
-    if(!reader->startReading(device)){
-        throw std::exception();
-    }
-}
+#include "reader_mri2000.h"
 
 ReadingModule::ReadingModule(QObject *parent) :
     CoreModule(parent)
@@ -49,16 +37,25 @@ ReadingModule::ReadingModule(QObject *parent) :
 
 ReadingModule::~ReadingModule()
 {
-    if(reader){
-        reader->deleteLater();
-    }
 }
 
 void ReadingModule::init()
 {
-    ServiceManager::instance()->register_function("reading.start_reading_MRI2000", std::function< void(const QString &) >(start_reading));
+    Reader_MRI2000 *reader = new Reader_MRI2000(this);
+    addService(reader->serviceName(), reader);
+    RFIDMonitor::instance()->setDefaultService(ServiceType::KReader, reader->serviceName());
+}
+
+QString ReadingModule::name()
+{
+    return "reader_MRI2000.module";
+}
+
+quint32 ReadingModule::version()
+{
+    return 1;
 }
 
 #if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(ReadingModule, CoreModule)
+Q_EXPORT_PLUGIN2(Reader_MRI2000, CoreModule)
 #endif // QT_VERSION < 0x050000

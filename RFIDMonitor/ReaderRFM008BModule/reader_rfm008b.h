@@ -58,20 +58,18 @@ public:
 
 private:
     bool allLines;
-
     QString m_module;
-    QTextStream m_outReceived;
-    QTextStream m_outCaptured;
     QSerialPort *m_serial;
-
     QMap<qlonglong, QTimer*> m_map;
+
+//    QTextStream m_outReceived;
+    QTextStream m_outCaptured;
 
 public slots:
     void readData();
     void handleError(QSerialPort::SerialPortError error);
 
     void start();
-
     void stop();
 
 signals:

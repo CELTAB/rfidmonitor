@@ -30,7 +30,6 @@
 
 #include <coremodule.h>
 
-
 class Reader_RFM008BModule : public CoreModule
 {
     Q_OBJECT
@@ -43,9 +42,7 @@ public:
     ~Reader_RFM008BModule();
 
     void init();
-
     QString name();
-
     quint32 version();
 };
 

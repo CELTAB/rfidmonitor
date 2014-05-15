@@ -221,12 +221,15 @@ void Module::read(const QJsonObject &json)
     m_version = json["version"].toInt();
 #endif // QT_VERSION < 0x050200
     QJsonArray services = json["services"].toArray();
+
+    QList<Service> tempServices;
     for(int i=0; i < services.size(); i++) {
         QJsonObject obj = services[i].toObject();
         Service serv;
         serv.read(obj);
-        m_services.append(serv);
+        tempServices.append(serv);
     }
+    m_services = tempServices;
 }
 
 void Module::write(QJsonObject &json) const

@@ -55,7 +55,7 @@
 #include <json/synchronizationpacket.h>
 
 
-QFile file("rfidmonitor.txt");
+//QFile file("rfidmonitor.txt");
 QFile fileCaptured("rfidmonitor_captured.txt");
 
 Reader_RFM008B::Reader_RFM008B(QObject *parent) :
@@ -67,9 +67,9 @@ Reader_RFM008B::Reader_RFM008B(QObject *parent) :
 
     allLines = false;
 
-    if (file.open(QFile::WriteOnly)){
-        m_outReceived.setDevice(&file);
-    }
+    //    if (file.open(QFile::WriteOnly)){
+    //        m_outReceived.setDevice(&file);
+    //    }
     if (fileCaptured.open(QFile::WriteOnly)){
         m_outCaptured.setDevice(&fileCaptured);
     }
@@ -114,6 +114,8 @@ void Reader_RFM008B::readData()
     if(m_serial->canReadLine()){
         if(!allLines){
 
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
+
             QByteArray buffer = m_serial->readAll();
             QRegExp regex;
             regex.setPattern("(L(\\d{2})?W)\\s([0-9a-fA-F]{4})\\s([0-9a-fA-F]{16})");
@@ -139,10 +141,10 @@ void Reader_RFM008B::readData()
                 regexCode.setPattern("([0-9a-fA-F]{4})(\\s)([0-9a-fA-F]{16})");
                 QRegularExpressionMatch match = regexCode.match(matches.at(0));
 
-                //            if(m_outCaptured.device()){
-                //                m_outCaptured << matches.at(0);
-                //                m_outCaptured.flush();
-                //            }
+                if(m_outCaptured.device()){
+                    m_outCaptured << matches.at(0);
+                    m_outCaptured.flush();
+                }
 
                 if(match.hasMatch()) {
                     Rfiddata *data = new Rfiddata(this);
@@ -205,6 +207,9 @@ void Reader_RFM008B::readData()
                 }
             }
         }else{
+
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
+
             QByteArray buffer = m_serial->readLine();
             QString data(buffer);
             data.remove(QRegExp("[\\n\\t\\r]"));

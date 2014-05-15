@@ -30,7 +30,6 @@
 
 #include <coremodule.h>
 
-
 class ReadingModule : public CoreModule
 {
     Q_OBJECT
@@ -43,6 +42,8 @@ public:
     ~ReadingModule();
 
     void init();
+    QString name();
+    quint32 version();
 };
 
 #endif // READINGMODULE_H
