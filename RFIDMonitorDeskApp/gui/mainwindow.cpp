@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->rbSerial, SIGNAL(clicked()), this, SLOT(rbSerialClicked()));
     connect(ui->rbNetwork, SIGNAL(clicked()), this, SLOT(rbNetworkClicked()));
-    connect(ui->btCloseConnection, SIGNAL(clicked()), this, SLOT(btCloseConnectionClicked()));
+    connect(ui->btCloseConnection, SIGNAL(clicked()), this, SLOT(closeConnection()));
 
     connect(ui->rbNetwork, SIGNAL(clicked(bool)), ui->gbConnConfig, SLOT(setVisible(bool)));
 
@@ -100,6 +100,8 @@ void MainWindow::prepareRFIDMonitorManipulatorWidget()
     if(! m_rfidmonitorManipulatorWidget)
         m_rfidmonitorManipulatorWidget = new RFIDMonitorManipulatorWidget(this);
 
+    connect(m_rfidmonitorManipulatorWidget, SIGNAL(readyToClose()),this, SLOT(closeConnection()));
+
     ui->tabConnection->layout()->addWidget(m_rfidmonitorManipulatorWidget);
     m_rfidmonitorManipulatorWidget->show();
 
@@ -140,7 +142,7 @@ void MainWindow::rbNetworkClicked()
     m_networkConnConfigWidget->show();
 }
 
-void MainWindow::btCloseConnectionClicked()
+void MainWindow::closeConnection()
 {
     // Change the enabled tab to SetUpConnection tab.
     ui->tabMain->setTabEnabled(tabConnectionIndex, false);

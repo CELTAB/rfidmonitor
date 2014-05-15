@@ -39,6 +39,8 @@ ReaderManipulatorWidget::ReaderManipulatorWidget(const Settings::ConnectionType 
 
     if(type == Settings::KNetwork){
         connect(NetworkCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(connectionFinished()));
+    }else{
+        connect(SerialCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(connectionFinished()));
     }
 
     // instantiate the RI-CTL-MB2B-30 Manipulator and add it to the main tab.

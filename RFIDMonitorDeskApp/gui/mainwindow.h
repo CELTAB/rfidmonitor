@@ -102,7 +102,7 @@ public slots:
      * @brief btCloseConnectionClicked is a slot called to close a open connection configuration
      * window (serial or network). Consequently the window close the connection it is using.
      */
-    void btCloseConnectionClicked();
+    void closeConnection();
 };
 
 #endif // MAINWINDOW_H

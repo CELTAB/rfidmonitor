@@ -2,6 +2,7 @@
 #include <QStandardItemModel>
 #include <QDebug>
 #include <QJsonArray>
+#include <QMessageBox>
 
 #include "rfidmonitormanipulatorwidget.h"
 #include "ui_rfidmonitormanipulatorwidget.h"
@@ -10,8 +11,7 @@
 
 RFIDMonitorManipulatorWidget::RFIDMonitorManipulatorWidget(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::RFIDMonitorManipulatorWidget),
-    m_raspSettings(0)
+    ui(new Ui::RFIDMonitorManipulatorWidget)
 {
     ui->setupUi(this);
 
@@ -49,9 +49,6 @@ RFIDMonitorManipulatorWidget::RFIDMonitorManipulatorWidget(QWidget *parent) :
 RFIDMonitorManipulatorWidget::~RFIDMonitorManipulatorWidget()
 {
     delete ui;
-
-    if(m_raspSettings)
-        delete m_raspSettings;
 }
 
 void RFIDMonitorManipulatorWidget::closeConnection()
@@ -62,13 +59,9 @@ void RFIDMonitorManipulatorWidget::closeConnection()
 
 void RFIDMonitorManipulatorWidget::loadConfigurationFromJson(const QJsonObject &obj)
 {
-    if(m_raspSettings){
-        delete m_raspSettings;
-        m_raspSettings = 0;
-    }
+    m_raspSettings.read(obj);
 
-    m_raspSettings = new json::RFIDMonitorSettings;
-    m_raspSettings->read(obj);
+    m_oldRaspSettings = m_raspSettings;
 
     clearForm();
 
@@ -215,49 +208,62 @@ void RFIDMonitorManipulatorWidget::formEnabled(bool enabled)
 
 void RFIDMonitorManipulatorWidget::sendCurrentConfiguration()
 {
-    //GENERAL
+    QString userMessage(tr("After sending the new configuration, the connection with the "
+                           "collection point will be closed. Are you sure?"));
 
-    m_raspSettings->setName(ui->leName->text());
-    m_raspSettings->setId(ui->leID->text().toInt());
-    m_raspSettings->setDevice(ui->leDevice->text());
+    if((m_oldRaspSettings.networkConfiguration().essid() != ui->leWirelessSSID->text())
+            ||(m_oldRaspSettings.networkConfiguration().password() != ui->leWirelessPassword->text())){
+        userMessage.append(tr("\n\nPS: The network configuration has changed. If the IP is part of a "
+                              "different network, the collect point naturaly will not be accessible."));
+    }
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Are you sure?", userMessage,
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No){
+        return;
+    }else{
+
+        //GENERAL
+
+        m_raspSettings.setName(ui->leName->text());
+        m_raspSettings.setId(ui->leID->text().toInt());
+        m_raspSettings.setDevice(ui->leDevice->text());
 
 
-    //DEFAULT SERVICES
+        //DEFAULT SERVICES
 
-    json::DefaultServices defaultServices;
+        json::DefaultServices defaultServices;
 
-    defaultServices.setReader(ui->cbDefaultReaderService->currentText());
-    defaultServices.setPersister(ui->cbDefaultPersisterService->currentText());
-    defaultServices.setExporter(ui->cbDefaultExporterService->currentText());
-    defaultServices.setSynchronizer(ui->cbDefaultSyncronizerService->currentText());
-    defaultServices.setCommunicator(ui->cbDefaultCommunicatorService->currentText());
-    defaultServices.setPackager(ui->cbDefaultPackagerService->currentText());
+        defaultServices.setReader(ui->cbDefaultReaderService->currentText());
+        defaultServices.setPersister(ui->cbDefaultPersisterService->currentText());
+        defaultServices.setExporter(ui->cbDefaultExporterService->currentText());
+        defaultServices.setSynchronizer(ui->cbDefaultSyncronizerService->currentText());
+        defaultServices.setCommunicator(ui->cbDefaultCommunicatorService->currentText());
+        defaultServices.setPackager(ui->cbDefaultPackagerService->currentText());
 
-    m_raspSettings->setDefaultServices(defaultServices);
+        m_raspSettings.setDefaultServices(defaultServices);
 
 
-    //NETWORK
+        //NETWORK
 
-    m_raspSettings->setMacAddress(ui->leMac->text());
+        m_raspSettings.setMacAddress(ui->leMac->text());
 
-    json::Network network;
-    network.setEssid(ui->leWirelessSSID->text());
-    network.setPassword(ui->leWirelessPassword->text());
-    m_raspSettings->setNetworkConfiguration(network);
+        json::Network network;
+        network.setEssid(ui->leWirelessSSID->text());
+        network.setPassword(ui->leWirelessPassword->text());
+        m_raspSettings.setNetworkConfiguration(network);
 
-    m_raspSettings->setServerAddress(ui->leServerAddress->text());
-    m_raspSettings->setServerPort(ui->leServerPort->text().toInt());
+        m_raspSettings.setServerAddress(ui->leServerAddress->text());
+        m_raspSettings.setServerPort(ui->leServerPort->text().toInt());
 
-    QJsonObject objToSend;
-    m_raspSettings->write(objToSend);
-    NetworkCommunication::instance()->sendNewConfigToRasp(objToSend);
+        QJsonObject objToSend;
+        m_raspSettings.write(objToSend);
+        NetworkCommunication::instance()->sendNewConfigToRasp(objToSend);
 
-    SystemMessagesWidget::instance()->writeMessage(
-                "need to persistLocalyCurrentConfig(mac, json)",
-                SystemMessagesWidget::KDebug,
-                SystemMessagesWidget::KOnlyLogfile
-                );
-    qDebug() << " ";
+        changeFormState(KBlocked);
+    }
 }
 
 void RFIDMonitorManipulatorWidget::persistLocalyCurrentConfig(const QString &mac, const QByteArray &json)
@@ -281,7 +287,7 @@ void RFIDMonitorManipulatorWidget::changeFormState(RFIDMonitorManipulatorWidget:
 
         ui->btRetrieveFromRasp->setEnabled(true);
         clearForm();
-        } break;
+    } break;
     case KEditing:
         formEnabled(true);
         ui->btRetrieveFromRasp->setEnabled(false);
@@ -311,7 +317,6 @@ void RFIDMonitorManipulatorWidget::newConfigFromRaspArrived(const QJsonObject js
 void RFIDMonitorManipulatorWidget::btSendToRaspClicked()
 {
     sendCurrentConfiguration();
-    changeFormState(KBlocked);
 }
 
 void RFIDMonitorManipulatorWidget::btRetrieveConfigFromRaspClicked()
@@ -326,6 +331,10 @@ void RFIDMonitorManipulatorWidget::newConfigStatusFromRasp(QJsonObject obj)
                                                        SystemMessagesWidget::KInfo,
                                                        SystemMessagesWidget::KDialogAndTextbox);
         changeFormState(KWithObject);
+
+        //Tells the main window this manipulator widget can be closed, because all the work
+        //is done.
+        emit readyToClose();
     }
     else{
         SystemMessagesWidget::instance()->writeMessage(tr("Failed to delivery the new configuration."),

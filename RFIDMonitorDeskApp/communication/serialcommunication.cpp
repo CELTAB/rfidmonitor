@@ -142,6 +142,8 @@ void SerialCommunication::handleError(const QSerialPort::SerialPortError error)
         SystemMessagesWidget::instance()->writeMessage(tr("Serial Port Error: %1").arg(m_serialPort->errorString()),
                                                        SystemMessagesWidget::KError,
                                                        SystemMessagesWidget::KDialogAndTextbox);
+        m_serialPort->close();
+        emit connectionFailed();
     }
 }
 

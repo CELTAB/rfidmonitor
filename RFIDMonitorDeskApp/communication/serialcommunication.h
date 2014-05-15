@@ -86,6 +86,11 @@ signals:
      */
     void newAnswer(QString answer);
 
+    /**
+     * @brief connectionFailed is a signal that says the serial connection os lost.
+     */
+    void connectionFailed();
+
 private:
     explicit SerialCommunication(QObject *parent = 0);
 

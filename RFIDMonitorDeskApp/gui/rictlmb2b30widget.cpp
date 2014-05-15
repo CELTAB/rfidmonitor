@@ -27,7 +27,7 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
         // 1 sec because serial is faster than network.
         m_timeout.setInterval(1000);
     }else {
-        m_timeout.setInterval(1000*10);
+        m_timeout.setInterval(1000*5);
     }
 
     // Define the timer to execute only one time.
@@ -56,6 +56,7 @@ RICTLMB2B30Widget::RICTLMB2B30Widget(Settings::ConnectionType connType, QWidget 
         connect(NetworkCommunication::instance(), SIGNAL(newReaderAnswer(QString)), this, SLOT(newAnswerFromReader(QString)));
     }else if(connType == Settings::KSerial){
         connect(SerialCommunication::instance(), SIGNAL(newAnswer(QString)), this, SLOT(newAnswerFromReader(QString)));
+        connect(SerialCommunication::instance(),SIGNAL(connectionFailed()),this, SLOT(communicationFinished()));
     }
 }
 
@@ -131,6 +132,15 @@ void RICTLMB2B30Widget::btWriteClicked()
         return;
     }
 
+    QString message(tr("Wait... Trying to write."));
+    SystemMessagesWidget::instance()->writeMessage(message, SystemMessagesWidget::KInfo);
+    ui->labelRectangleStatus->setText(message);
+    ui->labelRectangleStatus->setStyleSheet("QLabel { background-color : yellow;}");
+    ui->labelRectangleStatus->show();
+
+    //Process the events to repaint the widget with the new labelRectangleStatus.
+    QCoreApplication::processEvents();
+
     ui->btWrite->setEnabled(false);
 
     // Mark the processing to check for a answers on reading.
@@ -176,6 +186,7 @@ void RICTLMB2B30Widget::btWriteClicked()
          * to the trasponder. */
         sendCommand("P" + m_identification);
     }
+
     // Start the timeout to wait for a response. If the timer ends, define as failed.
     m_timeout.start();
 }
@@ -213,18 +224,25 @@ void RICTLMB2B30Widget::newAnswerFromReader(QString answer)
             ui->labelRectangleStatus->setStyleSheet("QLabel { background-color : green;}");
             ui->labelRectangleStatus->show();
 
-        }else if(answer.contains(QString("P1")))
+            ui->btWrite->setEnabled(true);
+
+        }else if(answer.contains(QString("P1"))){
             /* The answer "P1" from the reader means: The identification received from the
              * transponder is different to the identification transmitted. */
             SystemMessagesWidget::instance()->writeMessage(tr("Try again. The identification received from the"
                                                               " transponder is different to the identification"
                                                               " transmitted. Reader said: P1"),
                                                            SystemMessagesWidget::KError);
+        m_timeout.stop();
+        timeout();
+        }
         else if(answer.contains(QString("P12"))){
             /* The answer "P12" from the reader means: the reader could not understand the transponder.
              * Probably because the reader is trying to handle a different kind of transponder, in the
              * wrong K1 mode. So it is needed to change the mode to K0 for a 64-bits transponder. */
             SystemMessagesWidget::instance()->writeMessage(tr("The reader is operatin in K1 mode. Change it to K0! Reader said: P12"), SystemMessagesWidget::KError);
+            m_timeout.stop();
+            timeout();
         }else if(answer.contains(QString("P2"))){
             /* The answer "P2" from the reader means: The reader did not receive any
              * identification from the transponder for comparison. */
@@ -232,8 +250,9 @@ void RICTLMB2B30Widget::newAnswerFromReader(QString answer)
                                                               " identification from the transponder for comparison."
                                                               " Reader said: P2"),
                                                            SystemMessagesWidget::KError);
+            m_timeout.stop();
+            timeout();
         }
-        ui->btWrite->setEnabled(true);
     }
 }
 

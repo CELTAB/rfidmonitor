@@ -83,7 +83,13 @@ private:
      * @brief m_raspSettings holds the instance of RFIDMonitorSettings to handle
      * the configuration reading and writting.
      */
-    json::RFIDMonitorSettings *m_raspSettings;
+    json::RFIDMonitorSettings m_raspSettings;
+
+    /**
+     * @brief m_oldRaspSettings holds the unmodified  instance of RFIDMonitorSettings
+     * received by the network.
+     */
+    json::RFIDMonitorSettings m_oldRaspSettings;
 
     /**
      * @brief changeFormState called to change the state of the form.
@@ -147,6 +153,13 @@ public slots:
      * This function reset the form state to KEmpty and cleans all the fields.
      */
     void btCancelClicked();
+
+signals:
+    /**
+     * @brief readyToClose signal used to tell the main window to close this
+     * manipulator because the work is done.
+     */
+    void readyToClose();
 };
 
 #endif // RFIDMONITORMANIPULATORWIDGET_H
