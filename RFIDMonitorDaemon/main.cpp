@@ -51,7 +51,7 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
          break;
    }
 
-   QFile outFile("LogFile.log");
+   QFile outFile("daemon_debug.log");
    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
 
    QTextStream textStream(&outFile);
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-//    qInstallMessageHandler(customMessageHandler);
+    qInstallMessageHandler(customMessageHandler);
 
     RFIDMonitorDaemon daemon;
     daemon.start();

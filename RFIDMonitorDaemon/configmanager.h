@@ -37,7 +37,9 @@ private:
     QFile m_json;
     QFile m_interfaces;
     QString m_hostName;
+
     int m_hostPort;
+    bool m_restartNetwork;
 
     json::RFIDMonitorSettings m_systemSettings;
     json::RFIDMonitorSettings m_backupSettings;

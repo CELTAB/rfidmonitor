@@ -209,6 +209,7 @@ void Reader_RFM008B::readData()
             QString data(buffer);
             data.remove(QRegExp("[\\n\\t\\r]"));
 
+            // Remove lines only with LI. Not used anywhere.
             if(data == "LI")
                 return;
 

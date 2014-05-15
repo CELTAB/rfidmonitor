@@ -77,7 +77,7 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     connect(m_tcpAppSocket, &QTcpSocket::connected, ([=] () { m_udpSocket->close(); qDebug() <<  "Connected with DeskApp";}));
     connect(m_tcpAppSocket, &QTcpSocket::disconnected,
             ([=] () {
-        qDebug() <<  "Connection Closed";
+        qDebug() <<  "DeskApp Connection Closed";
         if(!m_udpSocket->bind(QHostAddress::Any, 9999)){
             qDebug() <<  QString("Couldn't listening broadcast");
         };
@@ -91,8 +91,6 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
         QString rmCommand = QString("rm -f %1").arg(socketFile);
         system(rmCommand.toStdString().c_str());
     }
-    m_hostName = m_configManager->hostName();
-    m_tcpPort = m_configManager->hostPort();
 
     qDebug() <<  QString("HostName: %1").arg(m_hostName);
     qDebug() <<  QString("Port: %1").arg(m_tcpPort);
@@ -145,6 +143,9 @@ void RFIDMonitorDaemon::ipcNewConnection()
 
 void RFIDMonitorDaemon::tcpConnect()
 {
+    m_hostName = m_configManager->hostName();
+    m_tcpPort = m_configManager->hostPort();
+
     m_tcpSocket->connectToHost(m_hostName, m_tcpPort);
     //#ifdef DEBUG_LOGGER
     //    qDebug() <<  QString("Traying to connect to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
@@ -438,12 +439,17 @@ void RFIDMonitorDaemon::routeIpcMessage()
         qDebug() <<  "SYN Message received from MONITOR";
         ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
 
-        if(m_tcpAppSocket->isValid()){
-            tcpSendMessage(m_tcpAppSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
-        }
-        if(m_tcpSocket->isValid()){
-            tcpSendMessage(m_tcpSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
-        }
+        m_tcpAppSocket->close();
+
+        m_configManager->restartNetwork();
+        qDebug() << "Network Restarted";
+
+//        if(m_tcpAppSocket->isValid()){
+//            tcpSendMessage(m_tcpAppSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
+//        }
+//        if(m_tcpSocket->isValid()){
+//            tcpSendMessage(m_tcpSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
+//        }
 
     }else if (messageType == "READER-RESPONSE") {
         QJsonObject command(nodeMessage.jsonData());
