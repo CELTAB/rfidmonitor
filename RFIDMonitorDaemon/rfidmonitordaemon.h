@@ -34,6 +34,7 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QUdpSocket>
+#include <QTimer>
 
 #include "configmanager.h"
 
@@ -168,11 +169,19 @@ public slots:
      */
     void routeIpcMessage();
 
+    void initMonitor();
+
+signals:
+    void restartMonitor();
+
 private:
     bool isConnected;
 
     QLocalServer *m_localServer;
     QLocalSocket *ipcConnection;
+
+    QProcess m_process;
+    QTimer m_restoreTimer;
 
     // Node.js Server
     QTcpSocket *m_tcpSocket;
@@ -206,6 +215,7 @@ private:
      * @return Reutur the messaga package in the right format defined by protocol.
      */
     QJsonDocument buildMessage(QJsonObject dataObj, QString type);
+
 };
 
 #include <QCoreApplication>
