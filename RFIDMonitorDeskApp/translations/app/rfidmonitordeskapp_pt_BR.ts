@@ -19,23 +19,23 @@
         <translation>Rede</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="67"/>
+        <location filename="../../gui/mainwindow.ui" line="73"/>
         <source>Serial</source>
         <translation>Serial</translation>
     </message>
     <message>
         <location filename="../../gui/mainwindow.ui" line="36"/>
-        <location filename="../../gui/mainwindow.ui" line="101"/>
+        <location filename="../../gui/mainwindow.ui" line="110"/>
         <source>Connection Configuration</source>
         <translation>Configuração da Conexão</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="123"/>
+        <location filename="../../gui/mainwindow.ui" line="132"/>
         <source>Connection</source>
         <translation>Conexão</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.ui" line="171"/>
+        <location filename="../../gui/mainwindow.ui" line="180"/>
         <source>Close Connection</source>
         <translation>Fechar Conexão</translation>
     </message>
@@ -45,7 +45,7 @@
         <translation>Sistema iniciado.</translation>
     </message>
     <message>
-        <location filename="../../gui/mainwindow.cpp" line="62"/>
+        <location filename="../../gui/mainwindow.cpp" line="65"/>
         <source>System closed normaly.</source>
         <translation>Sistema encerrado normalmente.</translation>
     </message>
@@ -53,7 +53,7 @@
 <context>
     <name>NetworkCommunication</name>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="153"/>
+        <location filename="../../communication/networkcommunication.cpp" line="154"/>
         <source>Waiting for connections on %1:%2</source>
         <translation>Aguardando conexões em %1:%2</translation>
     </message>
@@ -64,103 +64,93 @@
         <translation>O socket não está aberto.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="91"/>
+        <location filename="../../communication/networkcommunication.cpp" line="92"/>
         <source>ACK-UNKNOWN Received. ERROR INFO [%1] ORIGINAL MESSAGE [%2]</source>
         <translation>ACK-UNKNOWN Recebido. INFORMAÇÃO DO ERRO [%1] MENSAGEM ORIGINAL [%2]</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="189"/>
+        <location filename="../../communication/networkcommunication.cpp" line="190"/>
         <source>Stopped searching for new rasps.</source>
         <translation>A procura por novos rasps foi parada.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="212"/>
+        <location filename="../../communication/networkcommunication.cpp" line="213"/>
         <source>Message sent -&gt; SIZE [%1] MESSAGE[%2]</source>
         <translation>Mensagem enviada -&gt; TAMANHO [%1] MENSAGEM[%2]</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="225"/>
-        <location filename="../../communication/networkcommunication.cpp" line="231"/>
+        <location filename="../../communication/networkcommunication.cpp" line="226"/>
+        <location filename="../../communication/networkcommunication.cpp" line="232"/>
         <source>Failed to write bytes to the socket!!!</source>
         <translation>Falha ao escrever bytes no socket!!!</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="238"/>
+        <location filename="../../communication/networkcommunication.cpp" line="239"/>
         <source>Cannot send data. The socket is closed.</source>
         <translation>Não foi possível enviar dados. O socket está fechado.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="263"/>
+        <location filename="../../communication/networkcommunication.cpp" line="264"/>
         <source>Failed to connect to rasp.</source>
         <translation>Falha ao conectar ao rasp.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="300"/>
-        <source>New data arrived.</source>
-        <translation>Novos dados chegaram.</translation>
-    </message>
-    <message>
-        <location filename="../../communication/networkcommunication.cpp" line="324"/>
-        <source>New valid json object: %1</source>
-        <translation>Novo objeto JSON válido: %1</translation>
-    </message>
-    <message>
-        <location filename="../../communication/networkcommunication.cpp" line="346"/>
+        <location filename="../../communication/networkcommunication.cpp" line="355"/>
         <source>Data type invalid.</source>
         <translation>Tipo de dado inválido.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="157"/>
+        <location filename="../../communication/networkcommunication.cpp" line="158"/>
         <source>Cannot find a valid address to start the server.</source>
         <translation>Não foi possível encontrar um endereço válido para iniciar o servidor.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="165"/>
+        <location filename="../../communication/networkcommunication.cpp" line="166"/>
         <source>Cannot start searching.</source>
         <translation>Não é possível iniciar a procura.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="258"/>
+        <location filename="../../communication/networkcommunication.cpp" line="259"/>
         <source>Successfully connect to rasp.</source>
         <translation>Conectado ao rasp com sucesso.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="354"/>
+        <location filename="../../communication/networkcommunication.cpp" line="363"/>
         <source>Invalid json. DATA [%1]</source>
         <translation>JSON inválido. DADOS [%1]</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="372"/>
+        <location filename="../../communication/networkcommunication.cpp" line="381"/>
         <source>The remote device closed the connection.</source>
         <translation>O dispositivo remoto encerrou a conexão.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="378"/>
+        <location filename="../../communication/networkcommunication.cpp" line="387"/>
         <source>The remote device was not found. Please check the host address and port settings.</source>
         <translation>O dispositivo remoto não foi encontrado. Por favor, verifique as configurações do enderço e porta do dispositivo remoto.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="385"/>
+        <location filename="../../communication/networkcommunication.cpp" line="394"/>
         <source>The connection was refused by the peer. Make sure the application on the remote device is running, and check that the host address and port settings are correct.</source>
         <translation>A conexão foi recusada pelo dispositivo remoto. Tenha certeza que a aplicação está sendo executada no dispositivo remoto, e verifique se o endereço e porta estão corretos.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="394"/>
+        <location filename="../../communication/networkcommunication.cpp" line="403"/>
         <source>Connection error: %1.</source>
         <translation>Erro de conexão: %1.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="426"/>
+        <location filename="../../communication/networkcommunication.cpp" line="435"/>
         <source>New connection arrived.</source>
         <translation>Uma nova conexão chegou.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="440"/>
+        <location filename="../../communication/networkcommunication.cpp" line="449"/>
         <source>Disconnected from %1</source>
         <translation>Desconectado de %1.</translation>
     </message>
     <message>
-        <location filename="../../communication/networkcommunication.cpp" line="452"/>
+        <location filename="../../communication/networkcommunication.cpp" line="461"/>
         <source>The device of IP %1 didn&apos;t handshake, so the connection is now closed.</source>
         <translation>O dispositivo com o IP %1 não fez o handshake, portanto a conexão foi fechada.</translation>
     </message>
@@ -366,42 +356,54 @@
         <translation>Porta</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="92"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="85"/>
         <source>Module: %1</source>
         <translation>Módulo: %1</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="96"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="89"/>
         <source>Version: %1</source>
         <translation>Versão: %1</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="100"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="93"/>
         <source>Services:</source>
         <translation>Serviços:</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="112"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="105"/>
         <source>Name: </source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="115"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="108"/>
         <source>Type: </source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="141"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="134"/>
         <source>Unknown Service to populate in cbDefaultPackagerService.</source>
         <translation>Serviço desconhecido para popular no cbDefaultPackagerService.</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="325"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="211"/>
+        <source>After sending the new configuration, the connection with the collection point will be closed. Are you sure?</source>
+        <translation>Após enviar a nova configuração, a conexão com o ponto de coleta será encerrada. Deseja continuar?</translation>
+    </message>
+    <message>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="216"/>
+        <source>
+
+PS: The network configuration has changed. If the IP is part of a different network, the collect point naturaly will not be accessible.</source>
+        <translation>Obs: A configuração de rede foi alterada. Se o IP fizer parte de uma rede diferente, o ponto de coleta naturalmente não estará mais acessível.</translation>
+    </message>
+    <message>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="330"/>
         <source>Configuration successfully delivered.</source>
         <translation>Configuração enviada com sucesso.</translation>
     </message>
     <message>
-        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="331"/>
+        <location filename="../../gui/rfidmonitormanipulatorwidget.cpp" line="340"/>
         <source>Failed to delivery the new configuration.</source>
         <translation>A entrega da configuração falhou.</translation>
     </message>
@@ -445,47 +447,52 @@
         <translation>Escrever</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="110"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="122"/>
         <source>Please, select the identification type.</source>
         <translation>Por favor, selecione o tipe da identificação.</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="117"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="129"/>
         <source>The identification must have at least 1 characters.</source>
         <translation>A identificação deve ter ao menos 1 caracter.</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="97"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="109"/>
         <source>Hexadecimal identification %1.</source>
         <translation>Identificação hexadecimal %1.</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="172"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="135"/>
+        <source>Wait... Trying to write.</source>
+        <translation>Aguarde... Tentando escrever.</translation>
+    </message>
+    <message>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="221"/>
         <source>Successfully written.</source>
         <translation>Escrito com sucesso.</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="181"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="232"/>
         <source>Try again. The identification received from the transponder is different to the identification transmitted. Reader said: P1</source>
         <translation>Tente novamente. A identificação recebida do transonder é diferente da identificação que foi transmitida. O reader disse: P1</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="189"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="243"/>
         <source>The reader is operatin in K1 mode. Change it to K0! Reader said: P12</source>
         <translation>O reader está operando no modo K1. Mude o modo para K0! Reader disse: P12</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="193"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="249"/>
         <source>Try again. The reader did not receive any identification from the transponder for comparison. Reader said: P2</source>
         <translation>Tente novamente. O reader não recebeu qualquer identificação do transponder para comparação. O reader disse: P2</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="207"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="264"/>
         <source>Failed to write.</source>
         <translation>Falha ao escrever.</translation>
     </message>
     <message>
-        <location filename="../../gui/rictlmb2b30widget.cpp" line="257"/>
+        <location filename="../../gui/rictlmb2b30widget.cpp" line="314"/>
         <source>Failed to parse Hexadecimal to Decimal.</source>
         <translation>Falha ao converter Hexadecimal para Decimal.</translation>
     </message>
@@ -504,7 +511,7 @@
     </message>
     <message>
         <location filename="../../gui/readermanipulatorwidget.ui" line="66"/>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="211"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="217"/>
         <source>Start</source>
         <translation>Iniciar</translation>
     </message>
@@ -549,32 +556,32 @@
         <translation>Número</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="79"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="81"/>
         <source>Command sent to device: %1</source>
         <translation>Comando enviado ao dispositivo: %1</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="137"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="139"/>
         <source>Select log file</source>
         <translation>Selecionar arquivo de log</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="153"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="155"/>
         <source>The selected log file is good.</source>
         <translation>O arquivo de log selecionado está ok.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="159"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="161"/>
         <source>Cannot use the selected log file. It is not writable</source>
         <translation>Não é possível usar o arquivo de log selecionado. Ele não pode ser escrito.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="183"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="187"/>
         <source>Problem with the log file. It is not writable anymore, and is not going to be used.</source>
         <translation>Problema com o arquivo de log. Ele não pode mais ser escrito, e não será usado.</translation>
     </message>
     <message>
-        <location filename="../../gui/readermanipulatorwidget.cpp" line="188"/>
+        <location filename="../../gui/readermanipulatorwidget.cpp" line="192"/>
         <source>Pause</source>
         <translation>Pausar</translation>
     </message>
@@ -671,11 +678,6 @@
         <translation>Atualizar</translation>
     </message>
     <message>
-        <location filename="../../gui/serialconnconfigwidget.ui" line="81"/>
-        <source>Open Type:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../gui/serialconnconfigwidget.ui" line="28"/>
         <source>Device:</source>
         <translation>Dispositivo:</translation>
@@ -684,6 +686,11 @@
         <location filename="../../gui/serialconnconfigwidget.ui" line="14"/>
         <source>Serial Connection Configuration</source>
         <translation>Configuração de Conexão Serial</translation>
+    </message>
+    <message>
+        <location filename="../../gui/serialconnconfigwidget.ui" line="81"/>
+        <source>Mode:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../gui/serialconnconfigwidget.ui" line="262"/>

@@ -15,5 +15,28 @@
     <qresource prefix="/translations">
         <file alias="rfidmonitordeskapp_pt_BR.qm">translations/app/rfidmonitordeskapp_pt_BR.qm</file>
         <file alias="rfidmonitordeskapp_es.qm">translations/app/rfidmonitordeskapp_es.qm</file>
+        <file alias="qt_ar.qm">translations/qt/qt_ar.qm</file>
+        <file alias="qt_cs.qm">translations/qt/qt_cs.qm</file>
+        <file alias="qt_da.qm">translations/qt/qt_da.qm</file>
+        <file alias="qt_de.qm">translations/qt/qt_de.qm</file>
+        <file alias="qt_es.qm">translations/qt/qt_es.qm</file>
+        <file alias="qt_fa.qm">translations/qt/qt_fa.qm</file>
+        <file alias="qt_fr.qm">translations/qt/qt_fr.qm</file>
+        <file alias="qt_gl.qm">translations/qt/qt_gl.qm</file>
+        <file alias="qt_he.qm">translations/qt/qt_he.qm</file>
+        <file alias="qt_hu.qm">translations/qt/qt_hu.qm</file>
+        <file alias="qt_it.qm">translations/qt/qt_it.qm</file>
+        <file alias="qt_ja.qm">translations/qt/qt_ja.qm</file>
+        <file alias="qt_ko.qm">translations/qt/qt_ko.qm</file>
+        <file alias="qt_lt.qm">translations/qt/qt_lt.qm</file>
+        <file alias="qt_pl.qm">translations/qt/qt_pl.qm</file>
+        <file alias="qt_pt.qm">translations/qt/qt_pt.qm</file>
+        <file alias="qt_ru.qm">translations/qt/qt_ru.qm</file>
+        <file alias="qt_sk.qm">translations/qt/qt_sk.qm</file>
+        <file alias="qt_sl.qm">translations/qt/qt_sl.qm</file>
+        <file alias="qt_sv.qm">translations/qt/qt_sv.qm</file>
+        <file alias="qt_uk.qm">translations/qt/qt_uk.qm</file>
+        <file alias="qt_zh_CN.qm">translations/qt/qt_zh_CN.qm</file>
+        <file alias="qt_zh_TW.qm">translations/qt/qt_zh_TW.qm</file>
     </qresource>
 </RCC>

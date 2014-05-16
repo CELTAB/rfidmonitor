@@ -350,12 +350,6 @@ void NetworkCommunication::tcpDataAvailable()
                 ackUnknownReceived(dataObj);
             }else if(type == "ACK-NEW-CONFIG"){
                 ackNewConfig(dataObj);
-            }else if(type == "MONITOR-INIT"){
-                SystemMessagesWidget::instance()->writeMessage(
-                            tr("Monitor Restarted successfully."),
-                            SystemMessagesWidget::KInfo,
-                            SystemMessagesWidget::KOnlyTextbox
-                            );
             }else{
                 SystemMessagesWidget::instance()->writeMessage(
                             tr("Data type invalid."),

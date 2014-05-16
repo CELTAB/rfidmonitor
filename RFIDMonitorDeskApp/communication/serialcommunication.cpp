@@ -55,8 +55,8 @@ bool SerialCommunication::connectToDevice(const QString &device,
 {
     if( ! m_serialPort->isOpen() ) {
         QSerialPortInfo spi(device);
-        m_serialPort->setPort(spi);
         if(spi.isValid()){
+            m_serialPort->setPort(spi);
             if(m_serialPort->open(openMode)){
                 m_serialPort->setBaudRate(baudRate);
                 m_serialPort->setDataBits(dataBits);
@@ -69,7 +69,7 @@ bool SerialCommunication::connectToDevice(const QString &device,
                 return false;
             }
         }else{
-            SystemMessagesWidget::instance()->writeMessage(QString(tr("Device [ %1 ] not valid.").arg(device)));
+            SystemMessagesWidget::instance()->writeMessage(tr("Device [ %1 ] not valid.").arg(device));
             return false;
         }
     }else{
