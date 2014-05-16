@@ -114,7 +114,7 @@ void Reader_RFM008B::readData()
     if(m_serial->canReadLine()){
         if(!allLines){
 
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
+//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
 
             QByteArray buffer = m_serial->readAll();
             QRegExp regex;
@@ -208,7 +208,7 @@ void Reader_RFM008B::readData()
             }
         }else{
 
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
+//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
 
             QByteArray buffer = m_serial->readLine();
             QString data(buffer);
