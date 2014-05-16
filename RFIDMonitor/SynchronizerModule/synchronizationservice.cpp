@@ -59,12 +59,11 @@ void SynchronizationService::readyRead()
         packager->generatePackets();
 
         if(RFIDMonitor::instance()->isconnected()){
-            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "Sending packets...");
             QMap<QString, QByteArray> allData = packager->getAll();
 
             if(communitacion) {
                 QMap<QString, QByteArray>::iterator i;
-                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packets to send: %1").arg(allData.size()));
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Sending %1 Packets to server").arg(allData.size()));
                 for(i = allData.begin(); i != allData.end(); ++i){
 
                     json::NodeJSMessage answer;
@@ -73,12 +72,6 @@ void SynchronizationService::readyRead()
                     answer.setJsonData(QJsonDocument::fromJson(QString(i.value()).toLatin1()).object());
                     QJsonObject jsonAnswer;
                     answer.write(jsonAnswer);
-
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Sending packet: %1 - size: %2").arg(i.key()).arg(i.value().size()));
-
-#ifdef DEBUG_VERBOSE
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QJsonDocument(jsonAnswer).toJson());
-#endif
 
 #ifdef CPP_11_ASYNC
                     /*C++11 std::async Version*/
@@ -92,8 +85,6 @@ void SynchronizationService::readyRead()
             }else{
                 Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
             }
-        }else{
-            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("There isn't connection with a server"));
         }
         m_timer.start();
     }

@@ -66,6 +66,7 @@ Reader_RFM008B::Reader_RFM008B(QObject *parent) :
     m_serial = new QSerialPort(this);
 
     allLines = false;
+    idCollector = 0;
 
     //    if (file.open(QFile::WriteOnly)){
     //        m_outReceived.setDevice(&file);
@@ -114,7 +115,7 @@ void Reader_RFM008B::readData()
     if(m_serial->canReadLine()){
         if(!allLines){
 
-//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
+            //            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
 
             QByteArray buffer = m_serial->readAll();
             QRegExp regex;
@@ -149,9 +150,10 @@ void Reader_RFM008B::readData()
                 if(match.hasMatch()) {
                     Rfiddata *data = new Rfiddata(this);
 
-                    int idPontoColeta = 1;
-                    data->setIdpontocoleta(idPontoColeta);
+                    // Id collector from configuration file
+                    data->setIdpontocoleta(idCollector);
 
+                    // This module can read from only one antena, so the idAntena is static.
                     int idAntena = 1;
                     data->setIdantena(idAntena);
 
@@ -208,7 +210,7 @@ void Reader_RFM008B::readData()
             }
         }else{
 
-//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
+            //            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
 
             QByteArray buffer = m_serial->readLine();
             QString data(buffer);
@@ -224,7 +226,7 @@ void Reader_RFM008B::readData()
             QJsonObject dataObj;
             dataObj.insert("sender", QString("app"));
             dataObj.insert("response", data);
-            dataObj.insert("reader", QString("A1"));
+            dataObj.insert("reader", QString("1"));
 
             answer.setDateTime(QDateTime::currentDateTime());
             answer.setJsonData(dataObj);
@@ -257,6 +259,7 @@ void Reader_RFM008B::handleError(QSerialPort::SerialPortError error)
 void Reader_RFM008B::start()
 {
     QString device = RFIDMonitor::instance()->device();
+    idCollector = RFIDMonitor::instance()->idCollector();
     QSerialPortInfo info(device);
     m_serial->setPort(info);
     if(!m_serial->open(QIODevice::ReadWrite)) {

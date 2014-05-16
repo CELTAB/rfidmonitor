@@ -81,6 +81,9 @@ struct RFIDMonitorPrivate
     QThread *persistenceThread;
     QThread *syncronizationThread;
 
+    int collectorId = 0;
+    QString collectorName = "";
+
     bool stop;
     bool connected;
     QMutex mutex;
@@ -106,6 +109,8 @@ struct RFIDMonitorPrivate
         systemSettings.read(loadDoc.object());
 
         device = systemSettings.device();
+        collectorId = systemSettings.id();
+        collectorName = systemSettings.name();
         loadFile.close();
         return true;
     }
@@ -438,6 +443,15 @@ void RFIDMonitor::stop()
     d_ptr->stop = true;
 }
 
+int RFIDMonitor::idCollector(){
+    return d_ptr->collectorId;
+}
+
+QString RFIDMonitor::collectorName()
+{
+    return d_ptr->collectorName;
+}
+
 void RFIDMonitor::newMessage(QByteArray message)
 {
 
@@ -446,8 +460,9 @@ void RFIDMonitor::newMessage(QByteArray message)
     nodeJSMessage.read(obj);
 
     if(nodeJSMessage.type() == "SYNC"){
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Server connected");
         d_ptr->connected = true;
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "WAKE-UP OK");
         // The daemon is now connected with server, send the not-synced data
         d_ptr->defaultSynchronization->readyRead();
     }else if(nodeJSMessage.type() == "STOP"){
@@ -456,7 +471,7 @@ void RFIDMonitor::newMessage(QByteArray message)
         d_ptr->defaultExport->stopUSBExport();
         d_ptr->defaultReading->stop();
 
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "STOPING SERVICES - CLOSE");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Stoping services");
 
         QJsonDocument json;
         QJsonObject dObj;
@@ -470,7 +485,7 @@ void RFIDMonitor::newMessage(QByteArray message)
 
     }else if(nodeJSMessage.type() == "SLEEP"){
         d_ptr->connected = false;
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "SLEEP OK");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Server Disconnected");
 
     }else if(nodeJSMessage.type() == "FULL-READ"){
 
@@ -488,11 +503,23 @@ void RFIDMonitor::newMessage(QByteArray message)
             hashList.append(hashArray[i].toString());
             Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, hashArray[i].toString());
         }
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
+//        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
         d_ptr->defaultPackager->update(hashList);
     }
     else{
+        //UNKNOWN MESSAGE
+        QJsonDocument json;
+        QJsonObject unknownObj;
+        QJsonObject dObj;
 
+        unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(message).object()));
+        unknownObj.insert("errorinfo", QString("Unknown message received"));
+
+        dObj.insert("type", QString("ACK-UNKNOWN"));
+        dObj.insert("data", QJsonValue(unknownObj));
+        dObj.insert("datetime", QString(QDateTime::currentDateTime().toString(Qt::ISODate)));
+        json.setObject(dObj);
+
+        d_ptr->defaultCommunication->sendMessage(json.toJson());
     }
 }
-

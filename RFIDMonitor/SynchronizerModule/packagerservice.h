@@ -48,6 +48,8 @@ public:
 
 private:
     QMutex m_mutex;
+    int collectorId;
+    QString collectorName;
 
 };
 

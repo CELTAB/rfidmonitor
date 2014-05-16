@@ -25,6 +25,7 @@
 **
 ****************************************************************************/
 
+#include <QCoreApplication>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QTcpSocket>
@@ -91,9 +92,6 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
         QString rmCommand = QString("rm -f %1").arg(socketFile);
         system(rmCommand.toStdString().c_str());
     }
-
-    qDebug() <<  QString("HostName: %1").arg(m_hostName);
-    qDebug() <<  QString("Port: %1").arg(m_tcpPort);
 }
 
 RFIDMonitorDaemon::~RFIDMonitorDaemon()
@@ -120,10 +118,10 @@ void RFIDMonitorDaemon::start()
 
         QTimer::singleShot(100, this, SLOT(tcpConnect()));
     }else{
-        qDebug() <<  "Could not listen!";
+        qDebug() <<  "Could not start IPC server";
     }
     if(!m_udpSocket->bind(QHostAddress::Any, 9999))
-        qDebug() <<  QString("Couldn't listening broadcast");
+        qDebug() <<  QString("Couldn't listening to broadcast");
 }
 
 void RFIDMonitorDaemon::ipcNewConnection()
@@ -147,9 +145,6 @@ void RFIDMonitorDaemon::tcpConnect()
     m_tcpPort = m_configManager->hostPort();
 
     m_tcpSocket->connectToHost(m_hostName, m_tcpPort);
-    //#ifdef DEBUG_LOGGER
-    //    qDebug() <<  QString("Traying to connect to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
-    //#endif
 }
 
 void RFIDMonitorDaemon::tcpConnected()
@@ -174,13 +169,15 @@ void RFIDMonitorDaemon::tcpDisconnected()
 
 void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError error )
 {
-    if(error == QAbstractSocket::ConnectionRefusedError)
+    if(error == QAbstractSocket::ConnectionRefusedError){
         tcpDisconnected();
+        return;
+    }
 
     qDebug() <<  QString("Error: %1 - %2").arg(m_tcpSocket->error()).arg(m_tcpSocket->errorString());
 }
 
-void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError error)
+void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError)
 {
     qDebug() <<  QString("Error: %1 - %2").arg(ipcConnection->error()).arg(ipcConnection->errorString());
 }
@@ -198,19 +195,20 @@ void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &messag
         con->write(data);
         con->flush();
     } else {
-        qDebug() <<  "There is no connection";
+        qDebug() <<  "There is no connection with " << con->objectName();
     }
 }
 
 void RFIDMonitorDaemon::ipcSendMessage(const QByteArray &message)
 {
-    if(ipcConnection->isValid()){
+    if(ipcConnection->isOpen()){
         ipcConnection->write(message);
         ipcConnection->flush();
     }else{
         qDebug() <<  "IPC not connected";
     }
 }
+
 /*
  * Build a message to be sent. Uses the right format defined by protocol
  * Receive a QJsonObject to be inserted in data field and a message type to insert in the type field
@@ -241,7 +239,6 @@ void RFIDMonitorDaemon::initMonitor()
         ipcSendMessage(buildMessage(QJsonObject(), "STOP").toJson());
         // After 5 seconds try to restart the RFIDMonitor
         QTimer::singleShot(5000, this, SLOT(initMonitor()));
-        qDebug() <<  "RESTARTING MONITOR";
     });
     m_restoreTimer.start();
 }
@@ -288,7 +285,7 @@ void RFIDMonitorDaemon::routeTcpMessage()
         nodeMessage.read(QJsonDocument::fromJson(data).object());
         QString messageType(nodeMessage.type());
 
-        qDebug() << QString("Node.js Message: %1").arg(QString(data));
+        qDebug() << QString("New Message Received: %1").arg(QString(data));
 
         if(messageType == "ACK-SYN"){
 
@@ -343,17 +340,6 @@ void RFIDMonitorDaemon::routeTcpMessage()
             {
                 // Send a message to stop the RFIDMonitor
                 emit restartMonitor();
-
-                /*
-            * ADICIONAR VERIFICAÇÃO DE REINICIALIZAÇÃO DO MONITOR
-            * Quando um novo arquivo de configuração for recebido e persistido o monitor deve ser reiniciado.
-            * Enquanto o aplicativo reiniciar o 'sender' esta esperando por uma configuração.
-            * Deve ser enviado uma mensagem de sucesso ou fracasso na inicializaão com as novas configurações.
-            *
-            * Se o monitor não conseguir iniciar com as novas configurações deve ser resetado para as configurações anteriores.
-            * Portanto, deve ser mantido um arquivo de configurações de backup temporario.
-            */
-
                 ackConf = true;
             }else{
                 ackConf = false;
@@ -362,8 +348,10 @@ void RFIDMonitorDaemon::routeTcpMessage()
             dataObj.insert("success", QJsonValue(ackConf));
             tcpSendMessage(connection, buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
 
+            if(m_tcpAppSocket->isOpen())
+                m_tcpAppSocket->close();
+
         }else if (messageType == "DATETIME") {
-            qDebug() <<  "DATETIME Received";
 
             QJsonObject dataObj;
             dataObj["success"] =  QJsonValue(m_configManager->setDateTime(nodeMessage.dateTime()));
@@ -378,9 +366,8 @@ void RFIDMonitorDaemon::routeTcpMessage()
             tcpSendMessage(connection, buildMessage(m_configManager->netConfig(), "NET-CONFIG").toJson());
 
         }else if (messageType == "NEW-NET") {
-            qDebug() <<  "NEW-NET Received";
-            QJsonObject network = nodeMessage.jsonData();
 
+            QJsonObject network = nodeMessage.jsonData();
             // Receive a new configuration for the network (ssid and password).
             QJsonObject dataObj;
             dataObj.insert("success", QJsonValue(m_configManager->setNetConfig(network)));
@@ -397,13 +384,11 @@ void RFIDMonitorDaemon::routeTcpMessage()
             QJsonObject oldMessage(unknown.object().value("unknownmessage").toObject());
             qDebug() <<  "The server don't understand the message type: " << oldMessage.value("type").toString();
             qDebug() <<  "ERROR message: " << unknown.object().value("errorinfo").toString();
-        }
 
-        else if (messageType == "FULL-READ"){
+        }else if (messageType == "FULL-READ"){
             ipcSendMessage(data);
-        }
 
-        else{
+        }else{
             /* When receives a message that can't be interpreted like any type is an unknown message.
              * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
              */
@@ -435,21 +420,28 @@ void RFIDMonitorDaemon::routeIpcMessage()
     QString messageType(nodeMessage.type());
 
     if(messageType == "SYN"){
-        m_restoreTimer.stop();
-        qDebug() <<  "SYN Message received from MONITOR";
-        ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
 
-        m_tcpAppSocket->close();
+        m_restoreTimer.stop();
+        ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
+        qApp->processEvents();
+
+        /* When the deskApp change some configuration the RFIDMonitor is restarted.
+         * But, the RFIDMonitor starts with flag connection=false. And if the server is connected the RFIDMonitor don't know that yet.
+         * To solve this, after 1 seconds a SYNC message is sent to RFIDMonitor to set true to connection flag.
+         */
+        if(isConnected)
+        {
+            QTimer *timer = new QTimer();
+            timer->setSingleShot(true);
+            timer->setInterval(1000);
+            connect(timer, &QTimer::timeout, [=](){
+                ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
+                timer->deleteLater();
+            });
+            timer->start();
+        }
 
         m_configManager->restartNetwork();
-        qDebug() << "Network Restarted";
-
-//        if(m_tcpAppSocket->isValid()){
-//            tcpSendMessage(m_tcpAppSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
-//        }
-//        if(m_tcpSocket->isValid()){
-//            tcpSendMessage(m_tcpSocket, buildMessage(QJsonObject(), "MONITOR-INIT").toJson());
-//        }
 
     }else if (messageType == "READER-RESPONSE") {
         QJsonObject command(nodeMessage.jsonData());

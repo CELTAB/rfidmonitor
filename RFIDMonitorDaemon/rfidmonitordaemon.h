@@ -140,7 +140,7 @@ public slots:
      */
     void tcpHandleError(QAbstractSocket::SocketError error);
 
-    void icpHandleError(QLocalSocket::LocalSocketError error);
+    void icpHandleError(QLocalSocket::LocalSocketError);
 
     /**
      * @brief tcpSendMessage send messages to the tcp socket received by parameter. Receives the tcp socket because can send message to more then one tcp connection

@@ -58,7 +58,8 @@ QString getMacAddress()
 PackagerService::PackagerService(QObject *parent) :
     PackagerInterface(parent)
 {
-
+    collectorId = 0;
+    collectorName = "";
 }
 
 QString PackagerService::serviceName() const
@@ -79,6 +80,9 @@ ServiceType PackagerService::type()
 QMap<QString, QByteArray> PackagerService::getAll()
 {
 //    generatePackets();
+
+    collectorId = RFIDMonitor::instance()->idCollector();
+    collectorName = RFIDMonitor::instance()->collectorName();
 
     QList<Packet *> packetList = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
 
@@ -117,7 +121,7 @@ void PackagerService::generatePackets()
 {
     QMutexLocker locker(&m_mutex);
 
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
+//    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
     static PersistenceInterface *persistence = 0;
     if(!persistence){
         persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
@@ -131,9 +135,10 @@ void PackagerService::generatePackets()
     for(int stage = 0; stage < stagesCount; stage++){
 
         json::SynchronizationPacket synPacket;
+
         synPacket.setMacAddress(getMacAddress());
-        synPacket.setName("celtab");
-        synPacket.setId(1);
+        synPacket.setName(collectorName);
+        synPacket.setId(collectorId);
 
         json::DataSummary summary;
         QList<json::Data> rfidList;

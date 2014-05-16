@@ -58,6 +58,18 @@ public:
     bool isconnected();
 
     /*!
+     * \brief idCollector gets the collector's id from the configuration file
+     * \return the collector's id
+     */
+    int idCollector();
+
+    /*!
+     * \brief collectorName gets the name from configuration file
+     * \return the name of this collector.
+     */
+    QString collectorName();
+
+    /*!
      * \brief start loads the modules of the system, initialize them and then calls the main service.
      * \param app is used to get the parameters of the application
      */

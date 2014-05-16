@@ -161,7 +161,7 @@ bool ConfigManager::restartNetwork()
 
     if(m_restartNetwork){
 
-        qDebug() << "Restarting Network. You will lose connection...";
+        qDebug() << "Restarting Network. You will lose connection... ";
 
         if (!m_interfaces.open(QIODevice::WriteOnly)) {
             qWarning("Couldn't open file.");
@@ -195,9 +195,6 @@ bool ConfigManager::restartNetwork()
 //        restartNet->start("service networking restart");
 //        restartNet.execute("service networking restart");
 //        return restartNet.waitForFinished();
-        return true;
-    } else {
-        qDebug() << "NOT RESTART CONNECTION";
-        return true;
     }
+    return true;
 }

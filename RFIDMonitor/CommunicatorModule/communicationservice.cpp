@@ -109,55 +109,6 @@ void CommunicationService::ipcReadyRead()
     else{
         emit messageReceived(data);
     }
-
-    /*
-    else if (messageType == "ACK-DATA") {
-
-        // Remove the data just synced of database. Use the md5Diggest to know what remove.
-        emit messageReceived(data);
-        //        QJsonObject ackData(nodeMessage.jsonData());
-        //        QString hash = ackData["md5diggest"].toString();
-        //        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("md5diggest: %1").arg(hash));
-
-    } else if (messageType == "STOP"){
-        // Stop all services and close system.
-        emit messageReceived(data);
-
-    } else if (messageType == "SLEEP"){
-        // lost connection with server. Don't send records.
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("SLEEP MESSAGE"));
-        emit messageReceived(QByteArray("sleep"));
-
-    } else if (messageType == "READER-COMMAND") {
-
-        // Only retun the comand. NOT IMPLEMENTED.
-        QJsonObject response(nodeMessage.jsonData());
-        response.insert("response", response.value("command"));
-        response.remove("command");
-        sendMessage(response, "READER-RESPONSE");
-
-    }else if (messageType == "RELOAD"){
-
-        // NOT USEFULL YET
-        emit messageReceived("ReloadSettings");
-
-    }else if (messageType == "ACK-UNKNOWN") {
-        QJsonDocument unknown(nodeMessage.jsonData());
-        QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Unknown Message: %1").arg(dataObj.value("type").toString()));
-    }else if (messageType == "SYNC") {
-        // comand to sync not-synced data.
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, "SYNC MESSAGE... !!");
-        emit messageReceived(QByteArray("SYNC"));
-    }
-    else{
-        QJsonObject unknownObj;
-
-        unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
-        unknownObj.insert("errorinfo", QString("Could not understand this message"));
-        sendMessage(unknownObj, "ACK-UNKNOWN");
-    }
-    */
 }
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)

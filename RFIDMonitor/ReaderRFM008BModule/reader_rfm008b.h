@@ -57,6 +57,7 @@ public:
     void write(QString command);
 
 private:
+    int idCollector;
     bool allLines;
     QString m_module;
     QSerialPort *m_serial;
