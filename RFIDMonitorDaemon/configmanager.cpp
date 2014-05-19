@@ -186,15 +186,12 @@ bool ConfigManager::restartNetwork()
         m_interfaces.write(interface.arg(m_systemSettings.networkConfiguration().essid()).arg(m_systemSettings.networkConfiguration().password()).toLatin1());
         m_interfaces.close();
 
-//        system("service networking restart");
         QProcess *restartNet = new QProcess;
         connect(restartNet, ( void (QProcess::*)(int))&QProcess::finished, [=](int){
             qDebug() << "Delete: QProcess *restartNet" ;
             restartNet->deleteLater();
         });
-//        restartNet->start("service networking restart");
-//        restartNet.execute("service networking restart");
-//        return restartNet.waitForFinished();
+        restartNet->start("service networking restart");
     }
     return true;
 }
