@@ -104,6 +104,8 @@ private:
     QFile m_tempFile;
     QMutex m_mutex;
 
+    QString m_fileName;
+
     /*!
      * \brief m_blickLed is an object to manipulate the green and red leds, which are used to show to the user the status of process
      */

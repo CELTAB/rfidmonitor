@@ -45,9 +45,6 @@ public:
 public slots:
     void onDataReceived(QString data);
     void sendData();
-
-private:
-    QTimer m_timer;
 };
 
 #endif // SYNCHRONIZATIONSERVICE_H

@@ -228,6 +228,7 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 
 void RFIDMonitorDaemon::initMonitor()
 {
+    m_process.kill();
     m_process.start(QCoreApplication::applicationDirPath() + "/RFIDMonitor");
 
     qDebug() << "Process Started, PID: " << m_process.pid();
@@ -239,7 +240,6 @@ void RFIDMonitorDaemon::initMonitor()
         ipcSendMessage(buildMessage(QJsonObject(), "STOP").toJson());
         // After 5 seconds try to restart the RFIDMonitor
         QTimer::singleShot(5000, this, SLOT(initMonitor()));
-        m_process.deleteLater();
     });
     m_restoreTimer.start();
 }
@@ -462,15 +462,15 @@ void RFIDMonitorDaemon::routeIpcMessage()
         /*
          * A Data message means that the RFIDMonitor is trying to sync some data into the server. So, it just send this message to the server.
          */
-        qDebug() <<  "DATA Received\n";
-        qDebug() <<  QString(QJsonDocument(nodeMessage.jsonData()).toJson());
+//        qDebug() <<  "DATA Message Received from Monitor\n";
+//        qDebug() <<  QString(QJsonDocument(nodeMessage.jsonData()).toJson());
         // Only a node.js server receives DATA messages.
         tcpSendMessage(m_tcpSocket, message);
 
     }else if (messageType == "STOPPED"){
         qDebug() << "STOPPED";
         m_process.kill();
-        qDebug() << "Process Killed, PID: " << m_process.pid();
+//        qDebug() << "Process Killed, PID: " << m_process.pid();
     }
     else if (messageType == "ACK-UNKNOWN") {
         QJsonDocument unknown(nodeMessage.jsonData());

@@ -41,9 +41,6 @@
 SynchronizationService::SynchronizationService(QObject *parent) :
     SynchronizationInterface(parent)
 {
-    m_timer.setInterval(5*1000);
-    m_timer.setSingleShot(true);
-    m_timer.start();
 }
 
 void SynchronizationService::readyRead()
@@ -85,10 +82,7 @@ void SynchronizationService::readyRead()
             }else{
                 Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
             }
-        }else{
-            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("No server found"));
         }
-        m_timer.start();
     }
 }
 

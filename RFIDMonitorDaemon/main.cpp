@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    qInstallMessageHandler(customMessageHandler);
+//    qInstallMessageHandler(customMessageHandler);
 
     RFIDMonitorDaemon daemon;
     daemon.start();

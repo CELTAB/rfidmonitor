@@ -489,7 +489,7 @@ void RFIDMonitor::newMessage(QByteArray message)
         json.setObject(dObj);
 
         d_ptr->defaultCommunication->sendMessage(json.toJson());
-        QCoreApplication::quit();
+        QCoreApplication::exit(0);
 
     }else if(nodeJSMessage.type() == "SLEEP"){
         d_ptr->connected = false;

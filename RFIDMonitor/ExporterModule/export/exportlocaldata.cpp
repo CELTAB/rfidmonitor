@@ -60,7 +60,9 @@ ExportLocalData::ExportLocalData(QObject *parent) :
     m_blinkLed = new BlinkLed(this);
 
     // Object to manipulate file
-    m_tempFile.setFileName(QCoreApplication::applicationDirPath() + "/TempExport.fish");
+//    m_tempFile.setFileName(QCoreApplication::applicationDirPath() + "/TempExport.fish");
+
+    m_fileName = QCoreApplication::applicationDirPath() + "/TempExport.fish";
 }
 
 ExportLocalData::~ExportLocalData()
@@ -96,20 +98,20 @@ bool ExportLocalData::exportToDevice(QString device)
     if(!device.isEmpty()){
         try{
             // export data to external device
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting temp file to device"));
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting temp file to %1").arg(device));
 
             // name of file to save on device (absolute path)
             QString destinationPath(device + "/export_" + QDateTime::currentDateTime().toString().replace(" ", "_").replace(":","") + ".fish");
 
             // If the temp file doesn't exist, has nothing to be exported
-            if(m_tempFile.exists()){
-                if(QFile::copy(m_tempFile.fileName(), destinationPath)){
-                    if(!QFile::remove(m_tempFile.fileName())){
-                        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("ERROR to remove temp file from disk"));
+            if(QFile::exists(m_fileName)){
+                if(QFile::copy(m_fileName, destinationPath)){
+                    if(!QFile::remove(m_fileName)){
+                        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("ERROR to remove temp file from disk"));
                         throw std::exception();
                     }
                 } else {
-                    Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("ERROR to copy temp file to device"));
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("ERROR to copy temp file to device"));
                     throw std::exception();
                 }
             } else {
@@ -121,7 +123,7 @@ bool ExportLocalData::exportToDevice(QString device)
             returnValue = false;
         }
     } else {
-        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: Can\'t export to external device"));
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: Can\'t export to external device"));
         returnValue = false;
     }
 
@@ -164,34 +166,50 @@ bool ExportLocalData::exportToTempFile()
         }
 
         if(packager){
+
+            QFile tempFile;
+            tempFile.setFileName(m_fileName);
+
             // try to open a file to append the records to be exported. Return false if the file cannot be opened for some reason
-            if (!m_tempFile.open(QIODevice::ReadWrite)){
+            if (!tempFile.open(QIODevice::ReadWrite)){
                 Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
                 return false;
             }
 
             QMap<QString, QByteArray> allData = packager->getAll();
             QMap<QString, QByteArray>::iterator i;
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 Packets to %2").arg(allData.size()).arg(m_tempFile.fileName()));
 
-            QByteArray saveData = m_tempFile.readAll();
+            // if have no packets to be exported, turns off the red led (after 1 seconds) and than return.
+            if(allData.size() <= 0){
+                // Turn off the red LED after 1 second
+                QTimer timer;
+                timer.start(1000);
+                while(timer.remainingTime() > 0)
+                    ;
+                // turn off red led
+                m_blinkLed->blinkRedLed(0);
+                return true;
+            }
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 Packets to %2").arg(allData.size()).arg(m_fileName));
+
+            QByteArray saveData = tempFile.readAll();
             QJsonArray loadDoc(QJsonDocument::fromJson(saveData).toVariant().toJsonArray());
 
+//             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Data: %1").arg(QString(saveData)));
 
             // turn on red led
             m_blinkLed->blinkRedLed(1);
 
             if(allData.size() > 0){
                 for(i = allData.begin(); i != allData.end(); ++i){
-
-                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 ").arg(QString(QJsonDocument::fromJson(i.value()).toJson())));
+//                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 ").arg(QString(QJsonDocument::fromJson(i.value()).toJson())));
                     loadDoc.append(QJsonValue(QJsonDocument::fromJson(i.value()).object()));
                 }
-                m_tempFile.write(QJsonDocument(loadDoc).toJson());
-                m_tempFile.flush();
+                tempFile.write(QJsonDocument(loadDoc).toJson());
+                tempFile.flush();
 
                 // close the file
-                m_tempFile.close();
+                tempFile.close();
 
                 // Turn off the red LED after 1 second
                 QTimer timer;

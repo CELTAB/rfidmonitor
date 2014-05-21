@@ -79,19 +79,30 @@ ServiceType PackagerService::type()
 
 QMap<QString, QByteArray> PackagerService::getAll()
 {
-//    generatePackets();
+    //    generatePackets();
 
     collectorId = RFIDMonitor::instance()->idCollector();
     collectorName = RFIDMonitor::instance()->collectorName();
 
-    QList<Packet *> packetList = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
+    QList<Packet *> packetListNew = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
 
     QMap<QString, QByteArray> packets;
-    foreach (Packet *p, packetList) {
+    // insert in the packets all data with KNew status
+    foreach (Packet *p, packetListNew) {
         packets.insert(p->md5hash().toString(), p->jsonData().toByteArray());
     }
 
-    foreach (Packet *pack, packetList) {
+//----  TEMP - DON'T REMOVE
+//    if(RFIDMonitor::instance()->isconnected()){
+//        //Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "ADDING PENDING PACKETES...");
+//        QList<Packet *> packetListPending = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KConfimationPending);
+//        // Alson insert the packets with KConfirmationPending status to retry send it to the server.
+//        foreach (Packet *pa, packetListPending) {
+//            packets.insert(pa->md5hash().toString(), pa->jsonData().toByteArray());
+//        }
+//    }
+
+    foreach (Packet *pack, packetListNew) {
         pack->setStatus((int)Packet::Status::KConfimationPending);
         PacketDAO::instance()->updateObject(pack);
         pack->deleteLater();
@@ -121,7 +132,7 @@ void PackagerService::generatePackets()
 {
     QMutexLocker locker(&m_mutex);
 
-//    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
+    //    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
     static PersistenceInterface *persistence = 0;
     if(!persistence){
         persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
