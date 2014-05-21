@@ -115,7 +115,7 @@ void Reader_RFM008B::readData()
     if(m_serial->canReadLine()){
         if(!allLines){
 
-            //            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
+//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
 
             QByteArray buffer = m_serial->readAll();
             QRegExp regex;
@@ -264,7 +264,7 @@ void Reader_RFM008B::start()
     m_serial->setPort(info);
     if(!m_serial->open(QIODevice::ReadWrite)) {
 
-        Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
         // create class invalid_device exception on core Module
         QTimer::singleShot(1000, this, SLOT(start()));
     }else{

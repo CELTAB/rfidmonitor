@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include <rfidmonitor.h>
+#include <logger.h>
 
 #include "synchronizationmodule.h"
 #include "synchronizationservice.h"

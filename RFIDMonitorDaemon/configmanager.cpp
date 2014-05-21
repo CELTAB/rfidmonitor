@@ -2,6 +2,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 
+#include <QCoreApplication>
 #include <QNetworkInterface>
 
 #include "configmanager.h"
@@ -12,8 +13,8 @@ ConfigManager::ConfigManager(QObject *parent):
 
     m_restartNetwork = false;
 
-    m_json.setFileName("rfidmonitor.json");
-    m_interfaces.setFileName("networkInterfaces");
+    m_json.setFileName(QCoreApplication::applicationDirPath() + "/rfidmonitor.json");
+    m_interfaces.setFileName(QCoreApplication::applicationDirPath() + "/networkInterfaces");
     openJsonFile();
 }
 

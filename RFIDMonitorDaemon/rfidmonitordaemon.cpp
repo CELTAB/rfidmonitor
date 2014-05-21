@@ -228,7 +228,7 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 
 void RFIDMonitorDaemon::initMonitor()
 {
-    m_process.start("./RFIDMonitor");
+    m_process.start(QCoreApplication::applicationDirPath() + "/RFIDMonitor");
 
     qDebug() << "Process Started, PID: " << m_process.pid();
 
@@ -239,6 +239,7 @@ void RFIDMonitorDaemon::initMonitor()
         ipcSendMessage(buildMessage(QJsonObject(), "STOP").toJson());
         // After 5 seconds try to restart the RFIDMonitor
         QTimer::singleShot(5000, this, SLOT(initMonitor()));
+        m_process.deleteLater();
     });
     m_restoreTimer.start();
 }

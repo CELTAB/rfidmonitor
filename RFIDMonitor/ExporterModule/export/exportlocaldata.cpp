@@ -36,10 +36,17 @@
 #include <QTimer>
 #include <functional>
 
+#include <QJsonDocument>
+#include <QJsonArray>
 #include <QProcess>
 #include <QRegularExpression>
 
+#include <core/interfaces.h>
 #include <logger.h>
+#include <json/nodejsmessage.h>
+#include <json/synchronizationpacket.h>
+#include <rfidmonitor.h>
+
 #include "object/rfiddata.h"
 
 #include "exportlocaldata.h"
@@ -56,13 +63,17 @@ ExportLocalData::ExportLocalData(QObject *parent) :
     m_tempFile.setFileName(QCoreApplication::applicationDirPath() + "/TempExport.fish");
 }
 
+ExportLocalData::~ExportLocalData()
+{
+}
+
 void ExportLocalData::startExport()
 {
     // Timer to export data to temporary file
     m_exportTime = new QTimer(this);
     m_exportTime->setInterval(exportTime);
     // When the timeout signal is emitted the export action slot is called (exportAction when do not receive parameters uses a default value and then export data to temp file)
-    QObject::connect(m_exportTime, SIGNAL(timeout()), this, SLOT(exportAction()));//exportToTempFile()));
+    QObject::connect(m_exportTime, SIGNAL(timeout()), this, SLOT(exportAction()));
     m_exportTime->start();
 }
 
@@ -102,7 +113,7 @@ bool ExportLocalData::exportToDevice(QString device)
                     throw std::exception();
                 }
             } else {
-                Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("There's nothing to be exported"));
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("There's nothing to be exported"));
                 returnValue = true;
             }
         }catch(std::exception &e){
@@ -129,11 +140,10 @@ bool ExportLocalData::exportToDevice(QString device)
 void ExportLocalData::exportAction(QString path)
 {
     QMutexLocker locker(&m_mutex);
-
-    if(path.compare("temp")){
-        exportToDevice(path);
-    } else {
+    if(path == "temp"){
         exportToTempFile();
+    } else {
+        exportToDevice(path);
     }
 }
 
@@ -146,87 +156,57 @@ void ExportLocalData::turnOffLed()
 // search for data with non-sync status and export these datas into a temp file. If the file doesn't exist create a file
 bool ExportLocalData::exportToTempFile()
 {
-    // functions pointer
-    std::function< bool(const QList<Rfiddata *> &) > updateObject;
-    std::function< QList<Rfiddata *> (const QString &, QVariant) > getDataToExport;
+    // if a server is connected than has no need to export into a temporary file. Return false.
+    if(!RFIDMonitor::instance()->isconnected()){
+        static PackagerInterface *packager = 0;
+        if(!packager) {
+            packager = qobject_cast<PackagerInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPackager));
+        }
 
-    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting to temporary file"));
-    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Search not synced data"));
+        if(packager){
+            // try to open a file to append the records to be exported. Return false if the file cannot be opened for some reason
+            if (!m_tempFile.open(QIODevice::ReadWrite)){
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
+                return false;
+            }
 
-    /*!
-     * \brief list of data with non-synced status
-     *
-     * the getDataExport function will search in table rfiddata all data with non-synced value and return a list of datas
-     */
-    QList< Rfiddata * > list = getDataToExport("sync", Rfiddata::KNotSynced);
+            QMap<QString, QByteArray> allData = packager->getAll();
+            QMap<QString, QByteArray>::iterator i;
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 Packets to %2").arg(allData.size()).arg(m_tempFile.fileName()));
 
-    // Verify how many records has to export. If none return true.
-    if(list.length() > 0)
-    {
-        // try to open a file to append the records to be exported. Return false if the file cannot be opened for some reason
-        if (!m_tempFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
-            Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
+            QByteArray saveData = m_tempFile.readAll();
+            QJsonArray loadDoc(QJsonDocument::fromJson(saveData).toVariant().toJsonArray());
+
+
+            // turn on red led
+            m_blinkLed->blinkRedLed(1);
+
+            if(allData.size() > 0){
+                for(i = allData.begin(); i != allData.end(); ++i){
+
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 ").arg(QString(QJsonDocument::fromJson(i.value()).toJson())));
+                    loadDoc.append(QJsonValue(QJsonDocument::fromJson(i.value()).object()));
+                }
+                m_tempFile.write(QJsonDocument(loadDoc).toJson());
+                m_tempFile.flush();
+
+                // close the file
+                m_tempFile.close();
+
+                // Turn off the red LED after 1 second
+                QTimer timer;
+                timer.start(1000);
+                while(timer.remainingTime() > 0)
+                    ;
+                // turn off red led
+                m_blinkLed->blinkRedLed(0);
+            }
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
             return false;
         }
-
-        Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("Exporting %1 records to %2").arg(list.length()).arg(m_tempFile.fileName()));
-
-        // RAII para eliminar automaticamente os registros do "list" alocados no heap cuando a funcao sai do scope
-        // E criado um shared pointer que guarda o endereco de um std::function< void() > f1 que e chamado para eliminar os registros da list
-        // A funcao std::function< void ( std::function<void()> * ) > f2 e o destructor da f1, a mesma executa a funcao f1 e depois chama o destructor da mesma ja que esta esta alocada no heap.
-        /*!
-     * \brief raii remove the data allocated on heap after leave the scope
-     *
-     * The shared pointer keeps the address of std::function< void() > f1 function that will be called to delete the list of data
-     * std::function< void ( std::function<void()> * ) > f2 function is f1 destructor function and is called once is that allocated on heap
-     */
-        QSharedPointer< std::function<void()> > raii;
-        raii = QSharedPointer< std::function< void() > >( new std::function< void() >( [&list] () -> void { qDeleteAll(list); } ),
-                                                          std::function< void ( std::function<void()> * ) > ([] ( std::function<void()> *ptr) { (*ptr)(); delete ptr; }));
-
-        // turn on red led
-        m_blinkLed->blinkRedLed(1);
-
-        // Creat a stream to write data into file
-        QTextStream out(&m_tempFile);
-
-        foreach (Rfiddata *var, list) {
-            out << QString("%1,%2,%3,%4, \"%5\"\n")
-                   .arg(var->idpontocoleta().toString())
-                   .arg(var->idantena().toString())
-                   .arg(var->applicationcode().toString())
-                   .arg(var->identificationcode().toString())
-                   .arg(var->datetime().toDateTime().toString("yyyy-MM-dd hh:mm:ss"));
-            // write each data from list in file
-            out.flush();
-            var->setSync(Rfiddata::KSynced); // change status to synced
-        }
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("%1 records exported").arg(list.length()));
-
-        // close the file
-        m_tempFile.close();
-
-        try{
-            // update database
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Update data base to synced status"));
-            updateObject(list);
-        }catch(std::exception &e){
-            Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Erro: %1").arg(e.what()));
-            return false;
-        }
-
-        // Turn off the red LED after 1 second
-        QTimer timer;
-        timer.start(1000);
-        while(timer.remainingTime() > 0)
-            ;
-        // turn off red led
-        m_blinkLed->blinkRedLed(0);
-
-    } else {
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "No records to be exported");
+    }else{
+        return false;
     }
-
-    // If all made successfully return true.
     return true;
 }

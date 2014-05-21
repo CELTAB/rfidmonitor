@@ -56,6 +56,7 @@ class ExportLocalData : public QObject
     Q_OBJECT
 public:
     explicit ExportLocalData(QObject *parent = 0);
+    ~ExportLocalData();
 
 public slots:
     /*!

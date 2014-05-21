@@ -123,7 +123,8 @@ void deviceAddedCallback(const char *)
 
     // regular expression to use only devices mounted in /media directory
     QRegularExpression regexCode;
-    regexCode.setPattern("/dev/[a-z]{3}[0-9]{1}?\\s/media/(.*)\\s");
+    regexCode.setPattern("/dev/[a-z]{3}([0-9]{1})?\\s/media/(.*)\\s");
+                //        /dev/sda /media/usb0 vfat rw
 
     QString line;
     while(!mountedDev.atEnd()){
@@ -141,15 +142,17 @@ void deviceAddedCallback(const char *)
             if(device.isWritable()){
                 Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("Using device: %1. Mount point: %2. File System: %3").arg(infoDevice.at(0)).arg(infoDevice.at(1)).arg(infoDevice.at(2)));
                 devicePath = infoDevice.at(1);
+                notMatched = false;
             } else {
                 Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("%1 is not writable").arg(device.fileName()));
             }
-            notMatched = false;
         }
     }
     // If was not found any device in /media write an info log record
-    if(notMatched)
+    if(notMatched){
         Logger::instance()->writeRecord(Logger::severity_level::info, m_module, Q_FUNC_INFO, QString("EXPORT ERROR: No media found to export data"));
+        return;
+    }
 
     // call function responsible to export data to device just connected
     emit DeviceThread::instance()->exportToDevice(devicePath);
@@ -317,6 +320,7 @@ void start_listening(void (*callback)(const char *), void (*rmCallback)(void), v
 
 void DeviceThread::startListening()
 {
+    writeLog("Starting Device Thread");
     // calls the function to listening device connections
     start_listening(&deviceAddedCallback, &deviceRemovedCallback, &writeLog);
 }

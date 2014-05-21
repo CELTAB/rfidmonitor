@@ -2,6 +2,7 @@
 #include <QDateTime>
 #include <QSharedPointer>
 #include <QMutexLocker>
+#include <QCoreApplication>
 
 #include "logger.h"
 
@@ -24,11 +25,11 @@ Logger::Logger(QObject *parent):
             << expr::smessage;
 #endif
 
-    m_file.setFileName("RFID_log.log");
+    m_file.setFileName(QCoreApplication::applicationDirPath() + "/RFID_log.log");
     if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
 
     }
-    m_debugFile.setFileName("RFID_log_debug.log");
+    m_debugFile.setFileName(QCoreApplication::applicationDirPath() + "/RFID_log_debug.log");
     if (!m_debugFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)){
 
     }

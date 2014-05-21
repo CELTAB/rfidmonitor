@@ -26,6 +26,7 @@
 ****************************************************************************/
 
 #include <rfidmonitor.h>
+#include <logger.h>
 
 #include "reader_rfm008bmodule.h"
 #include "reader_rfm008b.h"

@@ -80,6 +80,7 @@ struct RFIDMonitorPrivate
 
     QThread *persistenceThread;
     QThread *syncronizationThread;
+    QThread *exporterThread;
 
     int collectorId = 0;
     QString collectorName = "";
@@ -97,7 +98,7 @@ struct RFIDMonitorPrivate
 
     bool readSettings()
     {
-        QFile loadFile("rfidmonitor.json");
+        QFile loadFile(QCoreApplication::applicationDirPath() + "/rfidmonitor.json");
 
         if (!loadFile.open(QIODevice::ReadOnly)) {
             qWarning("Couldn't open save file.");
@@ -117,7 +118,7 @@ struct RFIDMonitorPrivate
 
     bool writeSettings()
     {
-        QFile saveFile("rfidmonitor.json");
+        QFile saveFile(QCoreApplication::applicationDirPath() + "/rfidmonitor.json");
 
         if (!saveFile.open(QIODevice::WriteOnly)) {
             qWarning("Couldn't open save file.");
@@ -327,6 +328,7 @@ RFIDMonitor::RFIDMonitor(QObject *parent) :
     d_ptr->moduleName = "Main";
     d_ptr->persistenceThread = new QThread(this);
     d_ptr->syncronizationThread = new QThread(this);
+    d_ptr->exporterThread = new QThread(this);
 }
 
 
@@ -351,7 +353,7 @@ void RFIDMonitor::start(const QCoreApplication &app)
     PersistenceInterface *persistenceService = d_ptr->defaultPersistence;
     CommunicationInterface *communicationService = d_ptr->defaultCommunication;
     ExportInterface *exportService = d_ptr->defaultExport;
-    (void)exportService;
+    //    (void)exportService;
     PackagerInterface *packagerService = d_ptr->defaultPackager;
     SynchronizationInterface *synchronizationService = d_ptr->defaultSynchronization;
 
@@ -370,12 +372,18 @@ void RFIDMonitor::start(const QCoreApplication &app)
     synchronizationService->moveToThread(d_ptr->syncronizationThread);
     connect(d_ptr->persistenceThread, SIGNAL(destroyed()), synchronizationService, SLOT(deleteLater()));
 
+    exportService->setParent(0);
+    exportService->moveToThread(d_ptr->exporterThread);
+    connect(d_ptr->exporterThread, SIGNAL(started()), exportService, SLOT(startUSBExport()));
+    connect(d_ptr->exporterThread, SIGNAL(destroyed()), exportService, SLOT(deleteLater()));
+
     // Messages from the outside must be evaluated in RFIDMonitor
     connect(communicationService, SIGNAL(messageReceived(QByteArray)), SLOT(newMessage(QByteArray)));
 
     // Start threads
     d_ptr->persistenceThread->start();
     d_ptr->syncronizationThread->start();
+    d_ptr->exporterThread->start();
     readingService->start();
 }
 
@@ -503,7 +511,7 @@ void RFIDMonitor::newMessage(QByteArray message)
             hashList.append(hashArray[i].toString());
             Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, hashArray[i].toString());
         }
-//        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
+        //        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
         d_ptr->defaultPackager->update(hashList);
     }
     else{

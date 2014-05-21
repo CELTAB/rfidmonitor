@@ -31,9 +31,8 @@
 ExportService::ExportService(QObject *parent) :
     ExportInterface(parent)
 {
-    m_exportThread = new QThread();
+//    m_exportThread = new QThread();
     m_daemonThread = new QThread();
-
     m_exporter = new ExportLocalData();
 }
 
@@ -59,15 +58,15 @@ ServiceType ExportService::type()
 
 void ExportService::startUSBExport()
 {
+//    Logger::instance()->writeRecord(Logger::severity_level::debug, "Exporter Module", Q_FUNC_INFO, "Starting Exporter Service");
 
     /*
      * Creates the object of the classes and then move these objects to execute as thread.
      * Make the connection between threads. Starts both threads.
      */
 
-
-    m_exporter->moveToThread(m_exportThread);
-    QObject::connect(m_exportThread, SIGNAL(started()), m_exporter, SLOT(startExport()));
+//    m_exporter->moveToThread(m_exportThread);
+//    QObject::connect(m_exportThread, SIGNAL(started()), m_exporter, SLOT(startExport()));
 
 
     DeviceThread::instance()->moveToThread(m_daemonThread);
@@ -75,9 +74,9 @@ void ExportService::startUSBExport()
     QObject::connect(DeviceThread::instance(), SIGNAL(exportToDevice(QString)), m_exporter, SLOT(exportAction(QString)));
     QObject::connect(DeviceThread::instance(), SIGNAL(turnLedOff()), m_exporter, SLOT(turnOffLed()));
 
-    m_exportThread->start();
+//    m_exportThread->start();
     m_daemonThread->start();
-
+    m_exporter->startExport();
 }
 
 void ExportService::stopUSBExport()
@@ -85,9 +84,9 @@ void ExportService::stopUSBExport()
     /* First stop the thread. For second delete the object running on the thread.
      * And then delete the thread.
      */
-    m_exportThread->exit(0);
+//    m_exportThread->exit(0);
     m_exporter->deleteLater();
-    m_exportThread->deleteLater();
+//    m_exportThread->deleteLater();
 
     m_daemonThread->exit(0);
     m_daemonThread->deleteLater();
