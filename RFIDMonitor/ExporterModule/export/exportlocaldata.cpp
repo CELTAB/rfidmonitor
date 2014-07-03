@@ -145,7 +145,9 @@ void ExportLocalData::exportAction(QString path)
     if(path == "temp"){
         exportToTempFile();
     } else {
-        exportToDevice(path);
+        if(exportToDevice(path)){
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exportation finished"));
+        }
     }
 }
 
@@ -194,8 +196,6 @@ bool ExportLocalData::exportToTempFile()
 
             QByteArray saveData = tempFile.readAll();
             QJsonArray loadDoc(QJsonDocument::fromJson(saveData).toVariant().toJsonArray());
-
-//             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Data: %1").arg(QString(saveData)));
 
             // turn on red led
             m_blinkLed->blinkRedLed(1);
