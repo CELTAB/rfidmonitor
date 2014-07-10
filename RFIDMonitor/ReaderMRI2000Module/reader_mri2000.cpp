@@ -58,7 +58,13 @@ Reader_MRI2000::Reader_MRI2000(QObject *parent) :
     m_module = "ReadingModule_MRI2000";
     m_serial = new QSerialPort(this);
 
+    connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
+    connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
+
     allLines = false;
+    idCollector = 0;
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("%1 Started").arg(m_module));
 }
 
 Reader_MRI2000::~Reader_MRI2000()
@@ -104,47 +110,18 @@ void Reader_MRI2000::write(QString command)
     }
 }
 
-void Reader_MRI2000::start()
-{
-    QString device = RFIDMonitor::instance()->device();
-
-    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Using device: %1").arg(device));
-
-    QSerialPortInfo info(device);
-    m_serial->setPort(info);
-    if(!m_serial->open(QIODevice::ReadWrite)) {
-
-        Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
-        // create class invalid_device exception on core Module
-        QTimer::singleShot(1000, this, SLOT(start()));
-    }else{
-        m_serial->setBaudRate(QSerialPort::Baud9600);
-        m_serial->setDataBits(QSerialPort::Data8);
-        m_serial->setStopBits(QSerialPort::OneStop);
-        m_serial->setParity(QSerialPort::NoParity);
-        connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
-        connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
-    }
-}
-
-void Reader_MRI2000::stop()
-{
-    disconnect(m_serial, SIGNAL(readyRead()),this, SLOT(readData()));
-    disconnect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));
-}
-
 void Reader_MRI2000::readData()
 {
-    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Data Available..."));
+    /* MRID2000 Multireader pattern
 
-    if(m_serial->bytesAvailable() > 0){
+       TAG2W 001 0000000002A474C9
+       TAG2W 002 0000000002A474B3
+       TAG2W 001 0000000002A474C9
+     */
+    if(m_serial->canReadLine()){
         if(!allLines){
 
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Reading Data..."));
-
-            QByteArray buffer = m_serial->readAll();
-
-            QString hardData(buffer);
+            QString hardData(m_serial->readLine());
             hardData.remove(QRegExp("[\\n\\t\\r]"));
 
             QRegularExpression regexCode;
@@ -156,12 +133,13 @@ void Reader_MRI2000::readData()
                 //Here the matched string must be like "TAG5W 001 0000000295901506"
                 Rfiddata *data = new Rfiddata(this);
 
-                //Temporary define a static id to the collect point.
-                int idPontoColeta = 1;
-                data->setIdpontocoleta(idPontoColeta);
+                // Id collector from configuration file
+                data->setIdpontocoleta(idCollector);
 
                 //The character 3 from string is the number of antenna: TAG[5]W...
                 data->setIdantena(match.captured(0).at(3).digitValue());
+
+
 
                 //Try to convert the code of 16 characters, from hexa to decimal.
                 bool hexaConvertion;
@@ -170,25 +148,47 @@ void Reader_MRI2000::readData()
 
                 if(!hexaConvertion){
                     //Problem converting from hexadecimal.
-                    Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, QString("Could not convert RFID code from hexadecimal. Hexa code: "+hexaCode));
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not convert RFID code from hexadecimal. Hexa code: %1").arg(hexaCode));
                     return;
                 }
 
+                qlonglong applicationcode = deciCode.left(4).toLongLong();
+                qlonglong identificationcode = deciCode.remove(deciCode.left(4)).toLongLong();
+
+                /* -- NOT USED BECAUSE THE MRI2000 MULTIREADER ALREADY APPLIES A FILTER.
+                    * Filter by time. If more than one transponder was read in a time interval only one of them will be persisted.
+                    * A QMap is used to verify if each new data that had arrived was already read in this interval.
+                    */
+                //                if(!m_map.contains(identificationcode)){
+
+                //                    QTimer *timer = new QTimer;
+                //                    timer->setSingleShot(true);
+                //                    timer->setInterval(1000);
+                //                    connect(timer, &QTimer::timeout,
+                //                            [=, this]()
+                //                    {
+                //                        this->m_map.remove(identificationcode);
+                //                        timer->deleteLater();
+                //                    });
+                //                    m_map.insert(identificationcode, timer);
+                //                    timer->start();
+
                 //From the full code, the leftmost 4 are the application core.
-                data->setApplicationcode(deciCode.left(4));
+                data->setApplicationcode(applicationcode);
                 //From the full code, removing the application code, there is the identification code
-                data->setIdentificationcode(deciCode.remove(deciCode.left(4)));
+                data->setIdentificationcode(identificationcode);
                 //Take the current date and set on the object
                 data->setDatetime(QDateTime::currentDateTime());
                 //Set the object as NotSynced
                 data->setSync(Rfiddata::KNotSynced);
 
-
                 QList<Rfiddata*> list;
                 list.append(data);
+
                 try {
                     PersistenceInterface *persister = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
                     Q_ASSERT(persister);
+
                     SynchronizationInterface *synchronizer = qobject_cast<SynchronizationInterface*>(RFIDMonitor::instance()->defaultService(ServiceType::KSynchronizer));
                     Q_ASSERT(synchronizer);
 
@@ -204,15 +204,25 @@ void Reader_MRI2000::readData()
                     QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
 #endif
                 } catch (std::exception &e) {
-                    Logger::instance()->writeRecord(Logger::severity_level::fatal, m_module, Q_FUNC_INFO, e.what());
+                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("QtConcurrent ERROR"));
                 }
+
+//                                } // END OF if(!m_map.contains(identificationcode)){
+
+            } else {
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Temperature: %1").arg(hardData));
             }
         }else{
 
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
+//            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("FULL READ..."));
 
             QByteArray buffer = m_serial->readLine();
             QString data(buffer);
+            data.remove(QRegExp("[\\n\\t\\r]"));
+
+            // Remove lines only with LI. Not used anywhere.
+            if(data == "LI")
+                return;
 
             json::NodeJSMessage answer;
             answer.setType("READER-RESPONSE");
@@ -227,21 +237,22 @@ void Reader_MRI2000::readData()
             QJsonObject jsonAnswer;
             answer.write(jsonAnswer);
 
+            try {
+                static CommunicationInterface *communitacion = 0;
 
-            static CommunicationInterface *communitacion = 0;
-            communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
-
+                communitacion = qobject_cast<CommunicationInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KCommunicator));
 #ifdef CPP_11_ASYNC
-            /*C++11 std::async Version*/
-            std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
-            std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
+                /*C++11 std::async Version*/
+                std::function<void (QByteArray)> sendMessage = std::bind(&CommunicationInterface::sendMessage, communitacion, std::placeholders::_1);
+                std::async(std::launch::async, sendMessage, QJsonDocument(jsonAnswer).toJson());
 #else
-            /*Qt Concurrent Version*/
-            QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
+                /*Qt Concurrent Version*/
+                QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
 #endif
+            } catch (std::exception &e) {
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("QtConcurrent ERROR"));
+            }
         }
-    } else {
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("No bytes Available..."));
     }
 }
 
@@ -251,4 +262,33 @@ void Reader_MRI2000::handleError(QSerialPort::SerialPortError error)
     {
         Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
     }
+}
+
+void Reader_MRI2000::start()
+{
+
+    QString device = RFIDMonitor::instance()->device();
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 Using device: %1").arg(device));
+
+    idCollector = RFIDMonitor::instance()->idCollector();
+
+    QSerialPortInfo info(device);
+    m_serial->setPort(info);
+    if(!m_serial->open(QIODevice::ReadWrite)) {
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
+        // create class invalid_device exception on core Module
+        QTimer::singleShot(1000, this, SLOT(start()));
+    }else{
+        m_serial->setBaudRate(QSerialPort::Baud9600);
+        m_serial->setDataBits(QSerialPort::Data8);
+        m_serial->setStopBits(QSerialPort::OneStop);
+        m_serial->setParity(QSerialPort::NoParity);
+    }
+}
+
+void Reader_MRI2000::stop()
+{
+    disconnect(m_serial, SIGNAL(readyRead()),this, SLOT(readData()));
+    disconnect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));
 }

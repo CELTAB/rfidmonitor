@@ -31,6 +31,8 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
 {
    Q_UNUSED(context);
 
+   QFile outFile(QCoreApplication::applicationDirPath() + "/daemon_debug.log");
+
    QString dt = QDateTime::currentDateTime().toString("dd/MM/yyyy hh:mm:ss");
    QString txt = QString("[%1] ").arg(dt);
 
@@ -51,7 +53,6 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
          break;
    }
 
-   QFile outFile(QCoreApplication::applicationDirPath() + "/daemon_debug.log");
    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
 
    QTextStream textStream(&outFile);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-//    qInstallMessageHandler(customMessageHandler);
+    qInstallMessageHandler(customMessageHandler);
 
     RFIDMonitorDaemon daemon;
     daemon.start();

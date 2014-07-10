@@ -32,6 +32,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QSerialPort>
+#include <QTimer>
 
 #include <algorithm>
 #include <core/interfaces.h>
@@ -55,9 +56,11 @@ public:
     void write(QString command);
 
 private:
+    int idCollector;
     bool allLines;
     QString m_module;
     QSerialPort *m_serial;
+    QMap<qlonglong, QTimer*> m_map;
 
 public slots:
     void readData();

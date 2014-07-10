@@ -56,7 +56,7 @@
 
 
 //QFile file("rfidmonitor.txt");
-QFile fileCaptured("rfidmonitor_captured.txt");
+QFile fileCaptured(QCoreApplication::applicationDirPath() + "/rfidmonitor_captured.txt");
 
 Reader_RFM008B::Reader_RFM008B(QObject *parent) :
     ReadingInterface(parent),
@@ -105,6 +105,7 @@ void Reader_RFM008B::fullRead(bool fr)
 
 void Reader_RFM008B::write(QString command)
 {
+
     if(m_serial->isOpen()){
         m_serial->write(command.toLocal8Bit());
     }

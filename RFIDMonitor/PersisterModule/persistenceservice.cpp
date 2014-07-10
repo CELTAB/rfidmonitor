@@ -3,6 +3,7 @@
 #include "persistenceservice.h"
 #include "data/dao/rfiddatadao.h"
 #include "core/connectionpool.h"
+#include "logger.h"
 
 PersistenceService::PersistenceService(QObject *parent) :
     PersistenceInterface(parent)
@@ -42,7 +43,6 @@ QList<Rfiddata *> PersistenceService::getObjectList(const QString &ColumnObject,
 void PersistenceService::insertObjectList(const QList<Rfiddata *> &data)
 {
     QMutexLocker locker(&m_mutex);
-
 //    qDebug() << "\nINSERT OBJECT LIST - 1";
 
     RfiddataDAO::instance()->insertObjectList(data);

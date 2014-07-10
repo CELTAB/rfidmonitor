@@ -66,7 +66,6 @@ void CommunicationService::sendMessage(QByteArray value)
     m_localSocket->write(value);
     // WARNING: bool QLocalSocket::flush () using this to force the sending of data
     m_localSocket->flush();
-//    Logger::instance()->writeRecord(Logger::severity_level::debug, "Communicator", Q_FUNC_INFO, QString("Message Sent: %1").arg(QString(value)));
 }
 
 // Build a message before send it. Receive the data and the message type and built the massage in protocol definition
