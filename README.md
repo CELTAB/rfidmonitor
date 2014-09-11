@@ -27,7 +27,7 @@ To be able to configure the system we created a humble application that provides
 * MAC address (this one is readonly)
 * Server address/port
 
-For more information/documentation go to [wiki.celtab.org.br](wiki.celtab.org.br).
+For more information/documentation go to wiki.celtab.org.br/index.php/RFIDMonitor
 
 ## Downloads
 
