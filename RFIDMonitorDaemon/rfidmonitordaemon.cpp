@@ -288,7 +288,13 @@ void RFIDMonitorDaemon::routeTcpMessage()
 
         qDebug() << QString("New Message Received: %1").arg(QString(data));
 
-        if(messageType == "ACK-SYN"){
+
+        if(messageType == "SYN-ALIVE"){
+
+            tcpSendMessage(connection, buildMessage(m_configManager->identification(), "ACK-ALIVE").toJson());
+            qDebug() << QString("New Message Received: %1").arg(messageType);
+        }
+        else if (messageType == "ACK-SYN") {
 
             QJsonObject obj(nodeMessage.jsonData());
             if(!obj.isEmpty()){
