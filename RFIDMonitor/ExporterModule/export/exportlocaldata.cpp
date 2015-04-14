@@ -172,10 +172,9 @@ bool ExportLocalData::exportToTempFile()
             QFile tempFile;
             tempFile.setFileName(m_fileName);
 
-            // try to open a file to append the records to be exported. Return false if the file cannot be opened for some reason
-            if (!tempFile.open(QIODevice::ReadWrite)){
-                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Error to open %1").arg(m_tempFile.fileName()));
-                return false;
+            // try to open a file to read the records to be exported. Return false if the file cannot be opened for some reason
+            if (!tempFile.open(QIODevice::ReadOnly)){
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("File [%1] does not exist yet.").arg(m_fileName));
             }
 
             QMap<QString, QByteArray> allData = packager->getAll();
@@ -195,14 +194,21 @@ bool ExportLocalData::exportToTempFile()
             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 Packets to %2").arg(allData.size()).arg(m_fileName));
 
             QByteArray saveData = tempFile.readAll();
-            QJsonArray loadDoc(QJsonDocument::fromJson(saveData).toVariant().toJsonArray());
+            tempFile.close();
+
+            QJsonArray loadDoc(QJsonDocument::fromJson(saveData).array());
 
             // turn on red led
             m_blinkLed->blinkRedLed(1);
 
+            // try to open a file to write the records to be exported. Return false if the file cannot be opened for some reason
+            if (!tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Error to write into file %1").arg(m_fileName));
+                return false;
+            }
+
             if(allData.size() > 0){
                 for(i = allData.begin(); i != allData.end(); ++i){
-//                    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 ").arg(QString(QJsonDocument::fromJson(i.value()).toJson())));
                     loadDoc.append(QJsonValue(QJsonDocument::fromJson(i.value()).object()));
                 }
                 tempFile.write(QJsonDocument(loadDoc).toJson());
