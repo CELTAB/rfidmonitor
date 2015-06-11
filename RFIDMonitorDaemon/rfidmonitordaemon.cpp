@@ -184,6 +184,7 @@ void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError)
 
 void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &message)
 {
+
     if(con->isOpen()){
         //PACKAGE SIZE
         QByteArray data;
@@ -191,6 +192,9 @@ void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &messag
         data.fill('0', sizeof(quint64) - packageSizeStr.size());
         data.append(packageSizeStr);
         data.append(message);
+
+//        qDebug() <<  "[MESSAGE DEBUG] Message Size:  " << packageSizeStr;
+        qDebug() <<  "[MESSAGE DEBUG] Message:  " << QString(data);
 
         con->write(data);
         con->flush();
