@@ -152,8 +152,10 @@ void Reader_MRI2000::readData()
                     return;
                 }
 
-                qlonglong applicationcode = deciCode.left(4).toLongLong();
-                qlonglong identificationcode = deciCode.remove(deciCode.left(4)).toLongLong();
+//                qlonglong applicationcode = deciCode.left(4).toLongLong();
+                qlonglong applicationcode = 0;
+//                qlonglong identificationcode = deciCode.remove(deciCode.left(4)).toLongLong();
+                qlonglong identificationcode = deciCode.toLongLong();
 
                 /* -- NOT USED BECAUSE THE MRI2000 MULTIREADER ALREADY APPLIES A FILTER.
                     * Filter by time. If more than one transponder was read in a time interval only one of them will be persisted.

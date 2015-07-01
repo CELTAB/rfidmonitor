@@ -1,0 +1,14 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.8 					# version of an app.
+Name=RFIDDeskApp				# name of an app.
+GenericName=RFIDMonitor configuration system
+Exec=/usr/bin/RFIDMonitorDeskApp	# command used to launch an app.
+TryExec=/usr/bin/RFIDMonitorDeskApp
+Terminal=false                                  # whether an app requires to be run in a terminal.
+MimeType=
+Icon=/usr/share/pixmaps/rfiddeskapp.png   # location of icon file.
+Type=Application				# type.
+Categories=Application;Utility;        # categories in which this app should be listed.
+Comment=It is used configure collector points from the RFIDMonitor System			
+Comment[es]=Aplicacion utilizada para configurar los puntos de colecta del sistema RFIDMonitor	

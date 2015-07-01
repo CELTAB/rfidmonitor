@@ -28,7 +28,12 @@
 #include "settings.h"
 
 Settings::Settings() :
+#ifdef Q_OS_WIN
+m_settings("settings.ini", QSettings::IniFormat)
+#endif
+#ifdef Q_OS_UNIX
 m_settings("settings.ini", QSettings::NativeFormat)
+#endif
 {
 
 }

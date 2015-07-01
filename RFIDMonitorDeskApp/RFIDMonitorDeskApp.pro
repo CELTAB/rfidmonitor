@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     communication/networkcommunication.cpp \
     gui/networkconnconfigwidget.cpp \
     settings.cpp \
-    persistence.cpp \
     gui/systemmessageswidget.cpp \
     gui/devicemodel.cpp \
     gui/rictlmb2b30widget.cpp \
@@ -33,7 +32,6 @@ HEADERS  += \
     communication/networkcommunication.h \
     gui/networkconnconfigwidget.h \
     settings.h \
-    persistence.h \
     gui/systemmessageswidget.h \
     gui/mainwindow.h \
     gui/devicemodel.h \
