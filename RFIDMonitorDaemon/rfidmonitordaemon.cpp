@@ -185,16 +185,9 @@ void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError)
 void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &message)
 {
     if(con->isOpen()){
-        //PACKAGE SIZE
-        QByteArray data;
-        QString packageSizeStr(QString::number(message.size()));
-        data.fill('0', sizeof(quint64) - packageSizeStr.size());
-        data.append(packageSizeStr);
-        data.append(message);
-
-        con->write(data);
+        con->write(protocolHeader(message));
         con->flush();
-    } else {
+    }else {
         qDebug() <<  "There is no connection with " << con->objectName();
     }
 }
@@ -202,7 +195,7 @@ void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &messag
 void RFIDMonitorDaemon::ipcSendMessage(const QByteArray &message)
 {
     if(ipcConnection->isOpen()){
-        ipcConnection->write(message);
+        ipcConnection->write(protocolHeader(message));
         ipcConnection->flush();
     }else{
         qDebug() <<  "IPC not connected";
@@ -224,6 +217,17 @@ QJsonDocument RFIDMonitorDaemon::buildMessage(QJsonObject dataObj, QString type)
 
     rootDoc.setObject(rootObj);
     return rootDoc;
+}
+
+QByteArray RFIDMonitorDaemon::protocolHeader(QByteArray message)
+{
+    //PACKAGE SIZE
+    QByteArray data;
+    QString packageSizeStr(QString::number(message.size()));
+    data.fill('0', sizeof(quint64) - packageSizeStr.size());
+    data.append(packageSizeStr);
+    data.append(message);
+    return data;
 }
 
 void RFIDMonitorDaemon::initMonitor()
@@ -265,153 +269,157 @@ void RFIDMonitorDaemon::routeTcpMessage()
     static bool hasPackage = false;
     static quint64 packageSize = 0;
 
-    if( ! hasPackage){
+    do {
 
-        if((quint64)connection->bytesAvailable() < sizeof(quint64))
-            return;
+        if( ! hasPackage){
 
-        //    	m_tcpSocket->read((char *)&packageSize, sizeof(quint64));
-        QString packageSizeStr(connection->read(sizeof(quint64)));
-        packageSize = packageSizeStr.toULongLong();
+            if((quint64)connection->bytesAvailable() < sizeof(quint64))
+                return;
 
-        qDebug() <<  QString("Message = %1 - Size of coming package: %2").arg(packageSizeStr).arg(QString::number(packageSize));
-        hasPackage = true;
-    }
+            //    	m_tcpSocket->read((char *)&packageSize, sizeof(quint64));
+            QString packageSizeStr(connection->read(sizeof(quint64)));
+            packageSize = packageSizeStr.toULongLong();
 
-    if((quint64)connection->bytesAvailable() >=  packageSize){
-        QByteArray data(connection->read(packageSize));
-
-        json::NodeJSMessage nodeMessage;
-
-        nodeMessage.read(QJsonDocument::fromJson(data).object());
-        QString messageType(nodeMessage.type());
-
-        qDebug() << QString("New Message Received: %1").arg(QString(data));
-
-
-        if(messageType == "SYN-ALIVE"){
-
-            tcpSendMessage(connection, buildMessage(m_configManager->identification(), "ACK-ALIVE").toJson());
-            qDebug() << QString("New Message Received: %1").arg(messageType);
+            qDebug() <<  QString("TCP Message = %1 - Size of coming package: %2").arg(packageSizeStr).arg(QString::number(packageSize));
+            hasPackage = true;
         }
-        else if (messageType == "ACK-SYN") {
 
-            QJsonObject obj(nodeMessage.jsonData());
-            if(!obj.isEmpty()){
-                m_configManager->setIdentification(obj);
+        if((quint64)connection->bytesAvailable() >=  packageSize){
+            QByteArray data(connection->read(packageSize));
+
+            json::NodeJSMessage nodeMessage;
+
+            nodeMessage.read(QJsonDocument::fromJson(data).object());
+            QString messageType(nodeMessage.type());
+
+            qDebug() << QString("New TCP Message Received: %1").arg(messageType);
+            //        qDebug() << QString("New TCP Message Received: %1").arg(QString(data));
+
+
+            if(messageType == "SYN-ALIVE"){
+                tcpSendMessage(connection, buildMessage(m_configManager->identification(), "ACK-ALIVE").toJson());
             }
+            else if (messageType == "ACK-SYN") {
 
-            bool statusDateTime = m_configManager->setDateTime(nodeMessage.dateTime());
-            QJsonObject response = m_configManager->identification();
-            response["success"] = QJsonValue(statusDateTime);
+                QJsonObject obj(nodeMessage.jsonData());
+                if(!obj.isEmpty()){
+                    m_configManager->setIdentification(obj);
+                }
 
-            tcpSendMessage(connection, buildMessage(response, "ACK").toJson());
+                bool statusDateTime = m_configManager->setDateTime(nodeMessage.dateTime());
+                QJsonObject response = m_configManager->identification();
+                response["success"] = QJsonValue(statusDateTime);
 
-            // Informe RFIDMonitor that server is now connected. Wait 2 seconds;
-            if(connection->objectName() == "server"){
-                isConnected = true;
-                QTimer *timer = new QTimer();
-                timer->setSingleShot(true);
-                timer->setInterval(2000);
-                connect(timer, &QTimer::timeout, [=](){
-                    ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
-                    timer->deleteLater();
-                });
-                timer->start();
-            }
-        }else if (messageType == "GET-CONFIG") {
-            tcpSendMessage(connection, buildMessage(m_configManager->currentConfig(), "CONFIG").toJson());
+                tcpSendMessage(connection, buildMessage(response, "ACK").toJson());
 
-        }else if (messageType == "READER-COMMAND") {
+                // Informe RFIDMonitor that server is now connected. Wait 2 seconds;
+                if(connection->objectName() == "server"){
+                    isConnected = true;
+                    QTimer *timer = new QTimer();
+                    timer->setSingleShot(true);
+                    timer->setInterval(2000);
+                    connect(timer, &QTimer::timeout, [=](){
+                        ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
+                        timer->deleteLater();
+                    });
+                    timer->start();
+                }
+            }else if (messageType == "GET-CONFIG") {
+                tcpSendMessage(connection, buildMessage(m_configManager->currentConfig(), "CONFIG").toJson());
 
-            QJsonObject command(nodeMessage.jsonData());
-            /*
-             * When a 'reader command' message is received is because someone is sending a command to the reader. So it needs to send also who is doing this.
-             * To perform this it uses a field called 'sender' that carry the name of who is sending the 'command message'.
-             * And based on that, it will respond to the server connection or to the deskApp connection
-             *
-             * see reoutIcpMessage (messageType == "READER-RESPONSE")
-             */
-            if(connection->objectName() == "server")
-                command.insert("sender", QString("server"));
-            else
-                command.insert("sender", QString("app"));
+            }else if (messageType == "READER-COMMAND") {
 
-            ipcSendMessage(buildMessage(command, "READER-COMMAND").toJson());
+                QJsonObject command(nodeMessage.jsonData());
+                /*
+                 * When a 'reader command' message is received is because someone is sending a command to the reader. So it needs to send also who is doing this.
+                 * To perform this it uses a field called 'sender' that carry the name of who is sending the 'command message'.
+                 * And based on that, it will respond to the server connection or to the deskApp connection
+                 *
+                 * see reoutIcpMessage (messageType == "READER-RESPONSE")
+                 */
+                if(connection->objectName() == "server")
+                    command.insert("sender", QString("server"));
+                else
+                    command.insert("sender", QString("app"));
 
-        }else if (messageType == "NEW-CONFIG") {
+                ipcSendMessage(buildMessage(command, "READER-COMMAND").toJson());
 
-            QJsonObject newConfig(nodeMessage.jsonData());
-            bool ackConf;
-            if(m_configManager->newConfig(newConfig))
-            {
-                // Send a message to stop the RFIDMonitor
-                emit restartMonitor();
-                ackConf = true;
+            }else if (messageType == "NEW-CONFIG") {
+
+                QJsonObject newConfig(nodeMessage.jsonData());
+                bool ackConf;
+                if(m_configManager->newConfig(newConfig))
+                {
+                    // Send a message to stop the RFIDMonitor
+                    emit restartMonitor();
+                    ackConf = true;
+                }else{
+                    ackConf = false;
+                }
+                QJsonObject dataObj;
+                dataObj.insert("success", QJsonValue(ackConf));
+                tcpSendMessage(connection, buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
+
+                if(m_tcpAppSocket->isOpen())
+                    m_tcpAppSocket->close();
+
+            }else if (messageType == "DATETIME") {
+
+                QJsonObject dataObj;
+                dataObj["success"] =  QJsonValue(m_configManager->setDateTime(nodeMessage.dateTime()));
+                tcpSendMessage(connection, buildMessage(dataObj, "ACK").toJson());
+
+            }else if (messageType == "ACK-DATA") {
+                // A ACK-DATA message means that the server is trying to inform the RFIDMonitor that some data is now synced. So, it just send this message to the RFIDMonitor.
+                ackData++;
+                qDebug() << QString("ACK-DATA Received. Total: %1").arg(ackData);
+                ipcSendMessage(data);
+
+            }else if (messageType == "GET-NET-CONFIG") {
+                // Only return the network configuration.
+                tcpSendMessage(connection, buildMessage(m_configManager->netConfig(), "NET-CONFIG").toJson());
+
+            }else if (messageType == "NEW-NET") {
+
+                QJsonObject network = nodeMessage.jsonData();
+                // Receive a new configuration for the network (ssid and password).
+                QJsonObject dataObj;
+                dataObj.insert("success", QJsonValue(m_configManager->setNetConfig(network)));
+
+                // returns a message ACK-NET to inform the sender that the new configuration was set
+                tcpSendMessage(connection, buildMessage(dataObj, "ACK-NET").toJson());
+
+                // Try to restar the network service to already use the new configuration
+                bool resetNet = m_configManager->restartNetwork();
+                qDebug() <<  QString(resetNet? "Network restarted" : "Networkt Don't restarted");
+
+            }else if (messageType == "ACK-UNKNOWN") {
+                QJsonDocument unknown(nodeMessage.jsonData());
+                QJsonObject oldMessage(unknown.object().value("unknownmessage").toObject());
+                qDebug() <<  "The server don't understand the message type: " << oldMessage.value("type").toString();
+                qDebug() <<  "ERROR message: " << unknown.object().value("errorinfo").toString();
+
+            }else if (messageType == "FULL-READ"){
+                ipcSendMessage(data);
+
             }else{
-                ackConf = false;
+                /* When receives a message that can't be interpreted like any type is an unknown message.
+                 * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
+                 */
+                qDebug() <<  "UNKNOWN MESSAGE FROM TCP";
+                QJsonObject unknownObj;
+                unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
+                unknownObj.insert("errorinfo", QString("Unknown message received"));
+                tcpSendMessage(connection, buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
             }
-            QJsonObject dataObj;
-            dataObj.insert("success", QJsonValue(ackConf));
-            tcpSendMessage(connection, buildMessage(dataObj, "ACK-NEW-CONFIG").toJson());
 
-            if(m_tcpAppSocket->isOpen())
-                m_tcpAppSocket->close();
-
-        }else if (messageType == "DATETIME") {
-
-            QJsonObject dataObj;
-            dataObj["success"] =  QJsonValue(m_configManager->setDateTime(nodeMessage.dateTime()));
-            tcpSendMessage(connection, buildMessage(dataObj, "ACK").toJson());
-
-        }else if (messageType == "ACK-DATA") {
-            // A ACK-DATA message means that the server is trying to inform the RFIDMonitor that some data is now synced. So, it just send this message to the RFIDMonitor.
-            ipcSendMessage(data);
-
-        }else if (messageType == "GET-NET-CONFIG") {
-            // Only return the network configuration.
-            tcpSendMessage(connection, buildMessage(m_configManager->netConfig(), "NET-CONFIG").toJson());
-
-        }else if (messageType == "NEW-NET") {
-
-            QJsonObject network = nodeMessage.jsonData();
-            // Receive a new configuration for the network (ssid and password).
-            QJsonObject dataObj;
-            dataObj.insert("success", QJsonValue(m_configManager->setNetConfig(network)));
-
-            // returns a message ACK-NET to inform the sender that the new configuration was set
-            tcpSendMessage(connection, buildMessage(dataObj, "ACK-NET").toJson());
-
-            // Try to restar the network service to already use the new configuration
-            bool resetNet = m_configManager->restartNetwork();
-            qDebug() <<  QString(resetNet? "Network restarted" : "Networkt Don't restarted");
-
-        }else if (messageType == "ACK-UNKNOWN") {
-            QJsonDocument unknown(nodeMessage.jsonData());
-            QJsonObject oldMessage(unknown.object().value("unknownmessage").toObject());
-            qDebug() <<  "The server don't understand the message type: " << oldMessage.value("type").toString();
-            qDebug() <<  "ERROR message: " << unknown.object().value("errorinfo").toString();
-
-        }else if (messageType == "FULL-READ"){
-            ipcSendMessage(data);
-
-        }else{
-            /* When receives a message that can't be interpreted like any type is an unknown message.
-             * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
+            /* when all the process is done, reset the expecting message size to zero and the haspackage to false.
+             * Then when more data arrive it must to be the size information again.
              */
-            qDebug() <<  "UNKNOWN MESSAGE";
-            QJsonObject unknownObj;
-            unknownObj.insert("unknownmessage", QJsonValue(QJsonDocument::fromJson(data).object()));
-            unknownObj.insert("errorinfo", QString("Unknown message received"));
-            tcpSendMessage(connection, buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
+            packageSize = 0;
+            hasPackage = false;
         }
-
-        /* when all the process is done, reset the expecting message size to zero and the haspackage to false.
-         * Then when more data arrive it must to be the size information again.
-         */
-        packageSize = 0;
-        hasPackage = false;
-    }
+    }while((quint64)connection->bytesAvailable() >= sizeof(quint64) && (!hasPackage));
 }
 
 /*
@@ -420,82 +428,115 @@ void RFIDMonitorDaemon::routeTcpMessage()
  */
 void RFIDMonitorDaemon::routeIpcMessage()
 {
-    QByteArray message = ipcConnection->readAll();
-    json::NodeJSMessage nodeMessage;
 
-    nodeMessage.read(QJsonDocument::fromJson(message).object());
-    QString messageType(nodeMessage.type());
+    static bool hasPackage = false;
+    static quint64 packageSize = 0;
 
-    if(messageType == "SYN"){
+    do{
+        if( !hasPackage){
 
-        m_restoreTimer.stop();
-        ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
-        qApp->processEvents();
+            if((quint64)ipcConnection->bytesAvailable() < sizeof(quint64))
+                return;
 
-        /* When the deskApp change some configuration the RFIDMonitor is restarted.
+            //    	m_tcpSocket->read((char *)&packageSize, sizeof(quint64));
+            QString packageSizeStr(ipcConnection->read(sizeof(quint64)));
+            packageSize = packageSizeStr.toULongLong();
+
+            qDebug() <<  QString("ICP Message = %1 - Size of coming package: %2").arg(packageSizeStr).arg(QString::number(packageSize));
+            hasPackage = true;
+        }
+
+        if((quint64)ipcConnection->bytesAvailable() >=  packageSize){
+            QByteArray message(ipcConnection->read(packageSize));
+            //    QByteArray message = ipcConnection->readAll();
+            json::NodeJSMessage nodeMessage;
+
+            nodeMessage.read(QJsonDocument::fromJson(message).object());
+            QString messageType(nodeMessage.type());
+
+            qDebug() << QString("NEW IPC Message Received: %1").arg(messageType);
+
+            if(messageType == "SYN"){
+
+                m_restoreTimer.stop();
+                ipcSendMessage(buildMessage(QJsonObject(), "ACK-SYN").toJson());
+                qApp->processEvents();
+
+                /* When the deskApp change some configuration the RFIDMonitor is restarted.
          * But, the RFIDMonitor starts with flag connection=false. And if the server is connected the RFIDMonitor don't know that yet.
          * To solve this, after 1 seconds a SYNC message is sent to RFIDMonitor to set true to connection flag.
          */
-        if(isConnected)
-        {
-            QTimer *timer = new QTimer();
-            timer->setSingleShot(true);
-            timer->setInterval(1000);
-            connect(timer, &QTimer::timeout, [=](){
-                ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
-                timer->deleteLater();
-            });
-            timer->start();
-        }
+                if(isConnected)
+                {
+                    QTimer *timer = new QTimer();
+                    timer->setSingleShot(true);
+                    timer->setInterval(1000);
+                    connect(timer, &QTimer::timeout, [=](){
+                        ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
+                        timer->deleteLater();
+                    });
+                    timer->start();
+                }
 
-        m_configManager->restartNetwork();
+                m_configManager->restartNetwork();
 
-    }else if (messageType == "READER-RESPONSE") {
-        QJsonObject command(nodeMessage.jsonData());
-        /*
+            }else if (messageType == "READER-RESPONSE") {
+                QJsonObject command(nodeMessage.jsonData());
+                /*
          * When a 'reader response' message is received is because someone sent a 'reader command' message. So it needs to know who did it.
          * To perform this it uses a field called 'sender' that carry the name of who sent the 'command message'.
          * And based on that, it will respond to the server connection or to the deskApp connection.
          *
          * see reoutTcpMessage (messageType == "READER-COMMAND")
          */
-        if(command.value("sender").toString() == "server")
-            tcpSendMessage(m_tcpSocket, message);
-        else
-            tcpSendMessage(m_tcpAppSocket, message);
+                if(command.value("sender").toString() == "server")
+                    tcpSendMessage(m_tcpSocket, message);
+                else
+                    tcpSendMessage(m_tcpAppSocket, message);
 
-    }else if (messageType == "DATA"){
-        /*
+            }else if (messageType == "DATA"){
+                /*
          * A Data message means that the RFIDMonitor is trying to sync some data into the server. So, it just send this message to the server.
          */
-//        qDebug() <<  "DATA Message Received from Monitor\n";
-//        qDebug() <<  QString(QJsonDocument(nodeMessage.jsonData()).toJson());
-        // Only a node.js server receives DATA messages.
-        tcpSendMessage(m_tcpSocket, message);
+                //        qDebug() <<  "DATA Message Received from Monitor\n";
+                //        qDebug() <<  QString(QJsonDocument(nodeMessage.jsonData()).toJson());
+                // Only a node.js server receives DATA messages.
 
-    }else if (messageType == "STOPPED"){
-        qDebug() << "STOPPED";
-        m_process.kill();
-//        qDebug() << "Process Killed, PID: " << m_process.pid();
-    }
-    else if (messageType == "ACK-UNKNOWN") {
-        QJsonDocument unknown(nodeMessage.jsonData());
-        QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
-        qDebug() <<  "The Monitor don't understand the message type: "
-                        << dataObj.value("type").toString();
-    }
-    else{
-        /* When receives a message that can't be interpreted like any type is an unknown message.
+                dataCounter++;
+                qDebug() << "DATA RECEIVED UNTIL NOW: " << dataCounter;
+                tcpSendMessage(m_tcpSocket, message);
+
+            }else if (messageType == "STOPPED"){
+                qDebug() << "STOPPED";
+                m_process.kill();
+                //        qDebug() << "Process Killed, PID: " << m_process.pid();
+            }
+            else if (messageType == "ACK-UNKNOWN") {
+                QJsonDocument unknown(nodeMessage.jsonData());
+                QJsonObject dataObj(unknown.object().value("unknownmessage").toObject());
+                qDebug() <<  "The Monitor don't understand the message type: "
+                          << dataObj.value("type").toString();
+            }
+            else{
+                /* When receives a message that can't be interpreted like any type is an unknown message.
          * In this case an ACK-UNKNOWN message is built and sent to the connection that received this message
          */
-        qDebug() <<  "UNKNOWN MESSAGE";
+                qDebug() <<  "UNKNOWN MESSAGE FROM IPC";
 
-        QJsonObject unknownObj;
-        unknownObj.insert("unknownmessage", QJsonDocument::fromJson(message).object());
-        unknownObj.insert("errorinfo", QString("Unknown message received"));
+                QJsonObject unknownObj;
+                unknownObj.insert("unknownmessage", QJsonDocument::fromJson(message).object());
+                unknownObj.insert("errorinfo", QString("Unknown message received"));
 
-        ipcSendMessage(buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
-    }
+                //The RFIDMonitor don't implement the ACK-UNKNOW message type, yet.
+                //ipcSendMessage(buildMessage(unknownObj, "ACK-UNKNOWN").toJson());
+            }
+            /* when all the process is done, reset the expecting message size to zero and the haspackage to false.
+     * Then when more data arrive it must to be the size information again.
+     */
+            packageSize = 0;
+            hasPackage = false;
+        }
+    }while((quint64)ipcConnection->bytesAvailable() >= sizeof(quint64) && (!hasPackage));
 }
 
 void RFIDMonitorDaemon::readDatagrams()
