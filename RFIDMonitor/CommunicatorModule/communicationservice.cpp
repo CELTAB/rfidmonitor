@@ -63,7 +63,16 @@ ServiceType CommunicationService::type()
 // Send a message directly without care about the content. Defined by interface.
 void CommunicationService::sendMessage(QByteArray value)
 {
-    m_localSocket->write(value);
+    //PACKAGE SIZE
+    QByteArray data;
+    QString packageSizeStr(QString::number(value.size()));
+    data.fill('0', sizeof(quint64) - packageSizeStr.size());
+    data.append(packageSizeStr);
+    data.append(value);
+
+    qDebug() << "Sending message to IPC: " << QString(data);
+
+    m_localSocket->write(data);
     // WARNING: bool QLocalSocket::flush () using this to force the sending of data
     m_localSocket->flush();
 }
@@ -79,8 +88,9 @@ void CommunicationService::sendMessage(QJsonObject data, QString type)
     obj.insert("data", QJsonValue(data));
     rootDoc.setObject(obj);
 
-    m_localSocket->write(rootDoc.toJson());
-    m_localSocket->flush();
+    sendMessage(rootDoc.toJson());
+    //    m_localSocket->write(rootDoc.toJson());
+    //    m_localSocket->flush();
 }
 
 void CommunicationService::ipcConnected()
@@ -95,19 +105,44 @@ void CommunicationService::ipcDisconnected()
 
 void CommunicationService::ipcReadyRead()
 {
-    QByteArray data = m_localSocket->readAll();
+    //    QByteArray data = m_localSocket->readAll();
 
-    json::NodeJSMessage nodeMessage;
+    static bool hasPackage = false;
+    static quint64 packageSize = 0;
 
-    nodeMessage.read(QJsonDocument::fromJson(data).object());
-    QString messageType(nodeMessage.type());
+    do {
+        if(!hasPackage){
 
-    if(messageType == "ACK-SYN"){
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
-    }
-    else{
-        emit messageReceived(data);
-    }
+            if((quint64)m_localSocket->bytesAvailable() < sizeof(quint64))
+                return;
+
+            //    	m_tcpSocket->read((char *)&packageSize, sizeof(quint64));
+            QString packageSizeStr(m_localSocket->read(sizeof(quint64)));
+            packageSize = packageSizeStr.toULongLong();
+
+            qDebug() <<  QString("IPC Message = %1 - Size of coming package: %2").arg(packageSizeStr).arg(QString::number(packageSize));
+            hasPackage = true;
+        }
+
+        if((quint64)m_localSocket->bytesAvailable() >=  packageSize){
+            QByteArray data(m_localSocket->read(packageSize));
+
+            json::NodeJSMessage nodeMessage;
+
+            nodeMessage.read(QJsonDocument::fromJson(data).object());
+            QString messageType(nodeMessage.type());
+
+            if(messageType == "ACK-SYN"){
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("CommunicationService -> Connected successfully to IPC Server."));
+            }
+            else{
+                emit messageReceived(data);
+            }
+
+            packageSize = 0;
+            hasPackage = false;
+        }
+    }while((quint64)m_localSocket->bytesAvailable() >= sizeof(quint64) && (!hasPackage));
 }
 
 void CommunicationService::ipcHandleError(QLocalSocket::LocalSocketError)

@@ -513,8 +513,7 @@ void RFIDMonitor::newMessage(QByteArray message)
         }
         //        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Packager Update");
         d_ptr->defaultPackager->update(hashList);
-    }
-    else{
+    }else{
         //UNKNOWN MESSAGE
         QJsonDocument json;
         QJsonObject unknownObj;

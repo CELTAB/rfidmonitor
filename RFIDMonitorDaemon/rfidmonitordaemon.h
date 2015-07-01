@@ -176,6 +176,8 @@ signals:
 
 private:
     bool isConnected;
+    int dataCounter = 0;
+    int ackData = 0;
 
     QLocalServer *m_localServer;
     QLocalSocket *ipcConnection;
@@ -215,6 +217,10 @@ private:
      * @return Reutur the messaga package in the right format defined by protocol.
      */
     QJsonDocument buildMessage(QJsonObject dataObj, QString type);
+
+    QByteArray protocolHeader(QByteArray message);
+
+//    unpackMessage();
 
 };
 
