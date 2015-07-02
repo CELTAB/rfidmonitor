@@ -38,6 +38,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QtConcurrent/QtConcurrent>
+#include <QTime>
 
 #include <iostream>
 #include <ctime>
@@ -47,6 +48,7 @@
 #include <logger.h>
 #include <rfidmonitor.h>
 #include <object/rfiddata.h>
+#include <systemevents.h>
 
 #include <json/nodejsmessage.h>
 #include <json/synchronizationpacket.h>
@@ -57,9 +59,13 @@ Reader_MRI2000::Reader_MRI2000(QObject *parent) :
 {
     m_module = "ReadingModule_MRI2000";
     m_serial = new QSerialPort(this);
+    m_lastGeneralState = SystemEvents::KGeneralUnknowState;
 
     connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
     connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
+
+    connect(SystemEvents::instance(), SIGNAL(General(SystemEvents::GeneralEvent)), this, SLOT(SysGeneralEvent(SystemEvents::GeneralEvent)));
+    connect(SystemEvents::instance(), SIGNAL(Exporting(SystemEvents::ExportEvent)), this, SLOT(SysExportEvent(SystemEvents::ExportEvent)));
 
     allLines = false;
     idCollector = 0;
@@ -206,6 +212,7 @@ void Reader_MRI2000::readData()
                     QtConcurrent::run(synchronizer, &SynchronizationInterface::readyRead);
 #endif
                 } catch (std::exception &e) {
+                    emit SystemEvents::instance()->General(SystemEvents::KLosingData);
                     Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("QtConcurrent ERROR"));
                 }
 
@@ -252,6 +259,7 @@ void Reader_MRI2000::readData()
                 QtConcurrent::run(communitacion, &CommunicationInterface::sendMessage, QJsonDocument(jsonAnswer).toJson());
 #endif
             } catch (std::exception &e) {
+                emit SystemEvents::instance()->General(SystemEvents::KLosingData);
                 Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("QtConcurrent ERROR"));
             }
         }
@@ -262,6 +270,7 @@ void Reader_MRI2000::handleError(QSerialPort::SerialPortError error)
 {
     if (error != QSerialPort::NoError)
     {
+        emit SystemEvents::instance()->General(SystemEvents::KLosingData);
         Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error: %1").arg(m_serial->errorString()));
     }
 }
@@ -279,6 +288,7 @@ void Reader_MRI2000::start()
     if(!m_serial->open(QIODevice::ReadWrite)) {
 
         Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
+        emit SystemEvents::instance()->General(SystemEvents::KLosingData);
         // create class invalid_device exception on core Module
         QTimer::singleShot(1000, this, SLOT(start()));
     }else{
@@ -286,11 +296,143 @@ void Reader_MRI2000::start()
         m_serial->setDataBits(QSerialPort::Data8);
         m_serial->setStopBits(QSerialPort::OneStop);
         m_serial->setParity(QSerialPort::NoParity);
+        emit SystemEvents::instance()->General(SystemEvents::KRunningSmooth);
     }
 }
 
 void Reader_MRI2000::stop()
 {
+    emit SystemEvents::instance()->General(SystemEvents::KLosingData);
     disconnect(m_serial, SIGNAL(readyRead()),this, SLOT(readData()));
     disconnect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(handleError(QSerialPort::SerialPortError)));
+}
+
+/*
+ *
+ * POSSIBLE SYSTEM EVENTS FROM CORELIBRARY - SYSTEMEVENTS.H:
+ * LosingData : (Error) not possible to persist and read rfid (MRI2000 DEFAULT STATE).
+ * SoftProblem : (Error)any problem that not lose data.
+ * RunningSmooth : Everything is ok.
+ * ExportingNow: system started to export to local device
+ * ExportingDone: system finished local export to localdevice.
+ *
+ * LED States with BLINK:
+ * Red On | Green Off = LosingData;
+ * Red Blink | Green On = SoftProblem;
+ * Red Off | Green On = RunningSmooth OR ExportingDone;
+ * Red Off | Green Blink = ExportingNow;
+ *
+ * LED States without BLINK:
+ * G on R on - ExportingNow
+ * G on R off - RunningSmooth | ExportingDone
+ * G off R on - SoftProblem
+ * G off R off - LosingData (MRI2000 DEFAULT STATE);
+ *
+ * RELAY MAP:
+ * green relay 1
+ * red relay 2
+ *
+ * RELAY COMMANDS:
+ * activate relay 1 0x1D
+ * deactivate relay 1 0x0D
+ * activate relay 2 0x1E
+ * deactivate relay 2 0x0E
+*/
+
+void Reader_MRI2000::writeLosingData()
+{
+    //G off R off - LosingData (default)
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeLosingData"));
+
+    //green off
+    write("0x0D");
+
+    //red off
+    write("0x0E");
+}
+
+void Reader_MRI2000::writeRunningSmooth()
+{
+    //G on R off - RunningSmooth | ExportingDone
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeRunningSmooth"));
+
+    //green on
+    write("0x1D");
+
+    //red off
+    write("0x0E");
+}
+
+void Reader_MRI2000::writeSoftProblem()
+{
+    //G off R on - SoftProblem
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeSoftProblem"));
+
+    //green off
+    write("0x0D");
+
+    //red on
+    write("0x1E");
+}
+
+void Reader_MRI2000::writeExportingNow()
+{
+    //G on R on - ExportingNow
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeExportingNow"));
+
+    //green on
+    write("0x1D");
+
+    //red on
+    write("0x1E");
+}
+
+void Reader_MRI2000::SysGeneralEvent(SystemEvents::GeneralEvent event)
+{
+    m_lastGeneralState = event;
+
+    switch(event){
+    case SystemEvents::KLosingData:
+        writeLosingData();
+        break;
+    case SystemEvents::KSoftProblem:
+        writeSoftProblem();
+        break;
+    case SystemEvents::KRunningSmooth:
+        writeRunningSmooth();
+        break;
+    default:
+        Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Undefined or KExportUnknowState state."));
+    }
+}
+
+void Reader_MRI2000::SysExportEvent(SystemEvents::ExportEvent event)
+{
+    switch(event){
+    case SystemEvents::KExportingNow:
+        writeExportingNow();
+        //wait 5 seconds
+        delay(5);
+        break;
+    case SystemEvents::KExportingDone:
+        writeRunningSmooth();
+        //wait 2 sec
+        delay(2);
+        //print last state;
+        SysGeneralEvent(m_lastGeneralState);
+        break;
+    default:
+        Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Undefined or KExportUnknowState state."));
+    }
+}
+
+void Reader_MRI2000::delay(int seconds)
+{
+    QTime dieTime= QTime::currentTime().addSecs(seconds);
+    while( QTime::currentTime() < dieTime )
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }

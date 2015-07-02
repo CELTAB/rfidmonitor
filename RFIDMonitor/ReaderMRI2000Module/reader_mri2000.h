@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <core/interfaces.h>
+#include <systemevents.h>
 
 class Rfiddata;
 class DeviceThread;
@@ -61,6 +62,12 @@ private:
     QString m_module;
     QSerialPort *m_serial;
     QMap<qlonglong, QTimer*> m_map;
+    SystemEvents::GeneralEvent m_lastGeneralState;
+    void writeLosingData();
+    void writeRunningSmooth();
+    void writeSoftProblem();
+    void writeExportingNow();
+    void delay(int seconds);
 
 public slots:
     void readData();
@@ -68,6 +75,9 @@ public slots:
 
     void start();
     void stop();
+
+    void SysGeneralEvent(SystemEvents::GeneralEvent);
+    void SysExportEvent(SystemEvents::ExportEvent);
 
 signals:
     void rfidReaded(Rfiddata *data);

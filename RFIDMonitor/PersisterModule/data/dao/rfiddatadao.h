@@ -23,6 +23,7 @@ class  RfiddataDAO : public GenericDAO<Rfiddata>
 
 public:
     RfiddataDAO(QObject *parent = 0);
+    ~RfiddataDAO();
 
     QString serviceNameInsertObject() const;
 
