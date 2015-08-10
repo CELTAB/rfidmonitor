@@ -65,6 +65,13 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
         m_configManager->restoreConfig();
         initMonitor();
     });
+    qDebug() <<  QString("DEBUG >>>HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+    m_connectionTimer.setSingleShot(true);
+    connect(&m_connectionTimer, &QTimer::timeout, [=](){
+        qDebug() <<  QString("DEBUG >>> Socket aborted!");
+//        m_tcpSocket->abort();
+        m_tcpSocket->disconnectFromHost();
+    });
 
     connect(m_localServer, SIGNAL(newConnection()), SLOT(ipcNewConnection()));
 
@@ -141,6 +148,9 @@ void RFIDMonitorDaemon::ipcNewConnection()
 
 void RFIDMonitorDaemon::tcpConnect()
 {
+
+    qDebug() << "Trying to connect to server";
+
     m_hostName = m_configManager->hostName();
     m_tcpPort = m_configManager->hostPort();
 
@@ -151,10 +161,14 @@ void RFIDMonitorDaemon::tcpConnected()
 {
     qDebug() <<  QString("Connected to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
     tcpSendMessage(m_tcpSocket, buildMessage(m_configManager->identification(), "SYN").toJson());
+    m_connectionTimer.start(8000);
+    qDebug() << "DEBUG >>> m_connectionTimer started";
 }
 
 void RFIDMonitorDaemon::tcpDisconnected()
 {
+    qDebug() << "DEBUG >>> Server disconnected";
+
     if(isConnected){
         QJsonObject obj;
         obj.insert("full", QJsonValue(false));
@@ -169,12 +183,13 @@ void RFIDMonitorDaemon::tcpDisconnected()
 
 void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError error )
 {
-    if(error == QAbstractSocket::ConnectionRefusedError){
-        tcpDisconnected();
-        return;
-    }
+//    if(error == QAbstractSocket::ConnectionRefusedError){
+//        tcpDisconnected();
+//        return;
+//    }
 
     qDebug() <<  QString("Error: %1 - %2").arg(m_tcpSocket->error()).arg(m_tcpSocket->errorString());
+    tcpDisconnected();
 }
 
 void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError)
@@ -264,6 +279,9 @@ void RFIDMonitorDaemon::initMonitor()
  */
 void RFIDMonitorDaemon::routeTcpMessage()
 {
+    m_connectionTimer.start(8000);
+    qDebug() <<  QString("DEBUG >>> Timer restarted");
+
     QTcpSocket *connection = (QTcpSocket *) QObject::sender();
 
     static bool hasPackage = false;

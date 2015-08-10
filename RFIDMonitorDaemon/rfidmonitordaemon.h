@@ -184,6 +184,7 @@ private:
 
     QProcess m_process;
     QTimer m_restoreTimer;
+    QTimer m_connectionTimer;
 
     // Node.js Server
     QTcpSocket *m_tcpSocket;
