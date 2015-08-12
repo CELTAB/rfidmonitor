@@ -83,17 +83,12 @@ void ExportLocalData::startExport()
 // Export temporary file to an external device.
 bool ExportLocalData::exportToDevice(QString device)
 {
+//    // turns off leds red and green
+//    m_blinkLed->blinkGreenLed(0);
+//    m_blinkLed->blinkRedLed(0);
 
-    /*
-        TODO.
-        This code should only execute when the user defines an option in the rfidmonitor.json.
-        // turns off leds red and green
-        m_blinkLed->blinkGreenLed(0);
-        m_blinkLed->blinkRedLed(0);
-
-        // turn on red led
-        m_blinkLed->blinkRedLed(1);
-    */
+//    // turn on red led
+//    m_blinkLed->blinkRedLed(1);
 
     emit SystemEvents::instance()->Exporting(SystemEvents::KExportingNow);
 
@@ -135,16 +130,17 @@ bool ExportLocalData::exportToDevice(QString device)
         returnValue = false;
     }
 
-
-    /*
-        TODO.
-        This code should only execute when the user defines an option in the rfidmonitor.json.
-
-        // turns off the red led
-        m_blinkLed->blinkRedLed(0);
-        // turns on the green led
-        m_blinkLed->blinkGreenLed(1);
+    /* Waiting 5 seconds to change the SystemEvents.
+     * This let user know the exportating is being done, because sometimes
+     * the system does the process faster than the user can see.
     */
+    while(timer.remainingTime() > 0)
+        ;
+
+//    // turns off the red led
+//    m_blinkLed->blinkRedLed(0);
+//    // turns on the green led
+//    m_blinkLed->blinkGreenLed(1);
 
    if(returnValue)
         emit SystemEvents::instance()->Exporting(SystemEvents::KExportingDone);
@@ -171,13 +167,7 @@ void ExportLocalData::exportAction(QString path)
 //Called when usb device is removed.
 void ExportLocalData::turnOffLed()
 {
-    /*
-    TODO.
-    This code should only execute when the user defines an option in the rfidmonitor.json.
-
     m_blinkLed->blinkGreenLed(0);
-
-    */
 }
 
 // search for data with non-sync status and export these datas into a temp file. If the file doesn't exist create a file

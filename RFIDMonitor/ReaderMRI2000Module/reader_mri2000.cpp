@@ -59,7 +59,7 @@ Reader_MRI2000::Reader_MRI2000(QObject *parent) :
 {
     m_module = "ReadingModule_MRI2000";
     m_serial = new QSerialPort(this);
-    m_lastGeneralEvent = SystemEvents::KGeneralUnknowState;
+    m_lastGeneralState = SystemEvents::KGeneralUnknowState;
 
     connect(m_serial, SIGNAL(readyRead()), SLOT(readData()));
     connect(m_serial, SIGNAL(error(QSerialPort::SerialPortError)), SLOT(handleError(QSerialPort::SerialPortError)));
@@ -400,7 +400,7 @@ void Reader_MRI2000::writeExportingNow()
 
 void Reader_MRI2000::SysGeneralEvent(SystemEvents::GeneralEvent event)
 {
-    m_lastGeneralEvent = event;
+    m_lastGeneralState = event;
 
     switch(event){
     case SystemEvents::KLosingData:
@@ -422,21 +422,15 @@ void Reader_MRI2000::SysExportEvent(SystemEvents::ExportEvent event)
     switch(event){
     case SystemEvents::KExportingNow:
         writeExportingNow();
-        /* Waiting 5 seconds to change the SystemEvents.
-         * This let user know the exportating is being done, because sometimes
-         * the system does the process faster than the user can see.
-        */
+        //wait 5 seconds
         delay(5);
         break;
     case SystemEvents::KExportingDone:
         writeRunningSmooth();
-        /* Waiting 2 seconds to change the SystemEvents.
-         * This let user know the exportating is being done, because sometimes
-         * the system does the process faster than the user can see.
-        */
+        //wait 2 sec
         delay(2);
         //print last state;
-        SysGeneralEvent(m_lastGeneralEvent);
+        SysGeneralEvent(m_lastGeneralState);
         break;
     default:
         Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Undefined or KExportUnknowState state."));

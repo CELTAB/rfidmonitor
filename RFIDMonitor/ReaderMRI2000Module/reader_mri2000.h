@@ -62,7 +62,7 @@ private:
     QString m_module;
     QSerialPort *m_serial;
     QMap<qlonglong, QTimer*> m_map;
-    SystemEvents::GeneralEvent m_lastGeneralEvent;
+    SystemEvents::GeneralEvent m_lastGeneralState;
     void writeLosingData();
     void writeRunningSmooth();
     void writeSoftProblem();
