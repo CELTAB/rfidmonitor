@@ -204,17 +204,54 @@ struct RFIDMonitorPrivate
     void loadDefaultServices()
     {
         defaultReading = readingServiceList.value(systemSettings.defaultServices().reader());
-        Q_ASSERT(defaultReading);
+        if(!defaultReading){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Reder Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Reder Module OK");
+        }
+
         defaultPersistence = persistenceServiceList.value(systemSettings.defaultServices().persister());
-        Q_ASSERT(defaultPersistence);
+        if(!defaultPersistence){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Persistence Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Persistence Module OK");
+        }
+
         defaultCommunication = communicationServiceList.value(systemSettings.defaultServices().communicator());
-        Q_ASSERT(defaultCommunication);
+        if(!defaultCommunication){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Communication Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Communication Module OK");
+        }
+
         defaultExport = exportServiceList.value(systemSettings.defaultServices().exporter());
-        Q_ASSERT(defaultExport);
+        if(!defaultExport){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Exporter Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Exporter Module OK");
+        }
+
         defaultPackager = packagerServiceList.value(systemSettings.defaultServices().packager());
-        Q_ASSERT(defaultPackager);
+        if(!defaultPackager){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Packager Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Packager Module OK");
+        }
+
         defaultSynchronization = synchronizationServiceList.value(systemSettings.defaultServices().synchronizer());
-        Q_ASSERT(defaultSynchronization);
+        if(!defaultSynchronization){
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Missing Default Syncronization Module. Exiting now");
+            exit(1);
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Default Syncronization Module OK");
+        }
+
+        Logger::instance()->writeRecord(Logger::severity_level::info, "RFIDMonitor", Q_FUNC_INFO, "Modules Verification Finished");
     }
 
     void addService(Service *serv)

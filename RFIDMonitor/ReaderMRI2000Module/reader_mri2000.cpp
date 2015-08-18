@@ -53,6 +53,8 @@
 #include <json/nodejsmessage.h>
 #include <json/synchronizationpacket.h>
 
+QFile fileCaptured(QCoreApplication::applicationDirPath() + "/mri2000_captured.txt");
+
 Reader_MRI2000::Reader_MRI2000(QObject *parent) :
     ReadingInterface(parent),
     m_serial(0)
@@ -69,6 +71,13 @@ Reader_MRI2000::Reader_MRI2000(QObject *parent) :
 
     allLines = false;
     idCollector = 0;
+
+    if (fileCaptured.open(QFile::WriteOnly)){
+        m_outCaptured.setDevice(&fileCaptured);
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("mri2000_captured opened"));
+    }else{
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("mri2000_captured not open"));
+    }
 
     Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("%1 Started").arg(m_module));
 }
@@ -132,12 +141,17 @@ void Reader_MRI2000::readData()
 
             QRegularExpression regexCode;
             regexCode.setPattern("TAG[0-9a-fA-F]W\\s[0-9a-fA-F]{3}\\s[0-9a-fA-F]{16}");
-            QRegularExpressionMatch match = regexCode.match(hardData);
+            QRegularExpressionMatch match = regexCode.match(hardData);          
 
             if(match.hasMatch()) {
 
                 //Here the matched string must be like "TAG5W 001 0000000295901506"
                 Rfiddata *data = new Rfiddata(this);
+
+                if(m_outCaptured.device()){
+                    m_outCaptured << match.captured(0) << "\n";
+                    m_outCaptured.flush();
+                }
 
                 // Id collector from configuration file
                 data->setIdpontocoleta(idCollector);

@@ -63,6 +63,9 @@ private:
     QSerialPort *m_serial;
     QMap<qlonglong, QTimer*> m_map;
     SystemEvents::GeneralEvent m_lastGeneralState;
+
+    QTextStream m_outCaptured;
+
     void writeLosingData();
     void writeRunningSmooth();
     void writeSoftProblem();

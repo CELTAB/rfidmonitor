@@ -86,6 +86,9 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
 
         // Commit and terminate the transaction.
         db->commit();
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA INSERTED...");
+
         return true;
 
     }catch(SqlException &ex){
@@ -129,6 +132,9 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
 
         // Commit and terminate the transaction.
         db->commit();
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA INSERTED...");
+
         return true;
 
     }catch(SqlException &ex){
