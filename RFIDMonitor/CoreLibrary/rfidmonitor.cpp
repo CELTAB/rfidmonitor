@@ -39,6 +39,7 @@
 
 #include <coremodule.h>
 #include <logger.h>
+#include <systemevents.h>
 
 #include "core/service.h"
 #include "core/interfaces.h"
@@ -507,6 +508,11 @@ void RFIDMonitor::newMessage(QByteArray message)
     if(nodeJSMessage.type() == "SYNC"){
 
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Server connected");
+        //TODO: Emit signal to running smoth to inform server connection available.
+
+        emit SystemEvents::instance()->General(SystemEvents::KRunningSmooth);
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Signal RunningSmooth emitted, turn on green LED");
+
         d_ptr->connected = true;
         // The daemon is now connected with server, send the not-synced data
         d_ptr->defaultSynchronization->readyRead();
@@ -517,6 +523,10 @@ void RFIDMonitor::newMessage(QByteArray message)
         d_ptr->defaultReading->stop();
 
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Stoping services");
+
+        //TODO: Emit signal to fatal error, to inform system is down.
+        emit SystemEvents::instance()->General(SystemEvents::KLosingData);
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Signal LosingData emitted, to turn off all LEDs");
 
         QJsonDocument json;
         QJsonObject dObj;
@@ -531,6 +541,10 @@ void RFIDMonitor::newMessage(QByteArray message)
     }else if(nodeJSMessage.type() == "SLEEP"){
         d_ptr->connected = false;
         Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "Server Disconnected");
+
+        //TODO: Emit signal to inform no server connection
+        emit SystemEvents::instance()->Exporting(SystemEvents::KExportingNow);
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "Main", Q_FUNC_INFO, "SLEEP MESSAGE >>>>>>>>>>> Signal emitted, turn on red LED");
 
     }else if(nodeJSMessage.type() == "FULL-READ"){
 

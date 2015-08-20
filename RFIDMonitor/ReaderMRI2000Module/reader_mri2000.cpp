@@ -311,9 +311,10 @@ void Reader_MRI2000::start()
         m_serial->setStopBits(QSerialPort::OneStop);
         m_serial->setParity(QSerialPort::NoParity);
 
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting RunningSmooth Signal"));
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("HERE>>>>>>>>>> Emitting RunningSmooth Signal"));
         emit SystemEvents::instance()->General(SystemEvents::KRunningSmooth);
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal RunningSmooth Emitted"));
+
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("HERE>>>>>>>>>> Signal RunningSmooth Emitted"));
     }
 }
 
@@ -413,7 +414,7 @@ void Reader_MRI2000::writeExportingNow()
 }
 
 void Reader_MRI2000::SysGeneralEvent(SystemEvents::GeneralEvent event)
-{
+{ 
     m_lastGeneralState = event;
 
     switch(event){

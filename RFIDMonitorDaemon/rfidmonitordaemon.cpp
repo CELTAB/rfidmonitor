@@ -143,7 +143,7 @@ void RFIDMonitorDaemon::ipcNewConnection()
         ipcConnection = 0;
         qDebug() <<  "RFIDMonitor Disconnected";
 
-        // After 5 seconds try to restart the RFIDMonitor
+        // After 10 seconds try to restart the RFIDMonitor
         QTimer::singleShot(10000, this, SLOT(initMonitor()));
 
     });
@@ -273,7 +273,7 @@ void RFIDMonitorDaemon::initMonitor()
         // Stop the RFIDMonitor
         ipcSendMessage(buildMessage(QJsonObject(), "STOP").toJson());
 
-        // Try to reconnect the server after 5 seconds
+        // Try to restart monitor after 5 seconds
         QTimer::singleShot(5000, this, SLOT(initMonitor()));
     });
     m_restoreTimer.start();
@@ -507,6 +507,16 @@ void RFIDMonitorDaemon::routeIpcMessage()
                     timer->setInterval(1000);
                     connect(timer, &QTimer::timeout, [=](){
                         ipcSendMessage(buildMessage(QJsonObject(), "SYNC").toJson());
+                        timer->deleteLater();
+                    });
+                    timer->start();
+                }else{
+                    //If no server connection is available send an SLEEP message to the RFIDMonitor.
+                    QTimer *timer = new QTimer();
+                    timer->setSingleShot(true);
+                    timer->setInterval(1000);
+                    connect(timer, &QTimer::timeout, [=](){
+                        ipcSendMessage(buildMessage(QJsonObject(), "SLEEP").toJson());
                         timer->deleteLater();
                     });
                     timer->start();
