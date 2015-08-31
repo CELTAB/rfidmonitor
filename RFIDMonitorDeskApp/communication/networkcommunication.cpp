@@ -41,6 +41,9 @@ NetworkCommunication::NetworkCommunication(QObject *parent) :
 {
     m_tcpSocketMap = new QMap<QString, QTcpSocket *>();
 
+    m_timeoutValue = 8000;
+
+
     m_udpPort = 9999;
     m_udpSocket = new QUdpSocket(this);
     m_udpTimer = new QTimer(this);
@@ -57,11 +60,33 @@ NetworkCommunication::NetworkCommunication(QObject *parent) :
 
 void NetworkCommunication::handshakeACK(QTcpSocket *socket, QJsonObject jsonObject)
 {
-
     if(socket->isOpen()){
+
 
         QTimer * timeout = socket->findChild<QTimer *>();
         timeout->stop();
+
+        QTimer * connectionTimeout = socket->findChild<QTimer *>("connectionTimeout");
+        if(!connectionTimeout){
+            SystemMessagesWidget::instance()->writeMessage(
+                        "Cannot find connectionTimeout.",
+                        SystemMessagesWidget::KFatal,
+                        SystemMessagesWidget::KOnlyLogfile
+                        );
+            return;
+        }
+        connectionTimeout->start(m_timeoutValue);
+
+        QTimer * keepAliveTimer = socket->findChild<QTimer *>("keepAliveTimer");
+        if(!keepAliveTimer){
+            SystemMessagesWidget::instance()->writeMessage(
+                        "Cannot find keepAliveTimer.",
+                        SystemMessagesWidget::KFatal,
+                        SystemMessagesWidget::KOnlyLogfile
+                        );
+            return;
+        }
+        keepAliveTimer->start();
 
         m_tcpSocketMap->insert(socket->peerAddress().toString(), socket);
         QVariantMap map;
@@ -122,6 +147,20 @@ void NetworkCommunication::ackUnknownReceived(QJsonObject jsonObject)
                 SystemMessagesWidget::KDebug,
                 SystemMessagesWidget::KOnlyLogfile
                 );
+}
+
+void NetworkCommunication::ackAlive(QTcpSocket *socket)
+{
+    QTimer * connectionTimeout = socket->findChild<QTimer *>("connectionTimeout");
+    if(!connectionTimeout){
+        SystemMessagesWidget::instance()->writeMessage(
+                    "Cannot find connectionTimeout.",
+                    SystemMessagesWidget::KFatal,
+                    SystemMessagesWidget::KOnlyLogfile
+                    );
+    }
+    //resets connection timeout.
+    connectionTimeout->start(m_timeoutValue);
 }
 
 void NetworkCommunication::ackNewConfig(QJsonObject jsonObject)
@@ -342,62 +381,66 @@ void NetworkCommunication::tcpDataAvailable()
     static bool waitingForPackage = false;
     static quint64 sizeOfPackage = 0;
 
-    if( ! waitingForPackage){
-        if((quint64)socket->bytesAvailable() < sizeof(quint64))
-            return;
+    do{
+        if( ! waitingForPackage){
+            if((quint64)socket->bytesAvailable() < sizeof(quint64))
+                return;
 
-        QString packageSizeStr(socket->read(sizeof(quint64)));
-        sizeOfPackage = packageSizeStr.toULongLong();
-        waitingForPackage = true;
-    }
-    if((quint64)socket->bytesAvailable() >=  sizeOfPackage){
-        QByteArray package(socket->read(sizeOfPackage));
+            QString packageSizeStr(socket->read(sizeof(quint64)));
+            sizeOfPackage = packageSizeStr.toULongLong();
+            waitingForPackage = true;
+        }
+        if((quint64)socket->bytesAvailable() >=  sizeOfPackage){
+            QByteArray package(socket->read(sizeOfPackage));
 
-        QJsonDocument doc(QJsonDocument::fromJson(package));
-        if(!doc.isNull()){
-            QJsonObject rootObj(doc.object());
-//            SystemMessagesWidget::instance()->writeMessage(
-//                        tr("New valid json object: %1")
-//                        .arg(QString(QJsonDocument(rootObj).toJson())),
-//                        SystemMessagesWidget::KDebug,
-//                        SystemMessagesWidget::KOnlyLogfile
-//                        );
+            QJsonDocument doc(QJsonDocument::fromJson(package));
+            if(!doc.isNull()){
+                QJsonObject rootObj(doc.object());
+    //            SystemMessagesWidget::instance()->writeMessage(
+    //                        tr("New valid json object: %1")
+    //                        .arg(QString(QJsonDocument(rootObj).toJson())),
+    //                        SystemMessagesWidget::KDebug,
+    //                        SystemMessagesWidget::KOnlyLogfile
+    //                        );
 
-            QString type(rootObj.value("type").toString());
-            QJsonObject dataObj = rootObj.value("data").toObject();
-            if(type == "SYN"){
-                handshakeSYN(socket, dataObj);
-            }else if(type == "ACK"){
-                handshakeACK(socket, dataObj);
-            }else if(type == "CONFIG"){
-                raspConfigReceived(dataObj);
-            }else if(type == "READER-RESPONSE"){
-                answerFromReader(dataObj);
-            }else if(type == "ACK-UNKNOWN"){
-                ackUnknownReceived(dataObj);
-            }else if(type == "ACK-NEW-CONFIG"){
-                ackNewConfig(dataObj);
+                QString type(rootObj.value("type").toString());
+                QJsonObject dataObj = rootObj.value("data").toObject();
+                if(type == "SYN"){
+                    handshakeSYN(socket, dataObj);
+                }else if(type == "ACK"){
+                    handshakeACK(socket, dataObj);
+                }else if(type == "CONFIG"){
+                    raspConfigReceived(dataObj);
+                }else if(type == "READER-RESPONSE"){
+                    answerFromReader(dataObj);
+                }else if(type == "ACK-UNKNOWN"){
+                    ackUnknownReceived(dataObj);
+                }else if(type == "ACK-NEW-CONFIG"){
+                    ackNewConfig(dataObj);
+                }else if(type == "ACK-ALIVE"){
+                    ackAlive(socket);
+                }else{
+                    SystemMessagesWidget::instance()->writeMessage(
+                                tr("Data type invalid."),
+                                SystemMessagesWidget::KDebug,
+                                SystemMessagesWidget::KOnlyLogfile
+                                );
+                    sendAckUnknown(socket, rootObj, "The 'type' is unknown.");
+                }
             }else{
                 SystemMessagesWidget::instance()->writeMessage(
-                            tr("Data type invalid."),
-                            SystemMessagesWidget::KDebug,
+                            tr("Invalid json. DATA [%1]").arg(QString(package)),
+                            SystemMessagesWidget::KError,
                             SystemMessagesWidget::KOnlyLogfile
                             );
-                sendAckUnknown(socket, rootObj, "The 'type' is unknown.");
+                sendAckUnknown(socket, QJsonObject(), "The network package could not be parsed"
+                               " to a QJsonDocument. The json is invalid.");
             }
-        }else{
-            SystemMessagesWidget::instance()->writeMessage(
-                        tr("Invalid json. DATA [%1]").arg(QString(package)),
-                        SystemMessagesWidget::KError,
-                        SystemMessagesWidget::KOnlyLogfile
-                        );
-            sendAckUnknown(socket, QJsonObject(), "The network package could not be parsed"
-                           " to a QJsonDocument. The json is invalid.");
-        }
 
-        waitingForPackage = false;
-        sizeOfPackage = 0;
-    }
+            waitingForPackage = false;
+            sizeOfPackage = 0;
+        }
+    }while( (quint64)socket->bytesAvailable() >= sizeof(quint64) && (!waitingForPackage));
 }
 
 void NetworkCommunication::tcpSocketError(const QAbstractSocket::SocketError socketError)
@@ -441,6 +484,33 @@ void NetworkCommunication::newConnection()
     QTimer *timeout = new QTimer(socket);
     timeout->setInterval(5000);
     timeout->setSingleShot(true);
+
+    QTimer *keepAliveTimer = new QTimer(socket);
+    keepAliveTimer->setObjectName("keepAliveTimer");
+    keepAliveTimer->setInterval(5000);
+    connect(keepAliveTimer,  &QTimer::timeout, [=](){
+        if(!socket){
+            keepAliveTimer->stop();
+            disconnect(keepAliveTimer, &QTimer::timeout, 0,0);
+            keepAliveTimer->deleteLater();
+            return;
+        }
+
+        sendData(socket, "SYN-ALIVE", QJsonObject());
+    });
+
+    QTimer *connectionTimeout = new QTimer(socket);
+    connectionTimeout->setSingleShot(true);
+    connectionTimeout->setObjectName("connectionTimeout");
+
+    connect(connectionTimeout,  &QTimer::timeout, [=](){
+        SystemMessagesWidget::instance()->writeMessage(tr("The connection has been lost due timeout."),
+                                                       SystemMessagesWidget::KInfo,
+                                                       SystemMessagesWidget::KOnlyTextbox);
+        socket->disconnectFromHost();
+        disconnect(connectionTimeout,  &QTimer::timeout,0,0);
+        connectionTimeout->deleteLater();
+    });
 
     connect(socket,
             SIGNAL(readyRead()),
