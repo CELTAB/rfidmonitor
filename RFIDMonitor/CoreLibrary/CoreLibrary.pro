@@ -30,7 +30,8 @@ SOURCES += \
     core/sql/exception/sqlexception.cpp \
     core/sql/exception/sqlstatementexception.cpp \
     core/sql/exception/sqltransactionexception.cpp \
-    core/sql/exception/sqlunknownexception.cpp
+    core/sql/exception/sqlunknownexception.cpp \
+    systemevents.cpp
 
 QMAKE_CXXFLAGS += -std=c++11 -Wmissing-field-initializers
 
@@ -54,7 +55,8 @@ HEADERS += \
     core/sql/exception/sqlexception.h \
     core/sql/exception/sqlstatementexception.h \
     core/sql/exception/sqltransactionexception.h \
-    core/sql/exception/sqlunknownexception.h
+    core/sql/exception/sqlunknownexception.h \
+    systemevents.h
 
 unix:{
     #homePath = $$system(echo $HOME)

@@ -63,7 +63,15 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
     m_restoreTimer.setInterval(10000);
     connect(&m_restoreTimer, &QTimer::timeout, [=](){
         m_configManager->restoreConfig();
+        m_process.kill();
         initMonitor();
+    });
+    qDebug() <<  QString("DEBUG >>>HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+    m_connectionTimer.setSingleShot(true);
+    connect(&m_connectionTimer, &QTimer::timeout, [=](){
+        qDebug() <<  QString("DEBUG >>> Socket aborted!");
+//        m_tcpSocket->abort();
+        m_tcpSocket->disconnectFromHost();
     });
 
     connect(m_localServer, SIGNAL(newConnection()), SLOT(ipcNewConnection()));
@@ -134,6 +142,10 @@ void RFIDMonitorDaemon::ipcNewConnection()
             [this]() {
         ipcConnection = 0;
         qDebug() <<  "RFIDMonitor Disconnected";
+
+        // After 10 seconds try to restart the RFIDMonitor
+        QTimer::singleShot(10000, this, SLOT(initMonitor()));
+
     });
     connect(ipcConnection, SIGNAL(disconnected()), ipcConnection, SLOT(deleteLater()));
     connect(ipcConnection, SIGNAL(error(QLocalSocket::LocalSocketError)), this, SLOT(icpHandleError(QLocalSocket::LocalSocketError)));
@@ -141,6 +153,14 @@ void RFIDMonitorDaemon::ipcNewConnection()
 
 void RFIDMonitorDaemon::tcpConnect()
 {
+
+    qDebug() << "Trying to connect to server";
+
+    if(m_tcpSocket->state() == QTcpSocket::ConnectedState || m_tcpSocket->state() == QTcpSocket::ConnectingState){
+        qDebug() << "Already connect to server";
+        return;
+    }
+
     m_hostName = m_configManager->hostName();
     m_tcpPort = m_configManager->hostPort();
 
@@ -151,10 +171,14 @@ void RFIDMonitorDaemon::tcpConnected()
 {
     qDebug() <<  QString("Connected to %1 on port %2").arg(m_hostName).arg(m_tcpPort );
     tcpSendMessage(m_tcpSocket, buildMessage(m_configManager->identification(), "SYN").toJson());
+    m_connectionTimer.start(8000);
+    qDebug() << "DEBUG >>> m_connectionTimer started";
 }
 
 void RFIDMonitorDaemon::tcpDisconnected()
 {
+    qDebug() << "DEBUG >>> Server disconnected";
+
     if(isConnected){
         QJsonObject obj;
         obj.insert("full", QJsonValue(false));
@@ -169,12 +193,12 @@ void RFIDMonitorDaemon::tcpDisconnected()
 
 void RFIDMonitorDaemon::tcpHandleError(QAbstractSocket::SocketError error )
 {
-    if(error == QAbstractSocket::ConnectionRefusedError){
-        tcpDisconnected();
-        return;
-    }
-
     qDebug() <<  QString("Error: %1 - %2").arg(m_tcpSocket->error()).arg(m_tcpSocket->errorString());
+    tcpDisconnected();
+//    if(error == QAbstractSocket::ConnectionRefusedError){
+//        tcpDisconnected();
+//        return;
+//    }
 }
 
 void RFIDMonitorDaemon::icpHandleError(QLocalSocket::LocalSocketError)
@@ -194,7 +218,7 @@ void RFIDMonitorDaemon::tcpSendMessage(QTcpSocket *con, const QByteArray &messag
 
 void RFIDMonitorDaemon::ipcSendMessage(const QByteArray &message)
 {
-    if(ipcConnection->isOpen()){
+    if(ipcConnection && ipcConnection->isOpen()){
         ipcConnection->write(protocolHeader(message));
         ipcConnection->flush();
     }else{
@@ -232,7 +256,13 @@ QByteArray RFIDMonitorDaemon::protocolHeader(QByteArray message)
 
 void RFIDMonitorDaemon::initMonitor()
 {
-    m_process.kill();
+
+    if(m_process.state() == QProcess::Running || m_process.state() == QProcess::Starting){
+        qDebug() << "initMonitor : RFIDMonitor already running...";
+        return;
+    }
+
+//    m_process.kill();
     m_process.start(QCoreApplication::applicationDirPath() + "/RFIDMonitor");
 
     qDebug() << "Process Started, PID: " << m_process.pid();
@@ -242,7 +272,8 @@ void RFIDMonitorDaemon::initMonitor()
     {
         // Stop the RFIDMonitor
         ipcSendMessage(buildMessage(QJsonObject(), "STOP").toJson());
-        // After 5 seconds try to restart the RFIDMonitor
+
+        // Try to restart monitor after 5 seconds
         QTimer::singleShot(5000, this, SLOT(initMonitor()));
     });
     m_restoreTimer.start();
@@ -264,6 +295,9 @@ void RFIDMonitorDaemon::initMonitor()
  */
 void RFIDMonitorDaemon::routeTcpMessage()
 {
+    m_connectionTimer.start(8000);
+    qDebug() <<  QString("DEBUG >>> Timer restarted");
+
     QTcpSocket *connection = (QTcpSocket *) QObject::sender();
 
     static bool hasPackage = false;
@@ -476,6 +510,16 @@ void RFIDMonitorDaemon::routeIpcMessage()
                         timer->deleteLater();
                     });
                     timer->start();
+                }else{
+                    //If no server connection is available send an SLEEP message to the RFIDMonitor.
+                    QTimer *timer = new QTimer();
+                    timer->setSingleShot(true);
+                    timer->setInterval(1000);
+                    connect(timer, &QTimer::timeout, [=](){
+                        ipcSendMessage(buildMessage(QJsonObject(), "SLEEP").toJson());
+                        timer->deleteLater();
+                    });
+                    timer->start();
                 }
 
                 m_configManager->restartNetwork();
@@ -509,6 +553,7 @@ void RFIDMonitorDaemon::routeIpcMessage()
             }else if (messageType == "STOPPED"){
                 qDebug() << "STOPPED";
                 m_process.kill();
+
                 //        qDebug() << "Process Killed, PID: " << m_process.pid();
             }
             else if (messageType == "ACK-UNKNOWN") {

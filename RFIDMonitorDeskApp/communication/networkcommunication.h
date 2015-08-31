@@ -136,6 +136,17 @@ private:
      */
     void ackNewConfig(QJsonObject jsonObject);
 
+    /**
+     * @brief ackAlive handle the keep alive answer.
+     * @param socket is the connection.
+     */
+    void ackAlive(QTcpSocket *socket);
+
+    /**
+     * @brief m_timeoutValue defines the timeout value in miliseconds.
+     */
+    int m_timeoutValue;
+
 public:
     /**
      * @brief instance is the implementation of singleton pattern for this class.
