@@ -90,7 +90,9 @@ bool ExportLocalData::exportToDevice(QString device)
 //    // turn on red led
 //    m_blinkLed->blinkRedLed(1);
 
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal ExportginNow"));
     emit SystemEvents::instance()->Exporting(SystemEvents::KExportingNow);
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal ExportginNow Emitted"));
 
     bool returnValue = true;
 
@@ -142,10 +144,15 @@ bool ExportLocalData::exportToDevice(QString device)
 //    // turns on the green led
 //    m_blinkLed->blinkGreenLed(1);
 
-   if(returnValue)
-        emit SystemEvents::instance()->Exporting(SystemEvents::KExportingDone);
-   else
-        emit SystemEvents::instance()->General(SystemEvents::KSoftProblem);
+   if(returnValue){
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal KExportingDone"));
+       emit SystemEvents::instance()->Exporting(SystemEvents::KExportingDone);
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal KExportingDone Emitted"));
+   }else{
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal KSoftProblem"));
+       emit SystemEvents::instance()->General(SystemEvents::KSoftProblem);
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal KSoftProblem Emitted"));
+   }
 
 
     // return true only if the data was successfully exported

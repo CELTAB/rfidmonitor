@@ -122,6 +122,8 @@ void Reader_MRI2000::write(QString command)
         } else {
             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not write command %1 into device").arg(command));
         }
+    }else{
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Serial device is not open"));
     }
 }
 
@@ -368,6 +370,8 @@ void Reader_MRI2000::writeLosingData()
 
     //red off
     write("0x0E");
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeLosingData DONE"));
 }
 
 void Reader_MRI2000::writeRunningSmooth()
@@ -379,10 +383,12 @@ void Reader_MRI2000::writeRunningSmooth()
     //green on
     write("0x1D");
 
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeRunningSmooth DELAY"));
     delay(1);
 
     //red off
     write("0x0E");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeRunningSmooth DONE"));
 }
 
 void Reader_MRI2000::writeSoftProblem()
@@ -396,6 +402,7 @@ void Reader_MRI2000::writeSoftProblem()
 
     //red on
     write("0x1E");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeSoftProblem DONE"));
 }
 
 void Reader_MRI2000::writeExportingNow()
@@ -408,9 +415,11 @@ void Reader_MRI2000::writeExportingNow()
     write("0x1D");
 
     delay(1);
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeExportingNow DELAY"));
 
     //red on
     write("0x1E");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("MRI2000 writeExportingNow DEBUG"));
 }
 
 void Reader_MRI2000::SysGeneralEvent(SystemEvents::GeneralEvent event)
