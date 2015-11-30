@@ -113,18 +113,26 @@ void Reader_MRI2000::write(QString command)
 {
     Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Try to write command %1 into device").arg(command));
 
-    if(m_serial->isOpen()){
-        //        convert QString to number
-        bool parseOK;
-        int parsedValue = command.toInt(&parseOK, 16);
-        if(parseOK){
-            m_serial->write(reinterpret_cast<char*>(&parsedValue), sizeof(int));
-        } else {
-            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not write command %1 into device").arg(command));
+    try {
+        if(m_serial->isOpen()){
+            //        convert QString to number
+            bool parseOK;
+            int parsedValue = command.toInt(&parseOK, 16);
+            if(parseOK){
+                if( (m_serial->write(reinterpret_cast<char*>(&parsedValue), sizeof(int))) == -1 ){
+                    Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Error while writing"));
+                }
+            } else {
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not write command %1 into device").arg(command));
+            }
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Serial device is not open"));
         }
-    }else{
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Serial device is not open"));
+    } catch (...) {
+        Logger::instance()->writeRecord(Logger::severity_level::error, m_module, Q_FUNC_INFO, QString("Unknown error while trying to write."));
     }
+
+
 }
 
 void Reader_MRI2000::readData()
@@ -306,7 +314,7 @@ void Reader_MRI2000::start()
         Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Could not open device %1 - Error %2").arg(device).arg(m_serial->errorString()));
         emit SystemEvents::instance()->General(SystemEvents::KLosingData);
         // create class invalid_device exception on core Module
-        QTimer::singleShot(1000, this, SLOT(start()));
+        QTimer::singleShot(30000, this, SLOT(start()));
     }else{
         m_serial->setBaudRate(QSerialPort::Baud9600);
         m_serial->setDataBits(QSerialPort::Data8);

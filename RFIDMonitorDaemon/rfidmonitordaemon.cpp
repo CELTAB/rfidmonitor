@@ -324,6 +324,10 @@ void RFIDMonitorDaemon::routeTcpMessage()
             json::NodeJSMessage nodeMessage;
 
             nodeMessage.read(QJsonDocument::fromJson(data).object());
+
+            QJsonObject tmpObj = QJsonDocument::fromJson(data).object();
+            qDebug() << QString("Raw datetime obj: %1").arg(tmpObj["datetime"].toString());
+
             QString messageType(nodeMessage.type());
 
             qDebug() << QString("New TCP Message Received: %1").arg(messageType);
@@ -339,6 +343,8 @@ void RFIDMonitorDaemon::routeTcpMessage()
                 if(!obj.isEmpty()){
                     m_configManager->setIdentification(obj);
                 }
+
+                qDebug() << QString("ACK-SYN received date: %1").arg(nodeMessage.dateTime().toString("dd/MM/yyyy hh:mm:ss"));
 
                 bool statusDateTime = m_configManager->setDateTime(nodeMessage.dateTime());
                 QJsonObject response = m_configManager->identification();

@@ -108,6 +108,8 @@ bool ExportLocalData::exportToDevice(QString device)
             // name of file to save on device (absolute path)
             QString destinationPath(device + "/export_" + QDateTime::currentDateTime().toString().replace(" ", "_").replace(":","") + ".fish");
 
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exported file is gonna be %1").arg(destinationPath));
+
             // If the temp file doesn't exist, has nothing to be exported
             if(QFile::exists(m_fileName)){
                 if(QFile::copy(m_fileName, destinationPath)){
@@ -163,10 +165,15 @@ void ExportLocalData::exportAction(QString path)
 {
     QMutexLocker locker(&m_mutex);
     if(path == "temp"){
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("(path == 'temp')"));
         exportToTempFile();
     } else {
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("(path != 'temp')"));
+
         if(exportToDevice(path)){
             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exportation finished"));
+        }else{
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString(" ! exportToDevice(path)"));
         }
     }
 }
@@ -200,15 +207,18 @@ bool ExportLocalData::exportToTempFile()
             QMap<QString, QByteArray> allData = packager->getAll();
             QMap<QString, QByteArray>::iterator i;
 
+            Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("allData size %1").arg(allData.size()));
+
             // if have no packets to be exported, turns off the red led (after 1 seconds) and than return.
             if(allData.size() <= 0){
-                // Turn off the red LED after 1 second
-                QTimer timer;
-                timer.start(1000);
-                while(timer.remainingTime() > 0)
-                    ;
-                // turn off red led
-                m_blinkLed->blinkRedLed(0);
+//                // Turn off the red LED after 1 second
+//                QTimer timer;
+//                timer.start(1000);
+//                while(timer.remainingTime() > 0)
+//                    ;
+//                // turn off red led
+//                m_blinkLed->blinkRedLed(0);
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("allData.size() <= 0. So returning true."));
                 return true;
             }
             Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Exporting %1 Packets to %2").arg(allData.size()).arg(m_fileName));
@@ -219,7 +229,7 @@ bool ExportLocalData::exportToTempFile()
             QJsonArray loadDoc(QJsonDocument::fromJson(saveData).array());
 
             // turn on red led
-            m_blinkLed->blinkRedLed(1);
+//            m_blinkLed->blinkRedLed(1);
 
             // try to open a file to write the records to be exported. Return false if the file cannot be opened for some reason
             if (!tempFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
@@ -228,29 +238,43 @@ bool ExportLocalData::exportToTempFile()
             }
 
             if(allData.size() > 0){
+
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("(allData.size() > 0)"));
+
                 for(i = allData.begin(); i != allData.end(); ++i){
                     loadDoc.append(QJsonValue(QJsonDocument::fromJson(i.value()).object()));
                 }
+
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("loadDoc count %1").arg(loadDoc.count()));
+
                 tempFile.write(QJsonDocument(loadDoc).toJson());
                 tempFile.flush();
 
                 // close the file
                 tempFile.close();
 
-                // Turn off the red LED after 1 second
-                QTimer timer;
-                timer.start(1000);
-                while(timer.remainingTime() > 0)
-                    ;
-                // turn off red led
-                m_blinkLed->blinkRedLed(0);
+//                // Turn off the red LED after 1 second
+//                QTimer timer;
+//                timer.start(1000);
+//                while(timer.remainingTime() > 0)
+//                    ;
+//                // turn off red led
+//                m_blinkLed->blinkRedLed(0);
+
+                Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("File written."));
+                //Done
+                return true;
             }
+
+            Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Returning false in a not expected place."));
+            return false;
+
         }else{
             Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Packager is not working!"));
             return false;
         }
     }else{
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "synchronizer", Q_FUNC_INFO, QString("Connected to server. Nothing to do here."));
         return false;
     }
-    return true;
 }

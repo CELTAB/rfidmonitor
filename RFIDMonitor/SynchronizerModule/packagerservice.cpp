@@ -84,15 +84,18 @@ QMap<QString, QByteArray> PackagerService::getAll()
     collectorId = RFIDMonitor::instance()->idCollector();
     collectorName = RFIDMonitor::instance()->collectorName();
 
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Checking packets.");
+
     QList<Packet *> packetListNew = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KNew);
 
     QMap<QString, QByteArray> packets;
     // insert in the packets all data with KNew status
-    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Inserting on packets.");
     foreach (Packet *p, packetListNew) {
         packets.insert(p->md5hash().toString(), p->jsonData().toByteArray());
-        Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, p->md5hash().toString());
+        //Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, p->md5hash().toString());
     }
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, QString("GRV packetListNew size %1").arg(packetListNew.size()));
 
     //----  TEMP - DON'T REMOVE
     if(RFIDMonitor::instance()->isconnected()){
@@ -101,7 +104,11 @@ QMap<QString, QByteArray> PackagerService::getAll()
         foreach (Packet *pa, packetListPending) {
             packets.insert(pa->md5hash().toString(), pa->jsonData().toByteArray());
         }
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, QString("GRV packetListPending size %1").arg(packetListPending.size()));
+    }else{
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, QString("GRV no connection to server .We are not generating pending packets"));
     }
+
 
     if(!packetListNew.isEmpty()){
         /*
@@ -109,6 +116,8 @@ QMap<QString, QByteArray> PackagerService::getAll()
          * Only God knows why.
          * Dont believe? remove this 'if' check the size of the list and let 'pack->deleteLater()' run to see the magic.
         */
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "GRV packetListNew is not empty. Bug skipped :)");
+
         foreach (Packet *pack, packetListNew) {
             pack->setStatus((int)Packet::Status::KConfimationPending);
             PacketDAO::instance()->updateObject(pack);
