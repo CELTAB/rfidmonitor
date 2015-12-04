@@ -7,6 +7,7 @@
 #include <QSqlDatabase>
 #include <QSqlRecord>
 #include <QSharedPointer>
+#include <QJsonDocument>
 #include <logger.h>
 
 #include <rfidmonitor.h>
@@ -71,13 +72,12 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
 
         //Create the query.
         SqlQuery query(db);
-        query.prepare("insert into rfiddata (id, idantena, idpontocoleta, applicationcode, identificationcode, datetime, sync) "
-                      " values(:id, :idantena, :idpontocoleta, :applicationcode, :identificationcode, :datetime, :sync) ");
+        query.prepare("insert into rfiddata (id, rfidcode, extra_data, datetime, sync) "
+                      " values(:id, :rfidcode, :extra_data, :datetime, :sync) ");
         query.bindValue(":id", rfiddata->id());
-        query.bindValue(":idantena", rfiddata->idantena());
-        query.bindValue(":idpontocoleta", rfiddata->idpontocoleta());
-        query.bindValue(":applicationcode", rfiddata->applicationcode());
-        query.bindValue(":identificationcode", rfiddata->identificationcode());
+        query.bindValue(":rfidcode", rfiddata->rfidcode());
+        QJsonDocument extraDataDoc(rfiddata->extraData());
+        query.bindValue(":extra_data", QString(extraDataDoc.toJson(QJsonDocument::Compact)));
         query.bindValue(":datetime", rfiddata->datetime());
         query.bindValue(":sync", rfiddata->sync());
 
@@ -116,16 +116,14 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
 
             //Create the query.
             SqlQuery query(db);
-            query.prepare("insert into rfiddata (id, idantena, idpontocoleta, applicationcode, identificationcode, datetime, sync) "
-                          " values(:id, :idantena, :idpontocoleta, :applicationcode, :identificationcode, :datetime, :sync) ");
+            query.prepare("insert into rfiddata (id, rfidcode, extra_data, datetime, sync) "
+                          " values(:id, :rfidcode, :extra_data, :datetime, :sync) ");
             query.bindValue(":id", rfiddata->id());
-            query.bindValue(":idantena", rfiddata->idantena());
-            query.bindValue(":idpontocoleta", rfiddata->idpontocoleta());
-            query.bindValue(":applicationcode", rfiddata->applicationcode());
-            query.bindValue(":identificationcode", rfiddata->identificationcode());
+            query.bindValue(":rfidcode", rfiddata->rfidcode());
+            QJsonDocument extraDataDoc(rfiddata->extraData());
+            query.bindValue(":extra_data", QString(extraDataDoc.toJson(QJsonDocument::Compact)));
             query.bindValue(":datetime", rfiddata->datetime());
             query.bindValue(":sync", rfiddata->sync());
-
             // Execute the query.
             query.exec();
         }
@@ -133,7 +131,7 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
         // Commit and terminate the transaction.
         db->commit();
 
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA INSERTED...");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA [LIST] INSERTED...");
 
         return true;
 
@@ -167,13 +165,12 @@ bool RfiddataDAO::updateObject(Rfiddata *rfiddata)
 
     try{
         SqlQuery query(db);
-        query.prepare("update rfiddata set idantena = :idantena, idpontocoleta = :idpontocoleta, applicationcode = :applicationcode, identificationcode = :identificationcode, "
+        query.prepare("update rfiddata set rfidcode = :rfidcode, extra_data = :extra_data, "
                       "datetime = :datetime, sync = :sync where id = :id ");
         query.bindValue(":id", rfiddata->id());
-        query.bindValue(":idantena", rfiddata->idantena());
-        query.bindValue(":idpontocoleta", rfiddata->idpontocoleta());
-        query.bindValue(":applicationcode", rfiddata->applicationcode());
-        query.bindValue(":identificationcode", rfiddata->identificationcode());
+        query.bindValue(":rfidcode", rfiddata->rfidcode());
+        QJsonDocument extraDataDoc(rfiddata->extraData());
+        query.bindValue(":extra_data", QString(extraDataDoc.toJson(QJsonDocument::Compact)));
         query.bindValue(":datetime", rfiddata->datetime());
         query.bindValue(":sync", rfiddata->sync());
         query.exec();
@@ -208,13 +205,12 @@ bool RfiddataDAO::updateObjectList(const QList<Rfiddata *> &list)
         foreach (Rfiddata *rfiddata, list) {
 
             SqlQuery query(db);
-            query.prepare("update rfiddata set idantena = :idantena, idpontocoleta = :idpontocoleta, applicationcode = :applicationcode, identificationcode = :identificationcode, "
+            query.prepare("update rfiddata set rfidcode = :rfidcode, extra_data = :extra_data, "
                           "datetime = :datetime, sync = :sync where id = :id ");
             query.bindValue(":id", rfiddata->id());
-            query.bindValue(":idantena", rfiddata->idantena());
-            query.bindValue(":idpontocoleta", rfiddata->idpontocoleta());
-            query.bindValue(":applicationcode", rfiddata->applicationcode());
-            query.bindValue(":identificationcode", rfiddata->identificationcode());
+            query.bindValue(":rfidcode", rfiddata->rfidcode());
+            QJsonDocument extraDataDoc(rfiddata->extraData());
+            query.bindValue(":extra_data", QString(extraDataDoc.toJson(QJsonDocument::Compact)));
             query.bindValue(":datetime", rfiddata->datetime());
             query.bindValue(":sync", rfiddata->sync());
             query.exec();
@@ -312,7 +308,7 @@ Rfiddata * RfiddataDAO::getById(qlonglong id, QObject *parent)
 
     try{
         SqlQuery query(db);
-        query.prepare("select id, idantena, idpontocoleta, applicationcode, identificationcode, datetime sync from rfiddata  where id = :id ");
+        query.prepare("select id, rfidcode, extra_data, datetime, sync from rfiddata  where id = :id ");
         query.bindValue(":id", id);
         query.exec();
         Rfiddata *rfiddata = 0;
@@ -345,7 +341,7 @@ QList<Rfiddata *> RfiddataDAO::getAll(QObject *parent)
 
     try{
         SqlQuery query(db);
-        query.prepare("select id, idantena, idpontocoleta, applicationcode, identificationcode, datetime sync from rfiddata ");
+        query.prepare("select id, rfidcode, extra_data, datetime, sync from rfiddata ");
         query.exec();
         while(query.next()){
             /* If the parent is not set to the rfiddata object, it will be destroyed when this "getById" is done, causing
@@ -374,6 +370,12 @@ QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant 
 {
     QList<Rfiddata *> list;
 
+    if(ColumnObject == QString("extra_data")){
+        Logger::instance()->writeRecord(Logger::severity_level::critical, m_module, Q_FUNC_INFO, QString("RfiddataDAO::getByMatch not supported for 'extra_data' column"));
+        emit SystemEvents::instance()->General(SystemEvents::KSoftProblem);
+        return list;
+    }
+
     // Get the connection with the database.
     QSqlDatabase *db = ConnectionPool::instance()->systemConnection();
 
@@ -382,7 +384,7 @@ QList<Rfiddata *> RfiddataDAO::getByMatch(const QString &ColumnObject, QVariant 
         /* Creates the "where" restriction with the column name from "ColumnObject" parameter.
          * and the value of it with "value".
          */
-        QString sqlQuery = QString("select id, idantena, idpontocoleta, applicationcode, identificationcode, datetime sync from rfiddata  where %1 = :value ").arg(ColumnObject);
+        QString sqlQuery = QString("select id, rfidcode, extra_data, datetime, sync from rfiddata  where %1 = :value ").arg(ColumnObject);
         query.prepare(sqlQuery);
         query.bindValue(":value", value);
         query.exec();

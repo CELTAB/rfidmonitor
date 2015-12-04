@@ -76,10 +76,8 @@ QSqlDatabase * ConnectionPool::systemConnection()
 
             QString createtable = QString(QString("CREATE  TABLE IF NOT EXISTS `rfiddata` (\n") +
                                           QString("  `id` INT(16) NOT NULL,\n") +
-                                          QString("  `idantena` int(16) NOT NULL,\n") +
-                                          QString("  `idpontocoleta` int(16) NOT NULL,\n") +
-                                          QString("  `applicationcode` int(16) NOT NULL,\n") +
-                                          QString("  `identificationcode` int(16) NOT NULL,\n") +
+                                          QString("  `rfidcode` int(16) NOT NULL,\n") +
+                                          QString("  `extra_data` TEXT NOT NULL,\n") +
                                           QString("  `datetime` datetime NOT NULL,\n") +
                                           QString("  `sync` int(2) NOT NULL,\n") +
                                           QString("  PRIMARY KEY (`id`) );\n"));

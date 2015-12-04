@@ -149,7 +149,7 @@ void PackagerService::generatePackets()
 {
     QMutexLocker locker(&m_mutex);
 
-    //    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Generating packets...");
     static PersistenceInterface *persistence = 0;
     if(!persistence){
         persistence = qobject_cast<PersistenceInterface *>(RFIDMonitor::instance()->defaultService(ServiceType::KPersister));
@@ -174,10 +174,8 @@ void PackagerService::generatePackets()
             data.at(currentIndex)->setSync(Rfiddata::KSynced);
             json::Data d;
             d.setId(data[currentIndex]->id().toInt());
-            d.setIdcollectorPoint(data[currentIndex]->idpontocoleta().toInt());
-            d.setIdantena(data[currentIndex]->idantena().toInt());
-            d.setIdentificationCode(data[currentIndex]->identificationcode().toLongLong());
-            d.setApplicationCode(data[currentIndex]->applicationcode().toLongLong());
+            d.setRfidCode(data[currentIndex]->rfidcode().toLongLong());
+            d.setExtraData(data[currentIndex]->extraData());
             d.setDateTime(data[currentIndex]->datetime().toDateTime());
             rfidList.append(d);
         }

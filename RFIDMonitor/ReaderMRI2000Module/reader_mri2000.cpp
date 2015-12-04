@@ -39,6 +39,7 @@
 #include <QTextStream>
 #include <QtConcurrent/QtConcurrent>
 #include <QTime>
+#include <QJsonObject>
 
 #include <iostream>
 #include <ctime>
@@ -164,12 +165,13 @@ void Reader_MRI2000::readData()
                 }
 
                 // Id collector from configuration file
-                data->setIdpontocoleta(idCollector);
+//                data->setIdpontocoleta(idCollector);
 
                 //The character 3 from string is the number of antenna: TAG[5]W...
-                data->setIdantena(match.captured(0).at(3).digitValue());
-
-
+//                data->setIdantena(match.captured(0).at(3).digitValue());
+                QJsonObject extraData;
+                extraData.insert("idAntena", QJsonValue(match.captured(0).at(3).digitValue()));
+                data->setExtraData(extraData);
 
                 //Try to convert the code of 16 characters, from hexa to decimal.
                 bool hexaConvertion;
@@ -183,7 +185,7 @@ void Reader_MRI2000::readData()
                 }
 
 //                qlonglong applicationcode = deciCode.left(4).toLongLong();
-                qlonglong applicationcode = 0;
+//                qlonglong applicationcode = 0;
 //                qlonglong identificationcode = deciCode.remove(deciCode.left(4)).toLongLong();
                 qlonglong identificationcode = deciCode.toLongLong();
 
@@ -206,9 +208,10 @@ void Reader_MRI2000::readData()
                 //                    timer->start();
 
                 //From the full code, the leftmost 4 are the application core.
-                data->setApplicationcode(applicationcode);
+//                data->setApplicationcode(applicationcode);
                 //From the full code, removing the application code, there is the identification code
-                data->setIdentificationcode(identificationcode);
+//                data->setIdentificationcode(identificationcode);
+                data->setRfidcode(identificationcode);
                 //Take the current date and set on the object
                 data->setDatetime(QDateTime::currentDateTime());
                 //Set the object as NotSynced

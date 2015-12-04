@@ -17,14 +17,12 @@ Rfiddata::Rfiddata(QObject *parent) :
 Rfiddata::Rfiddata(const QSqlRecord &record, QObject *parent) :
     QObject(parent)
 {
-    // id, idantena, idpontocoleta, applicationcode, identificationcode, datetime, synced
+    // id, rfidcode, extra_data, datetime, sync
 	setId(record.value(0));
-	setIdantena(record.value(1));
-    setIdpontocoleta(record.value(2));
-    setApplicationcode(record.value(3));
-    setIdentificationcode(record.value(4));
-    setDatetime(record.value(5));
-    setSync(record.value(6));
+    setRfidcode(record.value(1));
+    setExtraData(QJsonDocument::fromJson(record.value(2).toString().toUtf8()).object());
+    setDatetime(record.value(3));
+    setSync(record.value(4));
 }
 
 QVariant Rfiddata::id() const
@@ -37,45 +35,14 @@ void Rfiddata::setId(QVariant value)
     m_id = value.toLongLong();
 }
 
-// Getters y Setters Definitions
-QVariant Rfiddata::idantena() const
+QVariant Rfiddata::rfidcode() const
 {
-	return m_idantena;
+    return m_rfidcode;
 }
 
-void Rfiddata::setIdantena(QVariant value)
+void Rfiddata::setRfidcode(QVariant value)
 {
-    m_idantena = value.toLongLong();
-}
-
-QVariant Rfiddata::idpontocoleta() const
-{
-    return m_idpontocoleta;
-}
-
-void Rfiddata::setIdpontocoleta(QVariant value)
-{
-    m_idpontocoleta = value.toLongLong();
-}
-
-QVariant Rfiddata::applicationcode() const
-{
-	return m_applicationcode;
-}
-
-void Rfiddata::setApplicationcode(QVariant value)
-{
-    m_applicationcode = value.toInt();
-}
-
-QVariant Rfiddata::identificationcode() const
-{
-	return m_identificationcode;
-}
-
-void Rfiddata::setIdentificationcode(QVariant value)
-{
-	m_identificationcode = value.toLongLong();
+    m_rfidcode = value.toLongLong();
 }
 
 QVariant Rfiddata::datetime() const
@@ -86,6 +53,16 @@ QVariant Rfiddata::datetime() const
 void Rfiddata::setDatetime(QVariant value)
 {
     m_datetime = value.toDateTime();
+}
+
+QJsonObject Rfiddata::extraData() const
+{
+    return m_extradata;
+}
+
+void Rfiddata::setExtraData(QJsonObject value)
+{
+    m_extradata = value;
 }
 
 QVariant Rfiddata::sync() const

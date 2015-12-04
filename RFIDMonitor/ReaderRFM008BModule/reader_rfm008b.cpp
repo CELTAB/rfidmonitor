@@ -116,6 +116,9 @@ void Reader_RFM008B::write(QString command)
 
 void Reader_RFM008B::readData()
 {
+    //TODO TEST
+    Logger::instance()->writeRecord(Logger::severity_level::warning, m_module, Q_FUNC_INFO, QString("Module not tested after rfidata structure updated."));
+
     if(m_serial->canReadLine()){
         if(!allLines){
 
@@ -155,20 +158,24 @@ void Reader_RFM008B::readData()
                     Rfiddata *data = new Rfiddata(this);
 
                     // Id collector from configuration file
-                    data->setIdpontocoleta(idCollector);
+//                    data->setIdpontocoleta(idCollector);
 
                     // This module can read from only one antena, so the idAntena is static.
                     int idAntena = 1;
-                    data->setIdantena(idAntena);
+//                    data->setIdantena(idAntena);
+                    QJsonObject extraData;
+                    extraData.insert("idAntena", QJsonValue(idAntena));
+                    data->setExtraData(extraData);
 
-                    qlonglong applicationcode = match.captured(1).toLongLong();
-                    qlonglong identificationcode = match.captured(3).toLongLong();
+//                    qlonglong applicationcode = match.captured(1).toLongLong();
+//                    qlonglong identificationcode = match.captured(3).toLongLong();
+                    qlonglong rfidcode = match.captured(0).right(16).toLongLong();
 
                     /*
                  * Filter by time. If more than one transponder was read in a time interval only one of them will be persisted.
                  * A QMap is used to verify if each new data that had arrived was already read in this interval.
                  */
-                    if(!m_map.contains(identificationcode)){
+                    if(!m_map.contains(rfidcode)){
 
                         QTimer *timer = new QTimer;
                         timer->setSingleShot(true);
@@ -176,14 +183,15 @@ void Reader_RFM008B::readData()
                         connect(timer, &QTimer::timeout,
                                 [=, this]()
                         {
-                            this->m_map.remove(identificationcode);
+                            this->m_map.remove(rfidcode);
                             timer->deleteLater();
                         });
-                        m_map.insert(identificationcode, timer);
+                        m_map.insert(rfidcode, timer);
                         timer->start();
 
-                        data->setApplicationcode(applicationcode);
-                        data->setIdentificationcode(identificationcode);
+//                        data->setApplicationcode(applicationcode);
+//                        data->setIdentificationcode(identificationcode);
+                        data->setRfidcode(rfidcode);
                         data->setDatetime(QDateTime::currentDateTime());
                         data->setSync(Rfiddata::KNotSynced);
 

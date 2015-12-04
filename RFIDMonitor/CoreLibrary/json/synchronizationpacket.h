@@ -11,27 +11,19 @@ public:
     int id() const;
     void setId(int id);
 
-    int idcollectorPoint() const;
-    void setIdcollectorPoint(int idcollectorPoint);
-
-    int idantena() const;
-    void setIdantena(int idantena);
-
-    qlonglong identificationCode() const;
-    void setIdentificationCode(qlonglong identificationCode);
-
-    qlonglong applicationCode() const;
-    void setApplicationCode(qlonglong applicationCode);
+    qlonglong rfidCode() const;
+    void setRfidCode(qlonglong rfidCode);
 
     QDateTime dateTime() const;
     void setDateTime(const QDateTime &dateTime);
 
+    QJsonObject extraData() const;
+    void setExtraData(const QJsonObject extraData);
+
 private:
     int m_id;
-    int m_idcollectorPoint;
-    int m_idantena;
-    qlonglong m_identificationCode;
-    qlonglong m_applicationCode;
+    qlonglong m_rfidcode;
+    QJsonObject m_extraData;
     QDateTime m_dateTime;
 
     // JsonRWInterface interface
@@ -43,12 +35,6 @@ public:
 class DataSummary : public JsonRWInterface
 {
 public:
-    int idBegin() const;
-    void setIdBegin(int idBegin);
-
-    int idEnd() const;
-    void setIdEnd(int idEnd);
-
     QString md5diggest() const;
     void setMd5diggest(const QString &md5diggest);
 
@@ -56,8 +42,6 @@ public:
     void setData(const QList<Data> &data);
 
 private:
-    int m_idBegin;
-    int m_idEnd;
     QString m_md5diggest;
     QList<Data> m_data;
 
