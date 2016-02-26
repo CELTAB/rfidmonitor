@@ -27,6 +27,9 @@ To be able to configure the system we created a humble application that provides
 * MAC address (this one is readonly)
 * Server address/port
 
+### RFIDMonitor Platform
+The RFIDMonitor Platform ystem is responsible for communicates with the Collecting Point to exchange information and to save all the collected data into the database. Also offers an RestFul API to consume those data and a web-based user interface for administration. [RFIDMonitor Platform](https://github.com/CELTAB/rfidmonitor-platform).
+
 For more information/documentation go to wiki.celtab.org.br/index.php/RFIDMonitor
 
 ## Downloads
