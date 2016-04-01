@@ -46,6 +46,7 @@
 #include <json/nodejsmessage.h>
 #include <json/synchronizationpacket.h>
 #include <rfidmonitor.h>
+#include <systemevents.h>
 
 #include "object/rfiddata.h"
 
@@ -82,12 +83,16 @@ void ExportLocalData::startExport()
 // Export temporary file to an external device.
 bool ExportLocalData::exportToDevice(QString device)
 {
-    // turns off leds red and green
-    m_blinkLed->blinkGreenLed(0);
-    m_blinkLed->blinkRedLed(0);
+//    // turns off leds red and green
+//    m_blinkLed->blinkGreenLed(0);
+//    m_blinkLed->blinkRedLed(0);
 
-    // turn on red led
-    m_blinkLed->blinkRedLed(1);
+//    // turn on red led
+//    m_blinkLed->blinkRedLed(1);
+
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal ExportginNow"));
+    emit SystemEvents::instance()->Exporting(SystemEvents::KExportingNow);
+    Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal ExportginNow Emitted"));
 
     bool returnValue = true;
 
@@ -127,13 +132,28 @@ bool ExportLocalData::exportToDevice(QString device)
         returnValue = false;
     }
 
-    // wait five(5) seconds before turn off the red led
+    /* Waiting 5 seconds to change the SystemEvents.
+     * This let user know the exportating is being done, because sometimes
+     * the system does the process faster than the user can see.
+    */
     while(timer.remainingTime() > 0)
         ;
-    // turns off the red led
-    m_blinkLed->blinkRedLed(0);
-    // turns on the green led
-    m_blinkLed->blinkGreenLed(1);
+
+//    // turns off the red led
+//    m_blinkLed->blinkRedLed(0);
+//    // turns on the green led
+//    m_blinkLed->blinkGreenLed(1);
+
+   if(returnValue){
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal KExportingDone"));
+       emit SystemEvents::instance()->Exporting(SystemEvents::KExportingDone);
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal KExportingDone Emitted"));
+   }else{
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Emitting signal KSoftProblem"));
+       emit SystemEvents::instance()->General(SystemEvents::KSoftProblem);
+       Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("Signal KSoftProblem Emitted"));
+   }
+
 
     // return true only if the data was successfully exported
     return returnValue;
@@ -151,7 +171,7 @@ void ExportLocalData::exportAction(QString path)
     }
 }
 
-// SLOT
+//Called when usb device is removed.
 void ExportLocalData::turnOffLed()
 {
     m_blinkLed->blinkGreenLed(0);

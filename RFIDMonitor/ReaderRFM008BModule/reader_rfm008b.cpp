@@ -73,6 +73,9 @@ Reader_RFM008B::Reader_RFM008B(QObject *parent) :
     //    }
     if (fileCaptured.open(QFile::WriteOnly)){
         m_outCaptured.setDevice(&fileCaptured);
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("rfidmonitor_captured opened"));
+    }else{
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("rfidmonitor_captured not open"));
     }
 }
 

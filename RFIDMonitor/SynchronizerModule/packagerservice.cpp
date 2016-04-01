@@ -88,24 +88,32 @@ QMap<QString, QByteArray> PackagerService::getAll()
 
     QMap<QString, QByteArray> packets;
     // insert in the packets all data with KNew status
+    Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "Inserting on packets.");
     foreach (Packet *p, packetListNew) {
         packets.insert(p->md5hash().toString(), p->jsonData().toByteArray());
+        Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, p->md5hash().toString());
     }
 
-//----  TEMP - DON'T REMOVE
-//    if(RFIDMonitor::instance()->isconnected()){
-//        //Logger::instance()->writeRecord(Logger::severity_level::debug, "PackagerService", Q_FUNC_INFO, "ADDING PENDING PACKETES...");
-//        QList<Packet *> packetListPending = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KConfimationPending);
-//        // Alson insert the packets with KConfirmationPending status to retry send it to the server.
-//        foreach (Packet *pa, packetListPending) {
-//            packets.insert(pa->md5hash().toString(), pa->jsonData().toByteArray());
-//        }
-//    }
+    //----  TEMP - DON'T REMOVE
+    if(RFIDMonitor::instance()->isconnected()){
+        QList<Packet *> packetListPending = PacketDAO::instance()->getByMatch("status", (int)Packet::Status::KConfimationPending);
+        // Alson insert the packets with KConfirmationPending status to retry send it to the server.
+        foreach (Packet *pa, packetListPending) {
+            packets.insert(pa->md5hash().toString(), pa->jsonData().toByteArray());
+        }
+    }
 
-    foreach (Packet *pack, packetListNew) {
-        pack->setStatus((int)Packet::Status::KConfimationPending);
-        PacketDAO::instance()->updateObject(pack);
-        pack->deleteLater();
+    if(!packetListNew.isEmpty()){
+        /*
+         * WTF warning. This "if(!packetListNew.isEmpty())" has been added because the foreach was executing deleteLater on a phanton object.
+         * Only God knows why.
+         * Dont believe? remove this 'if' check the size of the list and let 'pack->deleteLater()' run to see the magic.
+        */
+        foreach (Packet *pack, packetListNew) {
+            pack->setStatus((int)Packet::Status::KConfimationPending);
+            PacketDAO::instance()->updateObject(pack);
+            pack->deleteLater();
+        }
     }
 
     return packets;
