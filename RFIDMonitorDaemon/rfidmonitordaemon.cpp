@@ -66,7 +66,6 @@ RFIDMonitorDaemon::RFIDMonitorDaemon(QObject *parent) :
         m_process.kill();
         initMonitor();
     });
-    qDebug() <<  QString("DEBUG >>>HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
     m_connectionTimer.setSingleShot(true);
     connect(&m_connectionTimer, &QTimer::timeout, [=](){
         qDebug() <<  QString("DEBUG >>> Socket aborted!");

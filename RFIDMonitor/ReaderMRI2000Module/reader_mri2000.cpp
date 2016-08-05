@@ -147,6 +147,8 @@ void Reader_MRI2000::readData()
 
             if(match.hasMatch()) {
 
+                Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("New data matched [%1]").arg(hardData));
+
                 //Here the matched string must be like "TAG5W 001 0000000295901506"
                 Rfiddata *data = new Rfiddata(this);
 

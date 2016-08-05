@@ -113,14 +113,16 @@ void Data::read(const QJsonObject &json)
     m_id = json["id"].toVariant().toInt();
     m_idcollectorPoint = json["idcollectorpoint"].toVariant().toInt();
     m_idantena = json["idantena"].toVariant().toInt();
-    m_applicationCode = json["applicationcode"].toVariant().toInt();
-    m_identificationCode = json["identificationcode"].toVariant().toInt();
+//    m_applicationCode = json["applicationcode"].toVariant().toInt();
+//    m_identificationCode = json["identificationcode"].toVariant().toInt();
+    m_applicationCode = json["applicationcode"].toVariant().toLongLong();
+    m_identificationCode = json["identificationcode"].toVariant().toLongLong();
 #else
     m_id = json["id"].toInt();
     m_idcollectorPoint = json["idcollectorpoint"].toInt();
     m_idantena = json["idantena"].toInt();
-    m_applicationCode = json["applicationcode"].toInt();
-    m_identificationCode = json["identificationcode"].toInt();
+    m_applicationCode = json["applicationcode"].toString().toLongLong();
+    m_identificationCode = json["identificationcode"].toString().toLongLong();
 #endif // QT_VERSION < 0x050200
     QString dateTime = json["datetime"].toString();
     m_dateTime = QDateTime::fromString(json["datetime"].toString(), Qt::ISODate);
@@ -131,13 +133,13 @@ void Data::write(QJsonObject &json) const
     json["id"] = m_id;
     json["idcollectorpoint"] = m_idcollectorPoint;
     json["idantena"] = m_idantena;
-#if QT_VERSION < 0x050200
-    json["applicationcode"] = (int)m_applicationCode;
-    json["identificationcode"] = (int)m_identificationCode;
-#else
-    json["applicationcode"] = m_applicationCode;
-    json["identificationcode"] = m_identificationCode;
-#endif // QT_VERSION < 0x050200
+//#if QT_VERSION < 0x050200
+//    json["applicationcode"] = (int)m_applicationCode;
+//    json["identificationcode"] = (int)m_identificationCode;
+//#else
+    json["applicationcode"] = QString::number(m_applicationCode);
+    json["identificationcode"] = QString::number(m_identificationCode);
+//#endif // QT_VERSION < 0x050200
     QString dateTime = m_dateTime.toString(Qt::ISODate);
     json["datetime"] = dateTime;
 }

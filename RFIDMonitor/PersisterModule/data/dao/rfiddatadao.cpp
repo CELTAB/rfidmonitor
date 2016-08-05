@@ -87,7 +87,7 @@ bool RfiddataDAO::insertObject(Rfiddata *rfiddata)
         // Commit and terminate the transaction.
         db->commit();
 
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA INSERTED...");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("RFIDDATA INSERTED. IdentificationCode [%1]").arg(rfiddata->identificationcode().toString()));
 
         return true;
 
@@ -109,6 +109,7 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
     db->transaction();
 
     try{
+        QString rfidDebugList;
         foreach (Rfiddata *rfiddata, list) {
             // Get the new available sequence from database to the new object.
             qlonglong id = Functions::getSequence("seq_rfiddata", db);
@@ -128,12 +129,14 @@ bool RfiddataDAO::insertObjectList(const QList<Rfiddata *> &list)
 
             // Execute the query.
             query.exec();
+
+            rfidDebugList.append(rfiddata->identificationcode().toString() + " , ");
         }
 
         // Commit and terminate the transaction.
         db->commit();
 
-        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, "RFIDDATA INSERTED...");
+        Logger::instance()->writeRecord(Logger::severity_level::debug, m_module, Q_FUNC_INFO, QString("RFIDDATA INSERTED. IdentificationCode [%1]").arg(rfidDebugList));
 
         return true;
 
